@@ -1,0 +1,84 @@
+{% extends 'base.html' %}
+
+{% block head %}
+<!-- Styles for Bravo visualizations -->
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='bravoviz.css') }}">
+
+<style type="text/css">
+.bravo-tab {
+   display: flex;
+   flex-direction: row;
+}
+.bravo-tab-item {
+   padding-left: 15px;
+   padding-right: 15px;
+}
+.bravo-tab-item a {
+   color: black;
+   text-decoration: none;
+}
+.bravo-tab-item-unselected a {
+   color: #757575;
+}
+.bravo-tab-item-unselected a:hover {
+   color: black;
+}
+.bravo-tab-item-selected a {
+   color: #0b66fe;
+}
+.bravo-tab-item-selected {
+   border-bottom: 3px solid #0b66fe;
+}
+</style>
+{% endblock %}
+
+{% block title %}
+BRAVO
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+   <div class="row justify-content-center" style="border-bottom: 1px solid #cccccc;margin-bottom: 5px;">
+     <div class="col-10 col-sm-10 col-md-10">
+         <div class="bravo-tab">
+            <div class="bravo-tab-item {{ 'bravo-tab-item-selected' if variants_type == 'snv' else 'bravo-tab-item-unselected' }}">
+               <a href="{{ '#' if variants_type == 'snv' else url_for('.gene_page', variants_type = 'snv', gene_name = 'gene_name') }}">SNVs and Indels</a>
+            </div>
+            <!-- <div class="bravo-tab-item {{ 'bravo-tab-item-selected' if variants_type == 'sv' else 'bravo-tab-item-unselected' }}">
+               <a href="{{ '#' if variants_type == 'sv' else url_for('.gene_page', variants_type = 'sv', gene_name = 'gene_name') }}">Structural Variants</a>
+            </div> -->
+         </div>
+      </div>
+   </div>
+   <div class="row justify-content-center">
+      <div class="col-10 col-sm-10 col-md-10">
+         {% if variants_type == 'sv' %}
+         <div class="m-3 m-md-5 text-center">
+            <img src="{{ url_for('.static', filename='img/error_logo.jpg') }}" width=300px>         
+         </div>
+         <p class="text-center"><strong>This page is under active development and will be available soon.</strong></p>
+         {% else %}
+         <div id="bravo-plot"> 
+            <bravoviz :homepage="'{{ url_for('.home', _external = True, _scheme='https') }}'" :api="'{{ url_for('.home', _external = True, _scheme='https') }}'" :gene_name = "'{{ gene_name }}'"></bravoviz>
+         </div>
+         {% endif %}
+      </div>
+   </div>
+</div>
+{% endblock %}
+
+{% block jscripts %}
+<!-- Bravo plot libraries -->
+<script type="text/javascript" charser="utf8" src="https://unpkg.com/vue"></script>
+<script type="text/javascript" charset="utf8" src="{{ url_for('.static', filename='bravoviz.umd.min.js') }}"></script>
+
+
+<script type="text/javascript">
+var bravoviz_vm = new Vue({
+  components: {
+    bravoviz
+  }
+});
+bravoviz_vm.$mount('#bravo-plot');
+</script>
+{% endblock %}
