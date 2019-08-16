@@ -6,6 +6,9 @@ Vue.config.productionTip = false
 new Vue({
   render: h => h(App, {
     props: {
+      homepage: "https://bravo.sph.umich.edu/test/",
+      api: "https://bravo.sph.umich.edu/test/",
+      paginationSize: 100,
       // chrom: "22",
       // start: 23970365,
       // stop: 23981469,

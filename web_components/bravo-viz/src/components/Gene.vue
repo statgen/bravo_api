@@ -120,7 +120,7 @@
             .style("display", "block")
             .style("left", x_mid + "px")
             .style("top", y_mid + "px");
-          self.tooltipHtml = `<ul><li>${transcript.transcript_id} (${transcript.strand})</li><li style='color: #85144b'>${transcript.transcript_type}</li><li>${self.region.chrom}:${transcript.start.toLocaleString()}-${transcript.stop.toLocaleString()}</li><ul>`;
+          self.tooltipHtml = `<ul><li>${transcript.transcript_id} (${transcript.strand})</li><li style='color: #85144b'>${transcript.transcript_type}</li><li>${self.region.regionChrom}:${transcript.start.toLocaleString()}-${transcript.stop.toLocaleString()}</li><ul>`;
         });
         this.rects_box.on("mouseout", function(d) {
           d3.select(self.$el.querySelector(".bravo-tooltip"))

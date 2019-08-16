@@ -71,14 +71,13 @@ export default {
   },
   props: {
     homepage: {
-      type: String,
-      // default: "https://bravo.sph.umich.edu/sv/"
-      default: "https://bravo.sph.umich.edu/test/"
+      type: String
     },
     api: {
-      type: String,
-      // default: "http://localhost:8890/"
-      default: "https://bravo.sph.umich.edu/test/"
+      type: String
+    },
+    paginationSize: {
+      type: Number
     },
     chrom: {
       type: String
@@ -91,10 +90,6 @@ export default {
     },
     gene_name: {
       type: String
-    },
-    paginationSize: {
-      type: Number,
-      default: 100
     },
     filters: {
       type: Array,
