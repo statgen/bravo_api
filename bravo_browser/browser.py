@@ -125,7 +125,7 @@ def downloads():
 def download_vcf(chromosome):
    if not chromosome in current_app.config['DOWNLOAD_CHROMOSOMES_VCF']:
       abort(404)
-   return make_response(send_file(current_app.config['DOWNLOAD_CHROMOSOMES_VCF'][chromosome], as_attachment = True, mimetype='application/gzip'))
+   return make_response(send_file(current_app.config['DOWNLOAD_CHROMOSOMES_VCF'][chromosome][1], as_attachment = True, mimetype='application/gzip'))
 
 
 @bp.route('/agree_to_terms', methods = ['GET'])
