@@ -1,6 +1,8 @@
 <!doctype html>
 <html>
 <head>
+
+   {% if config['GOOGLE_ANALYTICS_TRACKING_ID'] %}
    <!-- Global site tag (gtag.js) - Google Analytics -->
    <script async src="https://www.googletagmanager.com/gtag/js?id={{ config['GOOGLE_ANALYTICS_TRACKING_ID'] }}"></script>
    <script>
@@ -9,6 +11,7 @@
      gtag('js', new Date());
      gtag('config', '{{ config['GOOGLE_ANALYTICS_TRACKING_ID'] }}');
    </script>
+   {% endif %}
 
    <!-- These two meta tags are required by Bootstrap -->
    <meta charset="utf-8">
