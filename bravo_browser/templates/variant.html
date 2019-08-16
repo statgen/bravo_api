@@ -45,7 +45,7 @@ BRAVO
    <div class="row justify-content-center">
       <div class="col-10 col-sm-10 col-md-10">
          <div id="variant-plot"> 
-            <variantviz :api="'{{ url_for('.home', _external = True, _scheme='https') }}'" :variant-id="'{{ variant_id }}'" :total-samples="132345" />
+            <variantviz :homepage="'{{ url_for('.home', _external = True, _scheme='https') }}'" :api="'{{ url_for('.home', _external = True, _scheme='https') }}'" :variant-id="'{{ variant_id }}'" :total-samples="132345" />
          </div>
       </div>
    </div>
