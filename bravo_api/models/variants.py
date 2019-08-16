@@ -211,6 +211,10 @@ def get_snv(variant_id, chrom, position):
    #print(time.time() - st)
    for entry in cursor:
       result['data'].append(entry)
+      for annotation_gene in entry['annotation'].get('genes', []):
+         gene = get_gene(annotation_gene['name'], False)
+         if gene is not None:
+            annotation_gene['other_name'] = gene['gene_name']
    result['total'] = len(result['data'])
    return result
 
