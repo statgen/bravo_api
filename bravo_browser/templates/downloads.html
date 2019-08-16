@@ -21,7 +21,8 @@ BRAVO
             <tbody>
             {% for i in range(1, 24) %}
             <tr>
-               <td>Chromosome {{ {23: 'X'}.get(i, i) }}</td>
+               <td>Chromosome {{ {23: 'X'}.get(i, i|string) }}</td>
+               <td>{{ config['DOWNLOAD_CHROMOSOMES_VCF'][ {23: 'X'}.get(i, i|string) ][0] }}</td>
                <td class="text-right"><a href="{{ url_for('.download_vcf', chromosome = {23: 'X'}.get(i, i)) }}" class="btn btn-sm btn-primary"><span>Download VCF</span></a></td>
                <td class="text-right"><button type="button" class="btn btn-sm btn-secondary" onclick="prompt('Press Ctrl + C to copy Curl command. Please do not share this command, because it is only for your account.', 'curl \'{{ url_for('.download_vcf', chromosome = {23: 'X'}.get(i, i), _external = True, _scheme = 'https') }}\' -H \'Accept-Encoding: gzip, deflate, br\' -H \'Cookie: {% for key, value in request.cookies.items() -%}{{key}}={{value}}; {%- endfor %}\' --compressed &gt; chr{{ {23: 'X'}.get(i, i) }}.BRAVO_TOPMed_Freeze_8.vcf.gz')">Copy Curl command</button></td>
             </tr>
