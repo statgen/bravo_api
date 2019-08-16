@@ -7,7 +7,8 @@ Vue.config.productionTip = false
 new Vue({
   render: h => h(App, {
     props: {
-      api: "https://bravo.sph.umich.edu/dev/",
+      homepage: "https://bravo.sph.umich.edu/test/",
+      api: "https://bravo.sph.umich.edu/test/",
       variantId: "22-23971765-A-G",
       totalSamples: 132345
     }

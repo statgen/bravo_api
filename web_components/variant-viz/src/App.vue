@@ -22,7 +22,7 @@
         </div>
         <div class="row">
           <div class="col-12 mt-3">
-            <consequences v-bind:variant="this.variant"/>
+            <consequences v-bind:homepage="this.homepage" v-bind:variant="this.variant"/>
           </div>
         </div>
         <div class="row">
@@ -68,6 +68,9 @@ export default {
     reads
   },
   props: {
+    homepage: {
+      type: String
+    },
     api: {
       type: String
     },

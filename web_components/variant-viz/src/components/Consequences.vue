@@ -24,7 +24,7 @@
                     </td>
                     <td><span class="badge" v-bind:class="{ 'badge-success': consequence.lof == 'High Confidence', 'badge-warning': consequence.lof == 'Low Confidence' }">{{ consequence.lof }}</span></td>
                     <td>{{ consequence.hgvs }}</td>
-                    <td>{{ consequence.gene }}</td>
+                    <td><a v-bind:href="homepage + `/gene/snv/${consequence.gene}`" class="text-info">{{ consequence.gene }} <span v-if="consequence.gene_other_name">(<i>{{ consequence.gene_other_name }}</i>)</span></a></td>
                     <td>{{ consequence.transcript }}</td>
                     <td><span class="badge">{{ consequence.biotype }}</span></td>
                   </tr>
@@ -45,7 +45,7 @@ import { Model } from '../mixins/model.js'
 export default {
   mixins: [ Model ],
   name: 'consequences',
-  props: ['variant'],
+  props: ['homepage', 'variant'],
   computed: {
     consequences: function() {
       var consequences = [];
@@ -61,6 +61,7 @@ export default {
           }
           consequences.push({
             gene: gene.name,
+            gene_other_name: gene.other_name,
             transcript: transcript.name,
             biotype: transcript.biotype.replace("_", " "),
             hgvs: transcript.HGVS,
