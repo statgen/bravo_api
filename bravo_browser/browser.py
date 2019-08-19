@@ -128,6 +128,14 @@ def download_vcf(chromosome):
    return make_response(send_file(current_app.config['DOWNLOAD_CHROMOSOMES_VCF'][chromosome][1], as_attachment = True, mimetype='application/gzip'))
 
 
+@bp.route('/downloads/coverage/<string:chromosome>', methods = ['GET'])
+@require_authorization
+def download_coverage(chromosome):
+   if not chromosome in current_app.config['DOWNLOAD_CHROMOSOMES_COVERAGE']:
+      abort(404)
+   return make_response(send_file(current_app.config['DOWNLOAD_CHROMOSOMES_COVERAGE'][chromosome][1], as_attachment = True, mimetype='application/gzip'))
+
+
 @bp.route('/agree_to_terms', methods = ['GET'])
 def agree_to_terms():
    if current_app.config['GOOGLE_OAUTH_CLIENT_SECRET']:
