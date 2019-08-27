@@ -5,6 +5,12 @@
     <button class="close-button" v-on:click="$emit('close')">
       <font-awesome-icon style="background-color: transparent;" :icon="closeIcon"></font-awesome-icon>
     </button>
+    <button v-if="hasLeftScroll" class="hscroll-button scroll-left" v-on:click="scroll(-200)">
+      <font-awesome-icon style="background-color: transparent;" :icon="scrollLeftIcon"></font-awesome-icon>
+    </button>
+    <button v-if="hasRightScroll" class="hscroll-button scroll-right" v-on:click="scroll(200)">
+      <font-awesome-icon style="background-color: transparent;" :icon="scrollRightIcon"></font-awesome-icon>
+    </button>
 
     <div class="container-fluid">
       <div class="cards">
@@ -226,6 +232,8 @@
 <script>
   import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
   import { faTimes } from '@fortawesome/free-solid-svg-icons';
+  import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
+  import { faAngleLeft } from '@fortawesome/free-solid-svg-icons';
   import axios from "axios";
 
   export default {
@@ -245,6 +253,10 @@
       return {
         tooltipHtml: "",
         closeIcon: faTimes,
+        scrollRightIcon: faAngleRight,
+        scrollLeftIcon: faAngleLeft,
+        hasLeftScroll: false,
+        hasRightScroll: false,
         summary: null
       }
     },
@@ -253,16 +265,20 @@
         if ((this.region.regionChrom == null) || (this.region.regionStart == null) || (this.region.regionStop == null)) {
           return;
         }
+        var url = "";
         if (this.region.gene != null) {
-          var url = `${this.api}variants/gene/snv/${this.region.gene.gene_id}/summary`;
+          url = `${this.api}variants/gene/snv/${this.region.gene.gene_id}/summary`;
         } else {
-          var url = `${this.api}variants/region/snv/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}/summary`;
+          url = `${this.api}variants/region/snv/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}/summary`;
         }
         axios
           .post(url)
           .then(response => {
             var payload = response.data;
             this.summary = payload['data'];
+            this.$nextTick(() => {
+              this.updateHorizontalScroll();
+            });
           })
           .catch(error => {
             this.summary = null;
@@ -289,6 +305,19 @@
       },
       count_inframe_deletions: function(category) {
         return (this.summary[category]['inframe_deletion'] || 0);
+      },
+      updateHorizontalScroll: function() {
+        var cards = this.$el.querySelector(".cards");
+        this.hasLeftScroll = cards.scrollLeft != 0;
+        this.hasRightScroll = cards.scrollLeft < cards.scrollWidth - cards.clientWidth;
+      },
+      scroll: function(value) {
+        var cards = this.$el.querySelector(".cards");
+        if (value < 0) {
+          cards.scrollLeft = Math.max(cards.scrollLeft + value, 0);
+        } else if (value > 0) {
+          cards.scrollLeft = Math.min(cards.scrollLeft + value, cards.scrollWidth - cards.clientWidth);
+        }
       }
     },
     beforeCreate: function() {
@@ -298,6 +327,7 @@
     },
     mounted: function() {
       this.load();
+      this.$el.querySelector(".cards").onscroll = this.updateHorizontalScroll;
     },
     computed: {
       computedRegion: function() {
@@ -314,6 +344,7 @@
               this.load();
             }
           }
+          this.updateHorizontalScroll();
         },
         deep: true
       },
@@ -340,7 +371,37 @@
   border-radius: 2px;
   box-shadow: none;
   opacity: 0.5;
-  z-index: 9999;
+  z-index: 999;
+}
+.hscroll-button {
+  padding: 0px;
+  width: 32px;
+  height: 32px;
+  color: #7f7f7f;
+  font-size: 20px;
+  outline: none;
+  background-color: #ffffff;
+  border: 1px solid #cccccc;
+  border-radius: 50%;
+  box-shadow: none;
+  z-index: 998;
+}
+.hscroll-button:hover {
+  box-shadow: 0px 0px 4px 0px rgba(0,0,0,.3);
+}
+.scroll-right {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+  right: 0px;
+}
+.scroll-left {
+  position: absolute;
+  top: 50%;
+  -webkit-transform: translateY(-50%);
+  transform: translateY(-50%);
+  left: 0px;
 }
 .close-button:hover {
   background-color: #cccccc;

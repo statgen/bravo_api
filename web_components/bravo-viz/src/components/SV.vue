@@ -286,7 +286,6 @@ export default {
   border: 1px solid black;
   border-radius: 5px;
   box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.2);
-  z-index: 1;
   -webkit-transform: translateX(-50%) translateY(-50%);
   transform: translateX(-50%) translateY(-50%);
   z-index: 9999;
