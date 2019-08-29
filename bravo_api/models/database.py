@@ -118,6 +118,7 @@ def load_snv(threads, variants_files):
       p.map(_load_snv, variants_files)
    mongo.db.snv.create_index([('xpos', pymongo.ASCENDING), ('xstop', pymongo.ASCENDING)])
    mongo.db.snv.create_index([('variant_id', pymongo.ASCENDING)])
+   mongo.db.snv.create_index([('rsids', pymongo.ASCENDING)])
    sys.stdout.write(f"Created 'snv' collection and inserted {mongo.db.snv.count_documents({})} variant(s).\n")
 
 

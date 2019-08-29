@@ -163,23 +163,21 @@ def adjust_mongo_filter2(mongo_filter, mongo_sort, last, gene_name):
    mongo_filter.append({'$or': mongo_last_filter})
 
 
-def get_snv(variant_id, chrom, position):   
-   result = {
-      'limit': None,
-      'total': 0,
-      'data': [],
-      'sort': None,
-      'last': None
-   }
-
+def get_snv(variant_id, chrom, position, full): 
    if variant_id is not None:
-      mongo_filter = [ { 'variant_id': variant_id } ]
+      if variant_id.startswith('rs'):
+         pattern = Regex('^' + variant_id)
+         mongo_filter = [ { 'rsids': pattern } ]
+         mongo_sort = { 'rsids': pymongo.ASCENDING }
+      else:
+         mongo_filter = [ { 'variant_id': variant_id } ]
+         mongo_sort = dict()
    elif chrom is not None and position is not None:
       xpos = make_xpos(chrom, position)
       mongo_filter = [ {'xpos': xpos} ]
+      mongo_sort = { 'xpos': pymongo.ASCENDING }
    else:
-      return result
-
+      return
    projection = {
       '_id': False,
       'variant_id': True,
@@ -190,33 +188,41 @@ def get_snv(variant_id, chrom, position):
       'cadd_phred': True,
       'allele_num': True, 'allele_count': True, 'allele_freq': True,
       'hom_count': True, 'het_count': True,
-      'annotation': True,
-      'qc_metrics': True,
-      'avg_dp': True, 'avg_dp_alt': True,
-      'avg_gq': True, 'avg_gq_alt': True,
-      'dp_hist': True, 'dp_hist_alt': True,
-      'gq_hist': True, 'gq_hist_alt': True,
-      'pub_freq': True
    }
-
+   if full:
+      projection.update({
+         'annotation': True,
+         'qc_metrics': True,
+         'avg_dp': True, 'avg_dp_alt': True,
+         'avg_gq': True, 'avg_gq_alt': True,
+         'dp_hist': True, 'dp_hist_alt': True,
+         'gq_hist': True, 'gq_hist_alt': True,
+         'pub_freq': True
+      })
+   else:
+      projection.update({
+         'annotation.region.consequence': True
+      })
    pipeline = [
       { '$match': { '$and': mongo_filter }},
       { '$project': projection }
    ]
-
+   if mongo_sort:
+      pipeline.append({ '$sort': mongo_sort })
+   pipeline.append({ '$limit': 10 })
+   
    #pprint.PrettyPrinter(indent=1).pprint(mongo.db.command('aggregate', 'snv', pipeline = pipeline, explain = True))
 
-   #st = time.time()
+   st = time.time()
    cursor = mongo.db.snv.aggregate(pipeline)
-   #print(time.time() - st)
+   print('Variant query time:', time.time() - st)
    for entry in cursor:
-      result['data'].append(entry)
-      for annotation_gene in entry['annotation'].get('genes', []):
-         gene = get_gene(annotation_gene['name'], False)
-         if gene is not None:
-            annotation_gene['other_name'] = gene['gene_name']
-   result['total'] = len(result['data'])
-   return result
+      if full:
+         for annotation_gene in entry['annotation'].get('genes', []):
+            gene = get_gene(annotation_gene['name'], False)
+            if gene is not None:
+               annotation_gene['other_name'] = gene['gene_name']
+      yield entry
 
 
 def get_region(chrom, start, stop, filter, sort, last, limit):

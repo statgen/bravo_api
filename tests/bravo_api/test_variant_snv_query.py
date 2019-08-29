@@ -74,6 +74,34 @@ def test_id_query(client, config):
 
 
 #@pytest.mark.skip
+def test_rsid_query(client, config):
+   variant_rsid = 'rs34747326'
+   response = client.get(f'/snv?variant_id={variant_rsid}')
+   assert response.status_code == 200
+   payload = response.get_json()
+   assert all(x in payload for x in ['data', 'total', 'limit', 'next', 'error'])
+   assert payload['data'] is not None and len(payload['data']) == 1
+   assert payload['total'] is not None and payload['total'] == len(payload['data'])
+   assert payload['limit'] is None
+   assert payload['next'] is None
+   assert payload['error'] is None
+
+
+#@pytest.mark.skip
+def test_rsid_many_query(client, config):
+   variant_rsid = 'rs34'
+   response = client.get(f'/snv?variant_id={variant_rsid}')
+   assert response.status_code == 200
+   payload = response.get_json()
+   assert all(x in payload for x in ['data', 'total', 'limit', 'next', 'error'])
+   assert payload['data'] is not None and len(payload['data']) >= 1 and len(payload['data']) <= 10
+   assert payload['total'] is not None and payload['total'] == len(payload['data'])
+   assert payload['limit'] is None
+   assert payload['next'] is None
+   assert payload['error'] is None
+
+
+#@pytest.mark.skip
 def test_id_empty_query(client, config):
    variant_id = '22-1-C-T'
    response = client.get(f'/snv?variant_id={variant_id}')

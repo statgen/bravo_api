@@ -190,16 +190,17 @@ def autocomplete():
    return make_response(jsonify({ "suggestions": suggestions }), 200)
 
 
-# 1:1-1000
 _regex_pattern_chr = r'^(?:CHR)?(\d+|X|Y|M|MT)'
 _regex_pattern_chr_pos = _regex_pattern_chr + r'\s*[-:/]\s*([\d,]+)'
 _regex_pattern_chr_start_end = _regex_pattern_chr_pos + r'\s*[-:/]\s*([\d,]+)'
 _regex_pattern_chr_pos_ref_alt = _regex_pattern_chr_pos + r'\s*[-:/]\s*([ATCG]+)\s*[-:/]\s*([ATCG]+)'
+_regex_pattern_rsid = r'^(?:rs)(\d+)'
 
 _regex_chr = re.compile(_regex_pattern_chr+'$')
 _regex_chr_pos = re.compile(_regex_pattern_chr_pos+'$')
 _regex_chr_start_end = re.compile(_regex_pattern_chr_start_end+'$')
 _regex_chr_pos_ref_alt = re.compile(_regex_pattern_chr_pos_ref_alt+'$')
+_regex_rsid = re.compile(_regex_pattern_rsid+'$')
 
 
 @bp.route('/search', methods = ['GET'])
@@ -226,6 +227,21 @@ def search():
             'start': match.groups()[1],
             'stop': match.groups()[2]}
          return redirect(url_for('.region_page', **args))
+      else:
+         match = _regex_chr_pos_ref_alt.match(args['value'])
+         if match is not None:
+            args = {
+               'variant_type': 'snv', 
+               'variant_id': f'{match.groups()[0]}-{match.groups()[1]}-{match.groups()[2]}-{match.groups()[3]}'}
+            return redirect(url_for('.variant_page', **args))
+         else:
+            match = _regex_rsid.match(args['value'])
+            if match is not None:
+               args = {
+                  'variant_type': 'snv',
+                  'variant_id': match.group()
+               }
+               return redirect(url_for('.variant_page', **args))
    return not_found(f'We coudn\'t find what you wanted.')
 
 

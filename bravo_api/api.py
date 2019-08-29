@@ -91,7 +91,8 @@ def validate_variant_http_request_args(parsed_args, all_args):
          chrom, pos, ref, alt = parsed_args['variant_id'].split('-')
          pos = int(pos)
       except:
-         raise ValidationError({'variant_id': ['Invalid variant ID format.']})
+         if not parsed_args['variant_id'].startswith('rs'):
+            raise ValidationError({'variant_id': ['Invalid variant ID format.']})
    elif 'chrom' in parsed_args:
       if 'pos' not in parsed_args:
          raise ValidationError({'pos': ['Position is mandatory when chromosome is specified.']})
@@ -203,11 +204,20 @@ def get_variant():
    arguments = {
       'variant_id': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
       'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-      'pos': fields.Int(regquired = False, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than 0.'})
+      'pos': fields.Int(regquired = False, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+      'full': fields.Bool(required = False, missing = False)
    }
    args = parser.parse(arguments, validate = partial(validate_variant_http_request_args, all_args = arguments.keys()))
-   result = variants.get_snv(args.get('variant_id', None), args.get('chrom', None), args.get('pos', None))
-   response = make_response(jsonify({ 'data': result['data'], 'total': result['total'], 'limit': result['limit'], 'next': None, 'error': None }), 200)
+   data = []
+   if 'variant_id' in args:
+      for variant in variants.get_snv(args['variant_id'], None, None, args['full']):
+         data.append(variant)
+   elif all(x in args for x in ['chrom', 'pos']):
+      for variant in variants.get_snv(None, args['chrom'], args['pos'], args['full']):
+         data.append(variant)
+   else:
+      raise UserError('Invalid query parameters')
+   response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
    response.mimetype = 'application/json'
    return response
 
