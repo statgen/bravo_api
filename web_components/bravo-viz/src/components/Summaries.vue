@@ -413,6 +413,7 @@
   flex-wrap: nowrap;
   overflow-x: auto;
   padding-bottom: 5px;
+  scroll-behavior: smooth; /* not supported in Safari and Edge */
 }
 .cards::-webkit-scrollbar { /* don't show horizonal scroll but still allow scrolling */
   display: none;
