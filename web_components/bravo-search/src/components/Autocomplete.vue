@@ -35,18 +35,28 @@ export default {
       appendTo: this.$parent.$el,
       triggerSelectOnValidInput: false,
       formatResult: function(suggestion, currentValue) {
-          var value = "<div class='autocomplete-suggestion-item'>";
-          value += "<div>" + $.Autocomplete.defaults.formatResult(suggestion, currentValue) + "</div>"
-          value += "<div style='font-size: 0.75em; color: #85144b'>" + suggestion.data.type + "</div>"
+        var value = "<div class='autocomplete-suggestion-item'>";
+        value += "<div>" + $.Autocomplete.defaults.formatResult(suggestion, currentValue) + "</div>"
+        value += "<div style='font-size: 0.75em; color: #85144b'>" + suggestion.data.type + "</div>"
+        if (suggestion.data.feature == 'gene') {
           var chrom = suggestion.data.chrom;
           if (chrom.substring(0, 3) != "chr") {
             chrom = "chr" + chrom;
           }
           value += "<div style='font-size: 0.75em;'>" + chrom +
-          ":" + parseInt(suggestion.data.start).toLocaleString() +
-          "-" + parseInt(suggestion.data.stop).toLocaleString() + "</div>"
-          value += "</div>"
-          return value;
+            ":" + parseInt(suggestion.data.start).toLocaleString() +
+            "-" + parseInt(suggestion.data.stop).toLocaleString() + "</div>"
+        } else if (suggestion.data.feature == 'snv') {
+          var [chrom, pos, ref, alt] = suggestion.data.variant_id.split('-');
+          if (chrom.substring(0, 3) != "chr") {
+            chrom = "chr" + chrom;
+          }
+          value += "<div style='font-size: 0.75em;'>" + chrom +
+            ":" + parseInt(pos).toLocaleString() +
+            " " + ref + "/" + alt + "</div>";
+        }
+        value += "</div>"
+        return value;
       },
       beforeRender: function(container, suggestions) {
       },
@@ -59,7 +69,12 @@ export default {
         self.$emit('dropdownclose');
       },
       onSelect: function (suggestion) {
-        window.location.assign(self.searchapi + "?value=" + suggestion.value + "&chrom=" + suggestion.data.chrom + "&start=" + suggestion.data.start + "&stop=" + suggestion.data.stop);
+        if (suggestion.data.feature == 'gene') {
+          window.location.assign(self.searchapi + "?value=" + suggestion.value + "&chrom=" + suggestion.data.chrom + "&start=" + suggestion.data.start + "&stop=" + suggestion.data.stop);
+        } else if (suggestion.data.feature = 'snv') {
+          var [chrom, pos, ref, alt] = suggestion.data.variant_id.split('-');
+          window.location.assign(self.searchapi + "?value=" + suggestion.value + "&chrom=" + chrom + "&pos=" + pos + "&ref=" + ref + "&alt=" + alt);
+        }
       }
     });
     this.ready = true;

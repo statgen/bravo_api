@@ -15,7 +15,7 @@
     "core-js": "^2.6.5",
     "devbridge-autocomplete": "git+https://github.com/devbridge/jQuery-Autocomplete.git",
     "jQuery": "^1.7.4",
-    "jquery": "^3.4.0",
+    "jquery": "^3.4.1",
     "vue": "^2.6.6"
   },
   "devDependencies": {

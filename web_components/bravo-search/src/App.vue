@@ -23,16 +23,13 @@ export default {
   },
   props: {
     autocompleteapi: {
-      type: String,
-      default: "https://bravo.sph.umich.edu/dev/autocomplete"
+      type: String
     },
     searchapi: {
-      type: String,
-      default: "https://bravo.sph.umich.edu/dev/search"
+      type: String
     },
     autofocus: {
-      type: Boolean,
-      default: false
+      type: Boolean
     }
   },
   data: function() {
