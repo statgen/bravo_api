@@ -281,7 +281,7 @@ def variant(variant_id):
       'variant_id': fields.Str(location = 'view_args', required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
    }
    args = parser.parse(arguments)
-   api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={variant_id}", headers = { 'Accept-Encoding': 'gzip' })
+   api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={variant_id}&full=1", headers = { 'Accept-Encoding': 'gzip' })
    if api_response.status_code == 200:
       return make_response(api_response.content, 200)
    return not_found(f'I couldn\'t find what you wanted')
