@@ -181,12 +181,27 @@ def autocomplete():
                suggestions.append({
                   'value': gene['gene_name'],
                   'data': {
+                     'feature': 'gene',
                      'chrom': gene['chrom'],
                      'start': gene['start'],
                      'stop': gene['stop'],
                      'type': gene['gene_type']
                   } 
                })
+      if len(suggestions) < 10 and query.startswith('rs'):
+         api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={query}")
+         if api_response.status_code == 200:
+            payload = api_response.json()
+            if not payload['error']:
+               for variant in payload['data']:
+                  suggestions.append({
+                     'value': [ x for x in variant['rsids'] if x.startswith(query) ][0],
+                     'data': {
+                        'feature': 'snv',
+                        'variant_id': variant['variant_id'],
+                        'type': variant['annotation']['region']['consequence'][0]
+                     }
+                  })
    return make_response(jsonify({ "suggestions": suggestions }), 200)
 
 
@@ -208,8 +223,11 @@ def search():
    arguments = {
       'value': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
       'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+      'pos': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
       'start': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-      'stop': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'})
+      'stop': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+      'ref': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+      'alt': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value myst be a non-empty string.'})
    }
    args = parser.parse(arguments)
    if 'value' in args and 'chrom' in args and 'start' in args and 'stop' in args: # suggested gene name
@@ -218,6 +236,12 @@ def search():
          'gene_name': args['value']
       }
       return redirect(url_for('.gene_page', **args))
+   elif 'value' in args and 'chrom' in args and 'pos' in args and 'ref' in args and 'alt' in args: # suggested snv
+      args = {
+        'variant_type': 'snv',
+        'variant_id': f"{args['chrom']}-{args['pos']}-{args['ref']}-{args['alt']}"
+      }
+      return redirect(url_for('.variant_page', **args))
    elif 'value' in args: # typed value
       match = _regex_chr_start_end.match(args['value'])
       if match is not None:

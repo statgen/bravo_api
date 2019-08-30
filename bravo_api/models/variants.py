@@ -168,14 +168,11 @@ def get_snv(variant_id, chrom, position, full):
       if variant_id.startswith('rs'):
          pattern = Regex('^' + variant_id)
          mongo_filter = [ { 'rsids': pattern } ]
-         mongo_sort = { 'rsids': pymongo.ASCENDING }
       else:
          mongo_filter = [ { 'variant_id': variant_id } ]
-         mongo_sort = dict()
    elif chrom is not None and position is not None:
       xpos = make_xpos(chrom, position)
       mongo_filter = [ {'xpos': xpos} ]
-      mongo_sort = { 'xpos': pymongo.ASCENDING }
    else:
       return
    projection = {
@@ -205,12 +202,10 @@ def get_snv(variant_id, chrom, position, full):
       })
    pipeline = [
       { '$match': { '$and': mongo_filter }},
-      { '$project': projection }
+      { '$project': projection },
+      { '$limit': 10 }
    ]
-   if mongo_sort:
-      pipeline.append({ '$sort': mongo_sort })
-   pipeline.append({ '$limit': 10 })
-   
+
    #pprint.PrettyPrinter(indent=1).pprint(mongo.db.command('aggregate', 'snv', pipeline = pipeline, explain = True))
 
    st = time.time()
