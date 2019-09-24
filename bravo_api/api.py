@@ -1,12 +1,13 @@
-from flask import current_app, Blueprint, request, jsonify, make_response, abort
+from flask import current_app, Blueprint, request, jsonify, make_response, abort, send_file
 from flask_cors import CORS
 from flask_compress import Compress
 from marshmallow import Schema
 from webargs.flaskparser import parser
 from webargs import fields, ValidationError
 from functools import partial
-from bravo_api.models import variants, coverage, qc_metrics
+from bravo_api.models import variants, coverage, sequences, qc_metrics
 import string
+import re
 
 import urllib
 import json
@@ -15,6 +16,7 @@ bp = Blueprint('api', __name__)
 CORS(bp)
 
 compress = Compress()
+
 
 class UserError(Exception):
    status_code = 400
@@ -408,3 +410,35 @@ def get_qc():
    response.mimetype = 'application/json'
    return response
 
+
+@bp.route('/sequence', methods = ['GET'])
+def get_sequence():
+   arguments = {
+      'variant_id': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+      'sample_no': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+      'heterozygous': fields.Bool(required = True),
+      'index': fields.Bool(required = False, missing = False)
+   }
+   args = parser.parse(arguments, validate = partial(validate_http_request_args, all_args = arguments.keys()))
+   if not args['index']:
+      range_header = request.headers.get('Range', None)
+      start = None
+      stop = None
+      if range_header:
+         m = re.search(r'(\d+)-(\d*)', range_header)
+         if m:
+            start = int(m.group(1))
+            stop = int(m.group(2))
+      result = sequences.get_cram(args['variant_id'], args['sample_no'], args['heterozygous'], start, stop)
+      if result is None:
+         abort(500) 
+      response = make_response(result['file_bytes'], 206)
+      response.headers['Content-Range'] = f'bytes {result["start_byte"]}-{result["stop_byte"]}/{result["file_size"]}'
+      response.mimetype = 'application/octet-stream'
+      response.direct_passthrough = True
+   else:
+      result = sequences.get_crai(args['variant_id'], args['sample_no'], args['heterozygous'])
+      if result is None:
+         abort(500)
+      response = make_response(send_file(result, as_attachment = False))
+   return response
