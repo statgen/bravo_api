@@ -37,7 +37,7 @@
         </div>
         <div class="row">
           <div class="col-12 mt-3">
-            <reads />
+            <reads v-bind:variant="this.variant" v-bind:api="this.api"/>
           </div>
         </div>
       </div>
