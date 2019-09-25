@@ -1,4 +1,4 @@
-from flask import current_app, Blueprint, request, jsonify, make_response, abort, render_template, redirect, url_for, session, send_file
+from flask import current_app, Blueprint, request, jsonify, make_response, Response, abort, render_template, redirect, url_for, session, send_file, stream_with_context
 from flask_cors import CORS
 from flask_compress import Compress
 from flask_login import LoginManager, UserMixin, current_user, login_user, logout_user
@@ -300,6 +300,7 @@ def variant_page(variant_type, variant_id):
 
 
 @bp.route('/variant/api/snv/<string:variant_id>')
+@require_authorization
 def variant(variant_id):
    arguments = {
       'variant_id': fields.Str(location = 'view_args', required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
@@ -311,7 +312,44 @@ def variant(variant_id):
    return not_found(f'I couldn\'t find what you wanted')
 
 
+@bp.route('/variant/api/snv/cram/<string:variant_id>-<int:sample_het>-<int:sample_no>')
+@require_authorization
+def variant_cram(variant_id, sample_het, sample_no):
+   arguments = {
+      'variant_id': fields.Str(location = 'view_args', required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+      'sample_het': fields.Bool(location = 'view_args', required = True),
+      'sample_no': fields.Int(location = 'view_args', required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'})
+   }
+   args = parser.parse(arguments)
+   api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/sequence?variant_id={variant_id}&sample_no={sample_no}&heterozygous={sample_het}&index=0", headers = {'Range': request.headers['Range']}, stream = True)
+   return Response(
+      stream_with_context(api_response.iter_content(chunk_size = 1024)), 
+      status = api_response.status_code,
+      content_type = api_response.headers['Content-Type'],
+      headers = { 'Content-Range': api_response.headers['Content-Range'], 'Content-Length': api_response.headers['Content-Length']},
+      direct_passthrough = True
+   )
+
+
+@bp.route('/variant/api/snv/crai/<string:variant_id>-<int:sample_het>-<int:sample_no>')
+@require_authorization
+def variant_crai(variant_id, sample_het, sample_no):
+   arguments = {
+      'variant_id': fields.Str(location = 'view_args', required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+      'sample_het': fields.Bool(location = 'view_args', required = True),
+      'sample_no': fields.Int(location = 'view_args', required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'})
+   }
+   args = parser.parse(arguments)
+   api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/sequence?variant_id={variant_id}&sample_no={sample_no}&heterozygous={sample_het}&index=1", stream = True)
+   return Response(
+      stream_with_context(api_response.iter_content(chunk_size = 1024)),
+      status = api_response.status_code,
+      content_type = api_response.headers['Content-Type'],
+      headers = { 'Content-Length': api_response.headers['Content-Length']}
+   )
+
 @bp.route('/qc/api')
+@require_authorization
 def qc():
    api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/qc", headers = { 'Accept-Encoding': 'gzip' })
    if api_response.status_code == 200:
@@ -601,3 +639,4 @@ def gene_variants(variants_type, gene_name):
          payload['next'] = urllib.parse.urlunparse(url)
       return make_response(jsonify(payload), 200)
    return render_template('not_found.html', show_brand = True, message = "Bad query!"), 404
+

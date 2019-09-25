@@ -7,7 +7,10 @@ import pytest
 def app():
    app = create_app({
       'MONGO_URI': 'mongodb://localhost:27017/example',
-      'COVERAGE_DIR': '/data/bravo/coverage/TOPMed_freeze5_hg38/',
+      'COVERAGE_DIR': '',
+      'SEQUENCES_DIR': '',
+      'SEQUENCES_CACHE_DIR': '',
+      'REFERENCE_SEQUENCE': '',
       'BRAVO_API_PAGE_LIMIT': 100000,
       'GZIP_COMPRESSION': True
    })
