@@ -68,9 +68,17 @@
             </div>
           </div>
         </div>
-        <div v-if="summary != null" class="card shadow-sm small" style="min-width: 400px">
+        <div class="card shadow-sm small" style="min-width: 400px">
           <div class="card-body">
-            <div class="container-fluid">
+            <div v-if="loading" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+                  <strong>&nbsp;Loading...</strong>
+                </div>
+              </div>
+            </div>
+            <div v-if="loaded" class="container-fluid">
               <div class="row">
                 <div class="col-sm-12">
                   <div class="table-responsive">
@@ -110,9 +118,24 @@
             </div>
           </div>
         </div>
-        <div v-if="summary != null" class="card shadow-sm small" style="min-width: 400px">
+        <div class="card shadow-sm small" style="min-width: 400px">
           <div class="card-body">
-            <div class="container-fluid">
+            <div v-if="loading" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+                  <strong>&nbsp;Loading...</strong>
+                </div>
+              </div>
+            </div>
+            <div v-if="failed" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  Error while loading data
+                </div>
+              </div>
+            </div>
+            <div v-if="loaded" class="container-fluid">
               <div class="row">
                 <div class="col-sm-12">
                   <div class="table-responsive">
@@ -146,9 +169,24 @@
             </div>
           </div>
         </div>
-        <div v-if="summary != null" class="card shadow-sm small" style="min-width: 400px">
+        <div class="card shadow-sm small" style="min-width: 400px">
           <div class="card-body">
-            <div class="container-fluid">
+            <div v-if="loading" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+                  <strong>&nbsp;Loading...</strong>
+                </div>
+              </div>
+            </div>
+            <div v-if="failed" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  Error while loading data
+                </div>
+              </div>
+            </div>
+            <div v-if="loaded" class="container-fluid">
               <div class="row">
                 <div class="col-sm-12">
                   <div class="table-responsive">
@@ -182,9 +220,24 @@
             </div>
           </div>
         </div>
-        <div v-if="summary != null" class="card shadow-sm small" style="min-width: 400px">
+        <div class="card shadow-sm small" style="min-width: 400px">
           <div class="card-body">
-            <div class="container-fluid">
+            <div v-if="loading" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+                  <strong>&nbsp;Loading...</strong>
+                </div>
+              </div>
+            </div>
+            <div v-if="failed" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  Error while loading data
+                </div>
+              </div>
+            </div>
+            <div v-if="loaded" class="container-fluid">
               <div class="row">
                 <div class="col-sm-12">
                   <div class="table-responsive">
@@ -257,6 +310,9 @@
         scrollLeftIcon: faAngleLeft,
         hasLeftScroll: false,
         hasRightScroll: false,
+        loading: false,
+        loaded: false,
+        failed: false,
         summary: null
       }
     },
@@ -271,16 +327,26 @@
         } else {
           url = `${this.api}variants/region/snv/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}/summary`;
         }
+        this.summary = null;
+        this.loaded = false;
+        this.failed = false;
+        this.loading = true;
         axios
           .post(url)
           .then(response => {
             var payload = response.data;
             this.summary = payload['data'];
+            this.loading = false;
+            this.failed = false;
+            this.loaded = true;
             this.$nextTick(() => {
               this.updateHorizontalScroll();
             });
           })
           .catch(error => {
+            this.loading = false;
+            this.loaded = false;
+            this.failed = true;
             this.summary = null;
           })
           .finally(() => {
@@ -337,10 +403,14 @@
     watch: {
       computedRegion: {
         handler: function(newValue, oldValue) {
-          if ((newValue.gene != oldValue.gene)) {
-            this.load();
+          if (newValue.gene != null) {
+            if ((oldValue.gene == null) || (oldValue.gene.gene_id != newValue.gene.gene_id)) {
+              this.load();
+            }
           } else if (newValue.gene == null) {
-            if ((newValue.regionChrom != oldValue.regionChrom) || (newValue.regionStart != oldValue.regionStart) || (newValue.regionStop != oldValue.regionStop)) {
+            if (oldValue.gene != null) {
+              this.load();
+            } else if ((newValue.regionChrom != oldValue.regionChrom) || (newValue.regionStart != oldValue.regionStart) || (newValue.regionStop != oldValue.regionStop)) {
               this.load();
             }
           }

@@ -2,6 +2,13 @@
 
 <template>
 <div class="child-component">
+  <div v-if="loading" class="d-flex align-items-center bravo-message">
+    <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+    <strong>&nbsp;Loading...</strong>
+  </div>
+  <div v-if="loaded && empty" class="bravo-message">No variants</div>
+  <div v-if="failed" class="bravo-message">Error while loading variants</div>
+
   <div ref="snvtable" class="table-sm"></div>
 </div>
 </template>
@@ -32,7 +39,12 @@ export default {
   components: {
   },
   data: function() {
-    return { };
+    return {
+      loading: false,
+      loaded: false,
+      empty: true,
+      failed: false,
+    };
   },
   methods: {
     createConsequenceColumnDefinition: function(title, field) {
@@ -276,10 +288,11 @@ export default {
   },
   mounted: function() {
     this.tabulator = new Tabulator(this.$refs.snvtable, {
-      placeholder: "No variants",
+      placeholder: null,
       ajaxURL: "",
-      ajaxLoader: true,
-      ajaxLoaderLoading: "Loading...",
+      ajaxLoader: false,
+      ajaxLoaderLoading: "",
+      ajaxLoaderError: "",
       ajaxConfig: {
         method: "POST",
         headers: {
@@ -294,6 +307,9 @@ export default {
         if ((url == null) || (url.length == 0)) {
           return false; //abort ajax request
         }
+        this.failed = false;
+        this.loaded = false;
+        this.loading = true;
         return true;
       },
       ajaxURLGenerator: (url, config, params) => {
@@ -310,10 +326,21 @@ export default {
       ajaxResponse: (url, params, response) => {
         response.last_page = Math.ceil(response.total / response.limit);
         params.next = response.next;
+        this.failed = false;
+        this.loading = false;
+        this.loaded = true;
         return response;
       },
-      // dataLoading: (data) => {
-      // },
+      ajaxError: (xhr, textStatus, errorThrown) => {
+        this.loading = false;
+        this.loaded = false;
+        this.failed = true;
+      },
+      dataLoaded: (data) => {
+        if (this.tabulator != null) {
+          this.empty = data.length == 0;
+        }
+      },
       renderComplete: (data) => {
         if (this.tabulator != null) {
           var visible = this.getVisibleVariants();
@@ -341,7 +368,7 @@ export default {
         { title: this.getTitle("allele_num"), field: "allele_num", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_num"](cell.getValue()) },
         { title: this.getTitle("het_count"), field: "het_count", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["het_count"](cell.getValue()) },
         { title: this.getTitle("hom_count"), field: "hom_count", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["hom_count"](cell.getValue()) },
-        { title: this.getTitle("allele_freq"), field: "allele_freq", width: 130, aligh: "left", formatter: (cell, params, onrendered) => this.value2text["allele_freq"](cell.getValue()) },
+        { title: this.getTitle("allele_freq"), field: "allele_freq", width: 130, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_freq"](cell.getValue()) },
       ],
       initialSort: [
         { column: "pos", dir: "asc" }
@@ -426,5 +453,18 @@ export default {
 }
 .child-component >>> .tabulator .tabulator-row.hover {
   background-color: orange;
+}
+.bravo-message {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  -webkit-transform: translateX(-50%) translateY(-50%);
+  transform: translateX(-50%) translateY(-50%);
+  border: 1px solid gray;
+  padding: 5px;
+  background-color: white;
+  opacity: 1.0;
+  border-radius: 5%;
+  z-index: 9999;
 }
 </style>

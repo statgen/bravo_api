@@ -12,7 +12,7 @@ new Vue({
       // chrom: "22",
       // start: 23970365,
       // stop: 23981469,
-      gene_name: 'DDT',
+      gene_name: 'DAB1',
       // gene_name: 'JADE1',
       // gene_name: 'LARGE1',
       // gene_name: 'U6'

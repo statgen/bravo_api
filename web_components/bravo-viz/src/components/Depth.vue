@@ -5,9 +5,12 @@
   <button class="close-button" v-on:click="$emit('close')">
     <font-awesome-icon style="background-color:transparent;" :icon="closeIcon"></font-awesome-icon>
   </button>
-  <p v-if="failed" class="bravo-message">Error while loading depth</p>
-  <p v-else-if="loading" class="bravo-message">Depth is loading...</p>
-  <p v-else-if="loaded_data_size == 0" class="bravo-message">No depth data for this region</p>
+  <div v-if="loading" class="d-flex align-items-center bravo-message">
+    <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+    <strong>&nbsp;Loading...</strong>
+  </div>
+  <div v-if="failed" class="bravo-message">Error while loading coverage data</div>
+  <div v-if="loaded && (loaded_data_size == 0)" class="bravo-message">No coverage data for this region</div>
 </div>
 </template>
 
@@ -39,6 +42,7 @@ export default {
   data: function() {
     return {
       loading: false,
+      loaded: false,
       failed: false,
       loaded_data_size: 0,
       closeIcon: faTimes,
@@ -69,13 +73,18 @@ export default {
             this.load_cycle(`${this.api}coverage/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}`, size, payload.next, draw);
           } else {
             this.loading = false;
+            this.loaded = true;
           }
         })
         .catch(error => {
+          this.loaded = false;
+          this.loading = false;
           this.failed = true;
         });
     },
     load: function() {
+      this.failed = false;
+      this.loaded = false;
       this.loading = true;
       this.coverage_stats = [];
       this.loaded_data_size = 0;
@@ -230,9 +239,10 @@ export default {
   left: 50%;
   -webkit-transform: translateX(-50%) translateY(-50%);
   transform: translateX(-50%) translateY(-50%);
-  border: 1px solid black;
+  border: 1px solid gray;
   padding: 5px;
   background-color: white;
-  opacity: 0.8;
+  opacity: 1.0;
+  border-radius: 5%;
 }
 </style>

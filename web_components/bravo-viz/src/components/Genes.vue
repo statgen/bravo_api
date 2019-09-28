@@ -8,12 +8,13 @@
   <button class="close-button" v-on:click="$emit('close')">
     <font-awesome-icon style="background-color: transparent;" :icon="closeIcon"></font-awesome-icon>
   </button>
-  <div v-if="genes.length > 0" class="bravo-info-message">
-    Displaying {{ genes.length }} gene(s)
+  <div v-if="loading" class="d-flex align-items-center bravo-message">
+    <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+    <strong>&nbsp;Loading...</strong>
   </div>
-  <p v-if="failed" class="bravo-message">Error while loading genes data</p>
-  <p v-else-if="loading" class="bravo-message">Genes data is loading...</p>
-  <p v-else-if="genes.length == 0" class="bravo-message">No genes in this region</p>
+  <div v-if="failed" class="bravo-message">Error while loading genes data</div>
+  <div v-if="loaded && (genes.length > 0)" class="bravo-info-message">Displaying {{ genes.length }} gene(s)</div>
+  <div v-if="loaded && (genes.length == 0)" class="bravo-message">No genes in this region</div>
 </div>
 </template>
 
@@ -45,6 +46,7 @@
     data: function() {
       return {
         loading: false,
+        loaded: false,
         failed: false,
         tooltipHtml: "",
         closeIcon: faTimes,
@@ -52,6 +54,8 @@
     },
     methods: {
       load: function() {
+        this.failed = false;
+        this.loaded = false;
         this.loading = true;
         axios
           .get(`${this.api}genes/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}`)
@@ -64,9 +68,11 @@
               this.draw();
             }
             this.loading = false;
+            this.loaded = true;
           })
           .catch( error => {
             this.failed = true;
+            this.loaded = false;
           });
       },
       unwind_exons: function () {
@@ -366,10 +372,11 @@
   left: 50%;
   -webkit-transform: translateX(-50%) translateY(-50%);
   transform: translateX(-50%) translateY(-50%);
-  border: 1px solid black;
+  border: 1px solid grey;
   padding: 5px;
   background-color: white;
-  opacity: 0.8;
+  opacity: 1.0;
+  border-radius: 5%;
 }
 .bravo-tooltip {
   position: absolute;

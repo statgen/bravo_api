@@ -5,14 +5,17 @@
   <button class="close-button" v-on:click="$emit('close')">
     <font-awesome-icon style="background-color: transparent;" :icon="closeIcon"></font-awesome-icon>
   </button>
-  <div v-if="this.variants >  0" class="bravo-info-message">
+  <div v-if="loading" class="d-flex align-items-center bravo-message">
+    <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+    <strong>&nbsp;Loading...</strong>
+  </div>
+  <div v-if="failed" class="bravo-message">Error while loading variants count</div>
+  <div v-if="this.loaded && (this.variants >  0)" class="bravo-info-message">
     Displaying {{ this.variants.toLocaleString() }} variant(s)
   </div>
-  <div v-else class="bravo-info-message">
+  <div v-if="this.loaded && (this.variants == 0)" class="bravo-info-message">
     No variants
   </div>
-  <p v-if="failed" class="bravo-message">Error while loading variants count</p>
-  <p v-else-if="loading" class="bravo-message">Variants count is loading...</p>
 </div>
 </template>
 
@@ -50,6 +53,7 @@ export default {
   data: function() {
     return {
       loading: false,
+      loaded: false,
       failed: false,
       variants: 0,
       closeIcon: faTimes
@@ -66,7 +70,12 @@ export default {
         var url = `${this.api}variants/region/snv/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}/histogram`;
       }
 
+      this.clearDrawing();
+
+      this.failed = false;
+      this.loaded = false;
       this.loading = true;
+
       var timestamp = Date.now();
       this.timestamp = timestamp;
       axios
@@ -85,8 +94,10 @@ export default {
             this.drawHistogram();
             this.drawVariants();
           }
+          this.loaded = true;
         })
         .catch(error => {
+          this.loaded = false;
           this.failed = true;
         })
         .finally(() => {
@@ -127,6 +138,7 @@ export default {
       this.y_scale = d3.scaleLinear();
     },
     draw: function () {
+      this.drawing.selectAll("text").attr("opacity", 1);
       this.svg.attr("width", this.dimensions.width).attr("height", this.height + this.dimensions.margin.top + this.dimensions.margin.bottom);
       this.drawing.attr("transform", `translate(${this.dimensions.margin.left}, ${this.dimensions.margin.top})`);
       this.drawing_clip
@@ -180,6 +192,12 @@ export default {
           .attr("fill", "green")
           .attr("opacity", 0.2);
       }
+    },
+    clearDrawing: function() {
+      this.y_axis_g.selectAll("*").remove();
+      this.histogram_g.selectAll("rect").remove();
+      this.variant_pointers_g.selectAll("path").remove();
+      this.drawing.selectAll("text").attr("opacity", 0);
     }
   },
   beforeCreate: function() {
@@ -292,9 +310,10 @@ export default {
   left: 50%;
   -webkit-transform: translateX(-50%) translateY(-50%);
   transform: translateX(-50%) translateY(-50%);
-  border: 1px solid black;
+  border: 1px solid gray;
   padding: 5px;
   background-color: white;
-  opacity: 0.8;
+  opacity: 1.0;
+  border-radius: 5%;
 }
 </style>

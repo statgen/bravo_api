@@ -11,7 +11,6 @@
   <div v-if="region.gene != null" class="bravo-info-message">
     Displaying {{ this.region.gene.transcripts.length }} transcript(s)
   </div>
-  <p v-if="region.gene == null" class="bravo-message">No gene transcripts</p>
 </div>
 </template>
 
