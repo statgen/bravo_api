@@ -34,6 +34,9 @@ export default {
     },
     'paginationSize': {
       type: Number
+    },
+    'download': {
+      type: Number
     }
   },
   components: {
@@ -423,6 +426,17 @@ export default {
         }
       },
       deep: true
+    },
+    download: function() {
+      if (this.tabulator != null) {
+        var name = 'variants.csv';
+        if (this.region.gene != null) {
+          name = `variants_${this.region.gene.gene_id}.csv`;
+        } else if ((this.region.regionChrom != null) && (this.region.regionStart !=null) && (this.region.regionStop != null)) {
+          name = `variants_${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}.csv`;
+        }
+        this.tabulator.download('csv', name);
+      }
     }
   },
   computed: {

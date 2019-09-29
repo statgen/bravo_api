@@ -1,6 +1,8 @@
 <template>
   <div id="bravoviz">
-    <div class="parent-menu">
+    <div style="position: relative; min-height: 20px">
+
+      <div class="parent-menu">
         <button class="parent-menu-button" v-on:click="showMenuDropDown = !showMenuDropDown">
           Settings <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="settingsIcon"></font-awesome-icon>
         </button>
@@ -21,26 +23,37 @@
             <a href="#" v-on:click.prevent="showSNV = !showSNV; showMenuDropDown = !showMenuDropDown">Variants Display <div style="display: inline" v-if="showSNV">On</div><div style="display: inline" v-else>Off</div></a>
           </div>
         </div>
-        <button v-if="gene_view" class="parent-menu-button" v-on:click="toggleIntrons()">
-          <div v-if="showIntrons">Introns <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="showIntronsIcon"></font-awesome-icon></div>
-          <div v-else>Introns <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="hideIntronsIcon"></font-awesome-icon></div>
-        </button>
     </div>
     <summaries v-if="showSummaries" v-on:close="showSummaries = false" v-bind:api="api" v-bind:region="region"/>
+  </div>
+  <div style="position: relative; min-height: 20px">
+    <div class="parent-menu secondary">
+      <button v-if="gene_view" class="parent-menu-button" v-on:click="toggleIntrons()">
+        <div v-if="showIntrons">Shows introns <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="showIntronsIcon"></font-awesome-icon></div>
+        <div v-else>Hides introns <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="hideIntronsIcon"></font-awesome-icon></div>
+      </button>
+    </div>
     <depth v-if="showDepth" v-on:close="showDepth = false" v-bind:api="api" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:hoveredVariant="hoveredVariant"/>
     <genes v-if="showGenes && !gene_view" v-on:close="showGenes = false" v-on:click="genesClick" v-bind:api="api" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:hoveredVariant="hoveredVariant"/>
     <gene v-if="showGene && gene_view" v-on:close="showGene = false" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:hoveredVariant="hoveredVariant"/>
     <snv v-if="showSNV" v-on:close="showSNV = false" v-bind:api="api" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:filters="activeFilters" v-bind:visibleVariants="visibleVariants" v-bind:hoveredVariant="hoveredVariant"/>
     <coordinates v-bind:region="region" v-bind:dimensions="dimensions"/>
-    <bravofilter ref="filter" v-bind:suggestions="filterSuggestions" v-on:filter="onFilterChange" v-bind:filters="activeFilters"/>
-    <snvtable ref="snvtable" v-on:suggestions="onFilterSuggestionsChange" v-on:scroll="variantsScroll" v-on:hover="variantHover" v-bind:region="region" v-bind:api="api" v-bind:filters="activeFilters" v-bind:paginationSize="paginationSize"/>
+
+    <div>
+      <button type="button" class="download-button" v-on:click="download++">Download
+        <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="downloadIcon"></font-awesome-icon>
+      </button>
+      <bravofilter ref="filter" v-bind:suggestions="filterSuggestions" v-on:filter="onFilterChange" v-bind:filters="activeFilters"/>
+    </div>
+    <snvtable ref="snvtable" v-on:suggestions="onFilterSuggestionsChange" v-on:scroll="variantsScroll" v-on:hover="variantHover" v-bind:region="region" v-bind:api="api" v-bind:filters="activeFilters" v-bind:paginationSize="paginationSize" v-bind:download="download"/>
   </div>
+</div>
 </template>
 
 <script>
 import axios from "axios";
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCogs, faEyeSlash, faEye } from '@fortawesome/free-solid-svg-icons';
+import { faCogs, faEyeSlash, faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { Model } from './mixins/model.js'
 import coordinates from './components/Coordinates.vue';
 import depth from './components/Depth.vue';
@@ -140,6 +153,7 @@ export default {
       settingsIcon: faCogs,
       hideIntronsIcon: faEyeSlash,
       showIntronsIcon: faEye,
+      downloadIcon: faDownload,
 
       hoveredVariant: {
         index: null,
@@ -151,6 +165,8 @@ export default {
         stop_index: null,
         data: null
       },
+
+      download: 0,
 
     }
   },
@@ -308,8 +324,11 @@ export default {
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   display: inline-block;
   color: black;
-  font-size: 11px;
+  font-size: 13px;
   z-index: 999;
+}
+.secondary {
+  z-index: 998;
 }
 .parent-menu-button {
   background-color: #eeeeee;
@@ -319,6 +338,7 @@ export default {
   border: 1px solid #cccccc;
   border-radius: 2px;
   box-shadow: none;
+  font-weight: bold;
   opacity: 0.5;
 }
 .parent-menu-button:hover {
@@ -329,10 +349,9 @@ export default {
   display: block;
   position: absolute;
   background-color: #eeeeee;
-  min-width: 120px;
+  min-width: 140px;
   overflow: auto;
   box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.2);
-  z-index: 1;
   border: 1px solid #cbcacb;
 }
 .parent-menu-dropdown a {
@@ -344,6 +363,15 @@ export default {
 }
 .parent-menu-dropdown a:hover {
   background-color: #cccccc;
+}
+.download-button {
+  float: left;
+  background-color: #eeeeee;
+  outline: none;
+  padding: 0px 7px 0px 7px;
+  margin: 0px 1px 0px 1px;
+  border: 1px solid #cccccc;
+  height: 36px;
 }
 
 #app {
