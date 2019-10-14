@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block title %}
-BRAVO (beta)
+BRAVO
 {% endblock %}
 
 {% block content %}
@@ -9,7 +9,7 @@ BRAVO (beta)
    <div class="row justify-content-center">
       <div class="col-10 col-sm-8 col-md-6">
          <div class="m-3 m-md-5 text-center">
-            <img src="{{ url_for('.static', filename='img/bravo_logo_beta.png') }}" width="200px" style="margin-bottom:10px;" />
+            <img src="{{ url_for('.static', filename='img/bravo_logo.png') }}" width="200px" style="margin-bottom:10px;" />
             {% if config['SUBTITLE'] %}
             {{ config['SUBTITLE']|safe }}
             {% endif %}
