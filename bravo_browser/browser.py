@@ -11,7 +11,7 @@ from datetime import timedelta
 import re
 import json
 import urllib.parse
-from bravo_browser.models import users
+from bravo_browser.models import users, feedbacks
 
 bp = Blueprint('browser', __name__, template_folder='templates', static_folder='static')
 CORS(bp)
@@ -267,6 +267,13 @@ def search():
                }
                return redirect(url_for('.variant_page', **args))
    return not_found(f'We coudn\'t find what you wanted.')
+
+
+@bp.route('/feedback', methods = ['POST'])
+@require_authorization
+def feedback():
+   feedbacks.save(current_user.id, request.form['page-url'], request.form['message-text'])
+   return Response(json.dumps({}), status=200, mimetype='application/json')
 
 
 @bp.route('/not_found/<message>', methods = ['GET'])
