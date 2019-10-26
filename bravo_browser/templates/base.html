@@ -86,7 +86,7 @@
             </li>
             {% endif %}
             {% if config['DOWNLOADS'] %}
-            <li class="nav-item"><a class="nav-link btn-sm" href="{{ url_for('.downloads') }}">Downloads</a></li>
+            <li class="nav-item"><a class="nav-link btn-sm" href="{{ url_for('.downloads') }}">{{ config['DOWNLOAD_LABEL'] }}</a></li>
             {% endif %}
             <li class="nav-item"><a class="nav-link btn-sm" href="{{ url_for('.about') }}">About</a></li>
             {% if show_signin %}
