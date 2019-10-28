@@ -211,10 +211,10 @@ _regex_pattern_chr_start_end = _regex_pattern_chr_pos + r'\s*[-:/]\s*([\d,]+)'
 _regex_pattern_chr_pos_ref_alt = _regex_pattern_chr_pos + r'\s*[-:/]\s*([ATCG]+)\s*[-:/]\s*([ATCG]+)'
 _regex_pattern_rsid = r'^(?:rs)(\d+)'
 
-_regex_chr = re.compile(_regex_pattern_chr+'$')
-_regex_chr_pos = re.compile(_regex_pattern_chr_pos+'$')
-_regex_chr_start_end = re.compile(_regex_pattern_chr_start_end+'$')
-_regex_chr_pos_ref_alt = re.compile(_regex_pattern_chr_pos_ref_alt+'$')
+_regex_chr = re.compile(_regex_pattern_chr+'$', re.IGNORECASE)
+_regex_chr_pos = re.compile(_regex_pattern_chr_pos+'$', re.IGNORECASE)
+_regex_chr_start_end = re.compile(_regex_pattern_chr_start_end+'$', re.IGNORECASE)
+_regex_chr_pos_ref_alt = re.compile(_regex_pattern_chr_pos_ref_alt+'$', re.IGNORECASE)
 _regex_rsid = re.compile(_regex_pattern_rsid+'$')
 
 
