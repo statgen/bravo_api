@@ -254,18 +254,34 @@ def search():
       else:
          match = _regex_chr_pos_ref_alt.match(args['value'])
          if match is not None:
-            args = {
-               'variant_type': 'snv', 
-               'variant_id': f'{match.groups()[0]}-{match.groups()[1]}-{match.groups()[2]}-{match.groups()[3]}'}
-            return redirect(url_for('.variant_page', **args))
+            variant_id = f'{match.groups()[0]}-{match.groups()[1]}-{match.groups()[2]}-{match.groups()[3]}'.upper()
+            if variant_id.startswith('CHR'):
+               variant_id = variant_id[3:]
+            api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={variant_id}")
+            if api_response.status_code == 200:
+               payload = api_response.json()
+               if not payload['error']:
+                  for variant in payload['data']:
+                     if variant['variant_id'] == variant_id:
+                        args = {
+                           'variant_type': 'snv',
+                           'variant_id': variant['variant_id']
+                        }
+                        return redirect(url_for('.variant_page', **args))
          else:
             match = _regex_rsid.match(args['value'])
             if match is not None:
-               args = {
-                  'variant_type': 'snv',
-                  'variant_id': match.group()
-               }
-               return redirect(url_for('.variant_page', **args))
+               api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={args['value']}")
+               if api_response.status_code == 200:
+                  payload = api_response.json()
+                  if not payload['error']:
+                     for variant in payload['data']:
+                        if any(rsid == args['value'] for rsid in variant['rsids']):
+                           args = {
+                              'variant_type': 'snv',
+                              'variant_id': variant['variant_id']
+                           }
+                           return redirect(url_for('.variant_page', **args))
             else:
                api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/genes?name={args['value']}")
                if api_response.status_code == 200:
