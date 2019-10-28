@@ -11,7 +11,7 @@ from datetime import timedelta
 import re
 import json
 import urllib.parse
-from bravo_browser.models import users
+from bravo_browser.models import users, feedbacks
 
 bp = Blueprint('browser', __name__, template_folder='templates', static_folder='static')
 CORS(bp)
@@ -211,10 +211,10 @@ _regex_pattern_chr_start_end = _regex_pattern_chr_pos + r'\s*[-:/]\s*([\d,]+)'
 _regex_pattern_chr_pos_ref_alt = _regex_pattern_chr_pos + r'\s*[-:/]\s*([ATCG]+)\s*[-:/]\s*([ATCG]+)'
 _regex_pattern_rsid = r'^(?:rs)(\d+)'
 
-_regex_chr = re.compile(_regex_pattern_chr+'$')
-_regex_chr_pos = re.compile(_regex_pattern_chr_pos+'$')
-_regex_chr_start_end = re.compile(_regex_pattern_chr_start_end+'$')
-_regex_chr_pos_ref_alt = re.compile(_regex_pattern_chr_pos_ref_alt+'$')
+_regex_chr = re.compile(_regex_pattern_chr+'$', re.IGNORECASE)
+_regex_chr_pos = re.compile(_regex_pattern_chr_pos+'$', re.IGNORECASE)
+_regex_chr_start_end = re.compile(_regex_pattern_chr_start_end+'$', re.IGNORECASE)
+_regex_chr_pos_ref_alt = re.compile(_regex_pattern_chr_pos_ref_alt+'$', re.IGNORECASE)
 _regex_rsid = re.compile(_regex_pattern_rsid+'$')
 
 
@@ -254,19 +254,54 @@ def search():
       else:
          match = _regex_chr_pos_ref_alt.match(args['value'])
          if match is not None:
-            args = {
-               'variant_type': 'snv', 
-               'variant_id': f'{match.groups()[0]}-{match.groups()[1]}-{match.groups()[2]}-{match.groups()[3]}'}
-            return redirect(url_for('.variant_page', **args))
+            variant_id = f'{match.groups()[0]}-{match.groups()[1]}-{match.groups()[2]}-{match.groups()[3]}'.upper()
+            if variant_id.startswith('CHR'):
+               variant_id = variant_id[3:]
+            api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={variant_id}")
+            if api_response.status_code == 200:
+               payload = api_response.json()
+               if not payload['error']:
+                  for variant in payload['data']:
+                     if variant['variant_id'] == variant_id:
+                        args = {
+                           'variant_type': 'snv',
+                           'variant_id': variant['variant_id']
+                        }
+                        return redirect(url_for('.variant_page', **args))
          else:
             match = _regex_rsid.match(args['value'])
             if match is not None:
-               args = {
-                  'variant_type': 'snv',
-                  'variant_id': match.group()
-               }
-               return redirect(url_for('.variant_page', **args))
+               api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={args['value']}")
+               if api_response.status_code == 200:
+                  payload = api_response.json()
+                  if not payload['error']:
+                     for variant in payload['data']:
+                        if any(rsid == args['value'] for rsid in variant['rsids']):
+                           args = {
+                              'variant_type': 'snv',
+                              'variant_id': variant['variant_id']
+                           }
+                           return redirect(url_for('.variant_page', **args))
+            else:
+               api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/genes?name={args['value']}")
+               if api_response.status_code == 200:
+                  payload = api_response.json()
+                  if not payload['error']:
+                     for gene in payload['data']:
+                        if gene['gene_name'].upper() == args['value'].upper():
+                           args = {
+                              'variants_type': 'snv',
+                              'gene_name': args['value'].upper()
+                           }
+                           return redirect(url_for('.gene_page', **args))
    return not_found(f'We coudn\'t find what you wanted.')
+
+
+@bp.route('/feedback', methods = ['POST'])
+@require_authorization
+def feedback():
+   feedbacks.save(current_user.id, request.form['page-url'], request.form['message-text'])
+   return Response(json.dumps({}), status=200, mimetype='application/json')
 
 
 @bp.route('/not_found/<message>', methods = ['GET'])
