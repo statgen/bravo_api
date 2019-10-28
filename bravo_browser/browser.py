@@ -266,6 +266,18 @@ def search():
                   'variant_id': match.group()
                }
                return redirect(url_for('.variant_page', **args))
+            else:
+               api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/genes?name={args['value']}")
+               if api_response.status_code == 200:
+                  payload = api_response.json()
+                  if not payload['error']:
+                     for gene in payload['data']:
+                        if gene['gene_name'].upper() == args['value'].upper():
+                           args = {
+                              'variants_type': 'snv',
+                              'gene_name': args['value'].upper()
+                           }
+                           return redirect(url_for('.gene_page', **args))
    return not_found(f'We coudn\'t find what you wanted.')
 
 
