@@ -1,5 +1,6 @@
 <template>
   <div id="bravoviz">
+    <info v-bind:region="region"/>
     <div style="position: relative; min-height: 20px">
 
       <div class="parent-menu">
@@ -64,6 +65,7 @@ import snvtable from './components/SNVTable.vue';
 import sv from './components/SV.vue';
 import svtable from './components/SVTable.vue';
 import summaries from './components/Summaries.vue';
+import info from './components/Info.vue';
 import bravofilter from 'bravo-filter/src/App.vue'; // used "npm link"
 
 export default {
@@ -80,7 +82,8 @@ export default {
     sv,
     svtable,
     bravofilter,
-    summaries
+    summaries,
+    info
   },
   props: {
     homepage: {

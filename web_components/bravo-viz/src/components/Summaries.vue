@@ -14,60 +14,6 @@
 
     <div class="container-fluid">
       <div class="cards">
-        <div v-if="computedRegion.gene != null" class="card shadow-sm small" style="min-width: 400px">
-          <div class="card-body">
-            <div class="container-fluid">
-              <div class="row">
-                <div class="col-sm-4 text-left text-truncate">Gene name</div>
-                <div class="col-sm-8 text-right"><i>{{computedRegion.gene.gene_name}}</i></div>
-              </div>
-              <div class="row">
-                <div class="col-sm-4 text-left text-truncate">Ensembl ID</div>
-                <div class="col-sm-8 text-right">{{computedRegion.gene.gene_id}}</div>
-              </div>
-              <div class="row">
-                <div class="col-sm-4 text-left text-truncate">Gene type</div>
-                <div class="col-sm-8 text-right">{{computedRegion.gene.gene_type}}</div>
-              </div>
-              <div class="row">
-                <div class="col-sm-4 text-left text-truncate">Gene full name</div>
-                <div class="col-sm-8 text-right">{{computedRegion.gene.full_gene_name}}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="computedRegion.gene != null" class="card shadow-sm small" style="min-width: 400px">
-          <div class="card-body">
-            <div class="container-fluid">
-              <div class="row">
-                <div class="col-sm-4 text-left text-truncate">Region</div>
-                <div class="col-sm-8 text-right">{{computedRegion.gene.chrom}}:{{computedRegion.gene.start.toLocaleString()}}-{{computedRegion.gene.stop.toLocaleString()}}</div>
-              </div>
-              <div class="row">
-                <div class="col-sm-5 text-left text-truncate">Total length (bp)</div>
-                <div class="col-sm-7 text-right">{{(computedRegion.gene.stop - computedRegion.gene.start + 1).toLocaleString()}}</div>
-              </div>
-              <div class="row">
-                <div class="col-sm-6 text-left text-truncate">Exonic length (bp)</div>
-                <div class="col-sm-6 text-right">{{ computedRegion.gene.coding_regions.reduce((total, entry) => total + entry[1] - entry[0] + 1, 0).toLocaleString() }}</div>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div v-if="(computedRegion.gene == null) && (computedRegion.regionChrom != null) && (computedRegion.regionStart != null) && (computedRegion.regionStop != null)" class="card shadow-sm small" style="min-width: 400px">
-          <div class="card-body">
-            <div class="container-fluid">
-              <div class="row">
-                <div class="col-sm-3 text-left text-truncate">Region</div>
-                <div class="col-sm-8 text-right">{{computedRegion.regionChrom}}:{{computedRegion.regionStart.toLocaleString()}}-{{computedRegion.regionStop.toLocaleString()}}</div>
-              </div>
-              <div class="row">
-                <div class="col-sm-4 text-left text-truncate">Length (bp)</div>
-                <div class="col-sm-7 text-right">{{(computedRegion.regionStop - computedRegion.regionStart + 1).toLocaleString()}}</div>
-              </div>
-            </div>
-          </div>
-        </div>
         <div class="card shadow-sm small" style="min-width: 400px">
           <div class="card-body">
             <div v-if="loading" class="container-fluid">
