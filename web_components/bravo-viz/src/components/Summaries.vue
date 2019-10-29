@@ -2,19 +2,23 @@
 
 <template>
   <div class="child-component">
-    <button class="close-button" v-on:click="$emit('close')">
-      <font-awesome-icon style="background-color: transparent;" :icon="closeIcon"></font-awesome-icon>
-    </button>
-    <button v-if="hasLeftScroll" class="hscroll-button scroll-left" v-on:click="scroll(-200)">
+    <div class="control-buttons">
+      <button class="control-button" v-on:click="collapsed = !collapsed">
+        <div style="display: inline" v-if="collapsed">Expand</div><div style="display: inline" v-else>Collapse</div>
+      </button>
+      <button class="control-button" v-on:click="$emit('close')">
+        <font-awesome-icon style="background-color: transparent;" :icon="closeIcon"></font-awesome-icon>
+      </button>
+    </div>
+    <button v-if="collapsed && hasLeftScroll" class="hscroll-button scroll-left" v-on:click="scroll(-200)">
       <font-awesome-icon style="background-color: transparent;" :icon="scrollLeftIcon"></font-awesome-icon>
     </button>
-    <button v-if="hasRightScroll" class="hscroll-button scroll-right" v-on:click="scroll(200)">
+    <button v-if="collapsed && hasRightScroll" class="hscroll-button scroll-right" v-on:click="scroll(200)">
       <font-awesome-icon style="background-color: transparent;" :icon="scrollRightIcon"></font-awesome-icon>
     </button>
-
     <div class="container-fluid">
-      <div class="cards">
-        <div class="card shadow-sm small" style="min-width: 400px">
+      <div v-bind:class="{ 'cards': collapsed, 'card-columns': !collapsed }">
+        <div class="card shadow-sm small">
           <div class="card-body">
             <div v-if="loading" class="container-fluid">
               <div class="row">
@@ -33,28 +37,28 @@
                         <tr>
                           <th scope="col" style="border-top:none;">Variant type</th>
                           <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
-                          <th scope="col" class="text-right" style="border-top:none;">Failed QC</th>
-                          <th scope="col" class="text-right" style="border-top:none;">All</th>
+                          <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
+                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
                           <td>All</td>
                           <td class="text-right">{{(summary.passed['total'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.failed['total'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.all['total'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['total'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{(summary.all['total'] || 0).toLocaleString()}}</td>
                         </tr>
                         <tr>
                           <td>SNVs</td>
                           <td class="text-right">{{(summary.passed['snv'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.failed['snv'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.all['snv'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['snv'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{(summary.all['snv'] || 0).toLocaleString()}}</td>
                         </tr>
                         <tr>
                           <td>Indels</td>
                           <td class="text-right">{{(summary.passed['indels'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.failed['indels'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.all['indels'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['indels'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{(summary.all['indels'] || 0).toLocaleString()}}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -64,7 +68,7 @@
             </div>
           </div>
         </div>
-        <div class="card shadow-sm small" style="min-width: 400px">
+        <div class="card shadow-sm small">
           <div class="card-body">
             <div v-if="loading" class="container-fluid">
               <div class="row">
@@ -90,22 +94,22 @@
                         <tr>
                           <th scope="col" style="border-top:none;">SNVs</th>
                           <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
-                          <th scope="col" class="text-right" style="border-top:none;">Failed QC</th>
-                          <th scope="col" class="text-right" style="border-top:none;">All</th>
+                          <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
+                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
                           <td>Synonymous</td>
                           <td class="text-right">{{this.count_synonymous('passed')}}</td>
-                          <td class="text-right">{{this.count_synonymous('failed')}}</td>
-                          <td class="text-right">{{this.count_synonymous('all')}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{this.count_synonymous('failed')}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{this.count_synonymous('all')}}</td>
                         </tr>
                         <tr>
                           <td>Non-synonymous</td>
                           <td class="text-right">{{this.count_nonsynonymous('passed')}}</td>
-                          <td class="text-right">{{this.count_nonsynonymous('failed')}}</td>
-                          <td class="text-right">{{this.count_nonsynonymous('all')}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{this.count_nonsynonymous('failed')}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{this.count_nonsynonymous('all')}}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -115,7 +119,7 @@
             </div>
           </div>
         </div>
-        <div class="card shadow-sm small" style="min-width: 400px">
+        <div class="card shadow-sm small">
           <div class="card-body">
             <div v-if="loading" class="container-fluid">
               <div class="row">
@@ -141,22 +145,22 @@
                         <tr>
                           <th scope="col" style="border-top:none;">Loss-of-Function (LoF)</th>
                           <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
-                          <th scope="col" class="text-right" style="border-top:none;">Failed QC</th>
-                          <th scope="col" class="text-right" style="border-top:none;">All</th>
+                          <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
+                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
                           <td>High Confidence (HC)</td>
                           <td class="text-right">{{(summary.passed['LoF (HC)'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.failed['LoF (HC)'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.all['LoF (HC)'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['LoF (HC)'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{(summary.all['LoF (HC)'] || 0).toLocaleString()}}</td>
                         </tr>
                         <tr>
                           <td>Low Confidence (LC)</td>
                           <td class="text-right">{{(summary.passed['LoF (LC)'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.failed['LoF (LC)'] || 0).toLocaleString()}}</td>
-                          <td class="text-right">{{(summary.all['LoF (LC)'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['LoF (LC)'] || 0).toLocaleString()}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{(summary.all['LoF (LC)'] || 0).toLocaleString()}}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -166,7 +170,7 @@
             </div>
           </div>
         </div>
-        <div class="card shadow-sm small" style="min-width: 400px">
+        <div class="card shadow-sm small">
           <div class="card-body">
             <div v-if="loading" class="container-fluid">
               <div class="row">
@@ -192,28 +196,28 @@
                         <tr>
                           <th scope="col" style="border-top:none;">Indels</th>
                           <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
-                          <th scope="col" class="text-right" style="border-top:none;">Failed QC</th>
-                          <th scope="col" class="text-right" style="border-top:none;">All</th>
+                          <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
+                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
                           <td>Frameshifts</td>
                           <td class="text-right">{{this.count_frameshifts('passed')}}</td>
-                          <td class="text-right">{{this.count_frameshifts('failed')}}</td>
-                          <td class="text-right">{{this.count_frameshifts('all')}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{this.count_frameshifts('failed')}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{this.count_frameshifts('all')}}</td>
                         </tr>
                         <tr>
                           <td>Inframe deletions</td>
                           <td class="text-right">{{this.count_inframe_deletions('passed')}}</td>
-                          <td class="text-right">{{this.count_inframe_deletions('failed')}}</td>
-                          <td class="text-right">{{this.count_inframe_deletions('all')}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{this.count_inframe_deletions('failed')}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{this.count_inframe_deletions('all')}}</td>
                         </tr>
                         <tr>
                           <td>Inframe insetions</td>
                           <td class="text-right">{{this.count_inframe_insertions('passed')}}</td>
-                          <td class="text-right">{{this.count_inframe_insertions('failed')}}</td>
-                          <td class="text-right">{{this.count_inframe_insertions('all')}}</td>
+                          <td class="d-none d-sm-table-cell text-right">{{this.count_inframe_insertions('failed')}}</td>
+                          <td class="d-none d-md-table-cell text-right">{{this.count_inframe_insertions('all')}}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -259,6 +263,7 @@
         loading: false,
         loaded: false,
         failed: false,
+        collapsed: true,
         summary: null
       }
     },
@@ -325,11 +330,7 @@
       },
       scroll: function(value) {
         var cards = this.$el.querySelector(".cards");
-        if (value < 0) {
-          cards.scrollLeft = Math.max(cards.scrollLeft + value, 0);
-        } else if (value > 0) {
-          cards.scrollLeft = Math.min(cards.scrollLeft + value, cards.scrollWidth - cards.clientWidth);
-        }
+        cards.scrollLeft = cards.scrollLeft + value;
       }
     },
     beforeCreate: function() {
@@ -374,36 +375,40 @@
   min-height: 50px;
   margin-top: 5px;
 }
-.close-button {
+.control-buttons {
   position: absolute;
+  margin: 0px;
   top: 0px;
   right: 0px;
-  padding: 0px 4px 0px 4px;
-  color: black;
   font-size: 11px;
+  z-index: 999;
+}
+.control-button {
+  padding: 0px 4px 0px 4px;
+  margin-left: 1px;
+  color: white;
   outline: none;
-  background-color: #eeeeee;
-  border: 1px solid #cccccc;
+  background-color: #0d49fd;
+  border: 1px solid #0d49fd;
   border-radius: 2px;
   box-shadow: none;
   opacity: 0.5;
-  z-index: 999;
 }
 .hscroll-button {
   padding: 0px;
   width: 32px;
   height: 32px;
-  color: #7f7f7f;
+  color: #0d49fd;
   font-size: 20px;
   outline: none;
   background-color: #ffffff;
-  border: 1px solid #cccccc;
+  border: 2px solid #0d49fd;
   border-radius: 50%;
   box-shadow: none;
   z-index: 998;
 }
 .hscroll-button:hover {
-  box-shadow: 0px 0px 4px 0px rgba(0,0,0,.3);
+  box-shadow: 0px 0px 8px 0px rgba(0,0,0,.3);
 }
 .scroll-right {
   position: absolute;
@@ -419,8 +424,7 @@
   transform: translateY(-50%);
   left: 0px;
 }
-.close-button:hover {
-  background-color: #cccccc;
+.control-button:hover {
   opacity: 1.0;
 }
 .cards {
@@ -445,5 +449,30 @@
 }
 .card-body {
   padding: 10px;
+}
+@media (max-width: 575.98px) {
+  .card-columns {
+    column-count: 1;
+  }
+}
+@media (min-width: 576px) and (max-width: 767.98px) {
+  .card-columns {
+    column-count: 1;
+  }
+}
+@media (min-width: 768px) and (max-width: 991.98px) {
+  .card-columns {
+    column-count: 2;
+  }
+}
+@media (min-width: 992px) and (max-width: 1199.98px) {
+  .card-columns {
+    column-count: 3;
+  }
+}
+@media (min-width: 1200px) {
+  .card-columns {
+    column-count: 4;
+  }
 }
 </style>

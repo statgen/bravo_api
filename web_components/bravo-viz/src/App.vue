@@ -1,6 +1,6 @@
 <template>
   <div id="bravoviz">
-    <info v-bind:region="region"/>
+    <info v-bind:region="region" v-on:goto_region="redirectToRegion"/>
     <div style="position: relative; min-height: 20px">
 
       <div class="parent-menu">
@@ -275,6 +275,9 @@ export default {
       } else {
         this.region.segments.plot = [0, this.dimensions.width - this.dimensions.margin.left - this.dimensions.margin.right];
       }
+    },
+    redirectToRegion(chrom, start, stop) {
+      window.location.href = this.homepage + `region/snv/${chrom}-${start}-${stop}`;
     },
     genesClick(gene) {
       window.location.href = this.homepage + `gene/snv/${gene.gene_id}`;
