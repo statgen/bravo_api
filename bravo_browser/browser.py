@@ -294,7 +294,7 @@ def search():
                               'gene_name': args['value'].upper()
                            }
                            return redirect(url_for('.gene_page', **args))
-   return not_found(f'We coudn\'t find what you wanted.')
+   return redirect(url_for('.not_found', message = f'We coudn\'t find what you wanted.'))
 
 
 @bp.route('/feedback', methods = ['POST'])
