@@ -272,18 +272,17 @@
   top: 0px;
   right: 0px;
   padding: 0px 4px 0px 4px;
-  color: black;
-  font-size: 11px;
+  color: white;
+  font-size: 12px;
   outline: none;
-  background-color: #eeeeee;
-  border: 1px solid #cccccc;
+  background-color: #007bff;
+  border: 1px solid #007bff;
   border-radius: 2px;
   box-shadow: none;
-  opacity: 0.5;
 }
 .close-button:hover {
-  background-color: #cccccc;
-  opacity: 1.0;
+  background-color: #0062cc;
+  border-color: #0062cc;
 }
 .bravo-info-message {
   position: absolute;

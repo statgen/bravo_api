@@ -18,7 +18,9 @@
           </div>
           <div v-if="(computedRegion.gene == null) && (computedRegion.regionChrom != null) && (computedRegion.regionStart != null) && (computedRegion.regionStop != null)">
             <h1 class="display-5">{{computedRegion.regionChrom}}:{{computedRegion.regionStart.toLocaleString()}}-{{computedRegion.regionStop.toLocaleString()}}</h1>
-            <h6>Region length: {{(computedRegion.regionStop - computedRegion.regionStart + 1).toLocaleString()}} bp</h6>
+            <ul class="list-inline">
+              <li class="list-inline-item">Region length: {{(computedRegion.regionStop - computedRegion.regionStart + 1).toLocaleString()}} bp</li>
+            </ul>
           </div>
         </div>
       </div>

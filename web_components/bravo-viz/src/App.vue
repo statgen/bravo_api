@@ -1,39 +1,34 @@
 <template>
   <div id="bravoviz">
     <info v-bind:region="region" v-on:goto_region="redirectToRegion"/>
-    <div style="position: relative; min-height: 20px">
-
-      <div class="parent-menu">
-        <button class="parent-menu-button" v-on:click="showMenuDropDown = !showMenuDropDown">
-          Settings <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="settingsIcon"></font-awesome-icon>
-        </button>
-        <div v-if="showMenuDropDown" class="parent-menu-dropdown">
-          <div>
-            <a href="#" v-on:click.prevent="showSummaries = !showSummaries; showMenuDropDown = !showMenuDropDown">Summary Display <div style="display: inline" v-if="showSummaries">On</div><div style="display: inline" v-else>Off</div></a>
-          </div>
-          <div>
-            <a href="#" v-on:click.prevent="showDepth = !showDepth; showMenuDropDown = !showMenuDropDown">Depth Display <div style="display: inline" v-if="showDepth">On</div><div style="display: inline" v-else>Off</div></a>
-          </div>
-          <div v-if="!gene_view">
-            <a href="#" v-on:click.prevent="showGenes = !showGenes; showMenuDropDown = !showMenuDropDown">Genes Display <div style="display: inline" v-if="showGenes">On</div><div style="display: inline" v-else>Off</div></a>
-          </div>
-          <div v-if="gene_view">
-            <a href="#" v-on:click.prevent="showGene = !showGene; showMenuDropDown = !showMenuDropDown">Transcripts Display <div style="display: inline" v-if="showGene">On</div><div style="display: inline" v-else>Off</div></a>
-          </div>
-          <div>
-            <a href="#" v-on:click.prevent="showSNV = !showSNV; showMenuDropDown = !showMenuDropDown">Variants Display <div style="display: inline" v-if="showSNV">On</div><div style="display: inline" v-else>Off</div></a>
-          </div>
+    <div class="parent-menu">
+      <button class="parent-menu-button" v-on:click="showMenuDropDown = !showMenuDropDown">
+        Panels <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="panelsIcon"></font-awesome-icon>
+      </button>
+      <div v-if="showMenuDropDown" class="parent-menu-dropdown">
+        <div>
+          <a href="#" v-on:click.prevent="showSummaries = !showSummaries; showMenuDropDown = !showMenuDropDown">Summary Display <div style="display: inline" v-if="showSummaries">On</div><div style="display: inline" v-else>Off</div></a>
         </div>
-    </div>
-    <summaries v-if="showSummaries" v-on:close="showSummaries = false" v-bind:api="api" v-bind:region="region"/>
-  </div>
-  <div style="position: relative; min-height: 20px">
-    <div class="parent-menu secondary">
+        <div>
+          <a href="#" v-on:click.prevent="showDepth = !showDepth; showMenuDropDown = !showMenuDropDown">Depth Display <div style="display: inline" v-if="showDepth">On</div><div style="display: inline" v-else>Off</div></a>
+        </div>
+        <div v-if="!gene_view">
+          <a href="#" v-on:click.prevent="showGenes = !showGenes; showMenuDropDown = !showMenuDropDown">Genes Display <div style="display: inline" v-if="showGenes">On</div><div style="display: inline" v-else>Off</div></a>
+        </div>
+        <div v-if="gene_view">
+          <a href="#" v-on:click.prevent="showGene = !showGene; showMenuDropDown = !showMenuDropDown">Transcripts Display <div style="display: inline" v-if="showGene">On</div><div style="display: inline" v-else>Off</div></a>
+        </div>
+        <div>
+          <a href="#" v-on:click.prevent="showSNV = !showSNV; showMenuDropDown = !showMenuDropDown">Variants Display <div style="display: inline" v-if="showSNV">On</div><div style="display: inline" v-else>Off</div></a>
+        </div>
+      </div>
       <button v-if="gene_view" class="parent-menu-button" v-on:click="toggleIntrons()">
         <div v-if="showIntrons">Shows introns <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="showIntronsIcon"></font-awesome-icon></div>
         <div v-else>Hides introns <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="hideIntronsIcon"></font-awesome-icon></div>
       </button>
     </div>
+  <div style="position: relative; min-height: 20px">
+    <summaries v-if="showSummaries" v-on:close="showSummaries = false" v-bind:api="api" v-bind:region="region"/>
     <depth v-if="showDepth" v-on:close="showDepth = false" v-bind:api="api" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:hoveredVariant="hoveredVariant"/>
     <genes v-if="showGenes && !gene_view" v-on:close="showGenes = false" v-on:click="genesClick" v-bind:api="api" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:hoveredVariant="hoveredVariant"/>
     <gene v-if="showGene && gene_view" v-on:close="showGene = false" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:hoveredVariant="hoveredVariant"/>
@@ -54,7 +49,7 @@
 <script>
 import axios from "axios";
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome';
-import { faCogs, faEyeSlash, faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
+import { faWindowRestore, faEyeSlash, faEye, faDownload } from '@fortawesome/free-solid-svg-icons';
 import { Model } from './mixins/model.js'
 import coordinates from './components/Coordinates.vue';
 import depth from './components/Depth.vue';
@@ -153,7 +148,7 @@ export default {
       showSNV: true,
       showMenuDropDown: false,
       showIntrons: true,
-      settingsIcon: faCogs,
+      panelsIcon: faWindowRestore,
       hideIntronsIcon: faEyeSlash,
       showIntronsIcon: faEye,
       downloadIcon: faDownload,
@@ -324,32 +319,23 @@ export default {
 
 <style scoped>
 .parent-menu {
-  position: absolute;
-  top: 0px;
-  left: 0px;
   font-family: 'Avenir', Helvetica, Arial, sans-serif;
   display: inline-block;
-  color: black;
   font-size: 13px;
-  z-index: 999;
-}
-.secondary {
-  z-index: 998;
 }
 .parent-menu-button {
-  background-color: #eeeeee;
   outline: none;
   padding: 0px 7px 0px 7px;
   margin: 0px 1px 0px 1px;
-  border: 1px solid #cccccc;
+  color: white;
+  background-color: #007bff;
+  border: 1px solid #007bff;
   border-radius: 2px;
   box-shadow: none;
-  font-weight: bold;
-  opacity: 0.5;
 }
 .parent-menu-button:hover {
-  background-color: #cccccc;
-  opacity: 1.0;
+  background-color: #0062cc;
+  border-color: #0062cc;
 }
 .parent-menu-dropdown {
   display: block;
@@ -359,6 +345,7 @@ export default {
   overflow: auto;
   box-shadow: 0px 4px 8px 0px rgba(0,0,0,0.2);
   border: 1px solid #cbcacb;
+  z-index: 999;
 }
 .parent-menu-dropdown a {
   display: block;

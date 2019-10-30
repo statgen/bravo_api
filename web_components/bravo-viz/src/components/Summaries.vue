@@ -3,7 +3,7 @@
 <template>
   <div class="child-component">
     <div class="control-buttons">
-      <button class="control-button" v-on:click="collapsed = !collapsed">
+      <button v-if="hasLeftScroll || hasRightScroll" class="control-button" v-on:click="collapsed = !collapsed">
         <div style="display: inline" v-if="collapsed">Expand</div><div style="display: inline" v-else>Collapse</div>
       </button>
       <button class="control-button" v-on:click="$emit('close')">
@@ -326,7 +326,7 @@
       updateHorizontalScroll: function() {
         var cards = this.$el.querySelector(".cards");
         this.hasLeftScroll = cards.scrollLeft != 0;
-        this.hasRightScroll = cards.scrollLeft < cards.scrollWidth - cards.clientWidth;
+        this.hasRightScroll = Math.abs(cards.scrollWidth - cards.clientWidth - cards.scrollLeft) >= 1;
       },
       scroll: function(value) {
         var cards = this.$el.querySelector(".cards");
@@ -380,7 +380,7 @@
   margin: 0px;
   top: 0px;
   right: 0px;
-  font-size: 11px;
+  font-size: 12px;
   z-index: 999;
 }
 .control-button {
@@ -388,27 +388,28 @@
   margin-left: 1px;
   color: white;
   outline: none;
-  background-color: #0d49fd;
-  border: 1px solid #0d49fd;
+  background-color: #007bff;
+  border: 1px solid #007bff;
   border-radius: 2px;
   box-shadow: none;
-  opacity: 0.5;
 }
 .hscroll-button {
   padding: 0px;
   width: 32px;
   height: 32px;
-  color: #0d49fd;
+  color: #007bff;
   font-size: 20px;
   outline: none;
   background-color: #ffffff;
-  border: 2px solid #0d49fd;
+  border: 2px solid #007bff;
   border-radius: 50%;
   box-shadow: none;
   z-index: 998;
 }
 .hscroll-button:hover {
   box-shadow: 0px 0px 8px 0px rgba(0,0,0,.3);
+  color: #0062cc;
+  border-color: #0062cc;
 }
 .scroll-right {
   position: absolute;
@@ -425,7 +426,8 @@
   left: 0px;
 }
 .control-button:hover {
-  opacity: 1.0;
+  background-color: #0062cc;
+  border-color: #0062cc;
 }
 .cards {
   display: flex;
@@ -472,7 +474,7 @@
 }
 @media (min-width: 1200px) {
   .card-columns {
-    column-count: 4;
+    column-count: 3;
   }
 }
 </style>
