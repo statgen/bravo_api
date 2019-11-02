@@ -34,13 +34,13 @@
     <gene v-if="showGene && gene_view" v-on:close="showGene = false" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:hoveredVariant="hoveredVariant"/>
     <snv v-if="showSNV" v-on:close="showSNV = false" v-bind:api="api" v-bind:region="region" v-bind:dimensions="dimensions" v-bind:filters="activeFilters" v-bind:visibleVariants="visibleVariants" v-bind:hoveredVariant="hoveredVariant"/>
     <coordinates v-bind:region="region" v-bind:dimensions="dimensions"/>
-
-    <div>
+    <!-- <div>
       <button type="button" class="download-button" v-on:click="download++">Download
         <font-awesome-icon style="background-color: transparent; display: inline-block; vertical-align: middle" :icon="downloadIcon"></font-awesome-icon>
       </button>
       <bravofilter ref="filter" v-bind:suggestions="filterSuggestions" v-on:filter="onFilterChange" v-bind:filters="activeFilters"/>
-    </div>
+    </div> -->
+    <snvfilter />
     <snvtable ref="snvtable" v-on:suggestions="onFilterSuggestionsChange" v-on:scroll="variantsScroll" v-on:hover="variantHover" v-bind:region="region" v-bind:api="api" v-bind:filters="activeFilters" v-bind:paginationSize="paginationSize" v-bind:download="download"/>
   </div>
 </div>
@@ -61,7 +61,8 @@ import sv from './components/SV.vue';
 import svtable from './components/SVTable.vue';
 import summaries from './components/Summaries.vue';
 import info from './components/Info.vue';
-import bravofilter from 'bravo-filter/src/App.vue'; // used "npm link"
+import snvfilter from './components/SNVFilter.vue';
+// import bravofilter from 'bravo-filter/src/App.vue'; // used "npm link"
 
 export default {
   name: "bravoviz",
@@ -76,9 +77,10 @@ export default {
     snvtable,
     sv,
     svtable,
-    bravofilter,
+    // bravofilter,
     summaries,
-    info
+    info,
+    snvfilter
   },
   props: {
     homepage: {
