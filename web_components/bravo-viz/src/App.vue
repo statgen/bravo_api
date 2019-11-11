@@ -40,7 +40,7 @@
       </button>
       <bravofilter ref="filter" v-bind:suggestions="filterSuggestions" v-on:filter="onFilterChange" v-bind:filters="activeFilters"/>
     </div> -->
-    <snvfilter />
+    <snvfilter ref="filter" v-bind:suggestions="filterSuggestions" v-bind:filters="activeFilters" v-on:filter="onFilterChange"/>
     <snvtable ref="snvtable" v-on:suggestions="onFilterSuggestionsChange" v-on:scroll="variantsScroll" v-on:hover="variantHover" v-bind:region="region" v-bind:api="api" v-bind:filters="activeFilters" v-bind:paginationSize="paginationSize" v-bind:download="download"/>
   </div>
 </div>
