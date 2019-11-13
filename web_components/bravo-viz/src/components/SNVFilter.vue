@@ -5,7 +5,7 @@
     <div class="container-fluid">
       <div class="row">
         <div class="col-12" style="padding-left: 0px; padding-top: 2px; padding-bottom: 2px;">
-          <div class="btn-group mr-1" id="qualityFilter">
+          <div class="btn-group mr-1 mt-1" id="qualityFilter">
             <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': savedQualityFilters.length > 0, 'btn-outline-primary': savedQualityFilters.length == 0}" type="button" id="qualityFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Quality <span v-if="savedQualityFilters.length > 0">({{savedQualityFilters.length}})</span>
             </button>
@@ -69,7 +69,7 @@
               </form>
             </div>
           </div>
-          <div class="btn-group mr-1" id="consequenceFilter">
+          <div class="btn-group mr-1 mt-1" id="consequenceFilter">
             <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': savedConsequenceFilters.length > 0, 'btn-outline-primary': savedConsequenceFilters.length == 0}" type="button" id="consequenceFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Consequence <span v-if="savedConsequenceFilters.length > 0">({{savedConsequenceFilters.length}})</span>
             </button>
@@ -130,6 +130,37 @@
               </form>
             </div>
           </div>
+          <div class="btn-group mr-1 mt-1" id="frequencyFilter">
+            <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': (savedMinFrequency > 0) || (savedMaxFrequency < 100), 'btn-outline-primary': (savedMinFrequency == 0) && (savedMaxFrequency == 100)}" type="button" id="frequencyFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              Frequency <span v-if="(savedMinFrequency > 0) || (savedMaxFrequency < 100)">({{(savedMinFrequency > 0) + (savedMaxFrequency < 100)}})</span>
+            </button>
+            <div class="dropdown-menu shadow" @click.stop="">
+              <form class="p-2">
+                <h6>Alternate allele frequency (%)</h6>
+                <div class="form-group row">
+                  <label for="minFrequency" class="col-sm-2 col-form-label">Min</label>
+                  <div class="col-sm-10">
+                    <input class="form-control" id="minFrequency" type="number" name="" min="0" max="100" step="0.01" v-model="minFrequency" required>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="maxFrequency" class="col-sm-2 col-form-label">Max</label>
+                  <div class="col-sm-10">
+                    <input class="form-control" id="maxFrequency" type="number" name="" min="0" max="100" step="0.01" v-model="maxFrequency" required>
+                  </div>
+                </div>
+                <hr/>
+                <div class="form-row">
+                  <div class="col mr-auto">
+                    <button type="button" class="btn btn-secondary btn-sm" v-on:click="clearFrequencyFilters" :disabled="(minFrequency == 0) && (maxFrequency == 100)">Clear</button>
+                  </div>
+                  <div class="col mr-auto">
+                    <button type="button" class="btn btn-primary btn-sm float-right" v-on:click="applyFrequencyFilters" :disabled="(minFrequency === '') || (maxFrequency === '') || (minFrequency < 0) || (minFrequency > 100) || (maxFrequency < 0) || (maxFrequency > 100) || (minFrequency > maxFrequency)">Save</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -157,6 +188,10 @@
         consequenceFilters: [],
         savedConsequenceFilters: [],
         expandedConsequenceFilters: false,
+        minFrequency: 0,
+        maxFrequency: 100,
+        savedMinFrequency: 0,
+        savedMaxFrequency: 100
       }
     },
     methods: {
@@ -172,6 +207,16 @@
             value: this.consequenceFiltersMap[filter].value
           }});
         });
+        if ((this.savedMinFrequency > 0) || (this.savedMaxFrequency < 100)) {
+          var newFrequencyFilters = [];
+          if (this.savedMinFrequency > 0) {
+            newFrequencyFilters.push({field: 'allele_freq', type: '>', value: this.savedMinFrequency / 100});
+          }
+          if (this.savedMaxFrequency < 100) {
+            newFrequencyFilters.push({field: 'allele_freq', type: '<', value: this.savedMaxFrequency / 100});
+          }
+          newActiveFilters.push({tabulator_filter: newFrequencyFilters});
+        }
         this.$emit("filter", newActiveFilters);
       },
       doNotChangeQualityFilters: function() {
@@ -225,6 +270,32 @@
       },
       clearConsequenceFilters: function() {
         this.consequenceFilters = [];
+      },
+      doNotChangeFrequencyFilters: function() {
+        this.minFrequency = this.savedMinFrequency;
+        this.maxFrequency = this.savedMaxFrequency;
+      },
+      changeFrequencyFilters: function() {
+        this.savedMinFrequency = this.minFrequency;
+        this.savedMaxFrequency = this.maxFrequency;
+      },
+      applyFrequencyFilters: function() {
+        var nochange = true;
+        if (this.minFrequency != this.savedMinFrequency) {
+          nochange = false;
+        }
+        if (this.maxFrequency != this.savedMaxFrequency) {
+          nochange = false;
+        }
+        if (!nochange) {
+          this.changeFrequencyFilters();
+          this.emitFilters();
+        }
+        $(this.$el.querySelector('#frequencyFilterDropdownButton')).dropdown('hide'); // we assume that bootstrap with its jquery was loaded externally
+      },
+      clearFrequencyFilters: function() {
+        this.minFrequency = 0;
+        this.maxFrequency = 100;
       },
       changedAllPassedCheckbox: function(e) {
         if (e.target.checked) {
@@ -305,6 +376,7 @@
     mounted: function() {
       $(this.$el.querySelector('#qualityFilter')).on('hide.bs.dropdown', this.doNotChangeQualityFilters);
       $(this.$el.querySelector('#consequenceFilter')).on('hide.bs.dropdown', this.doNotChangeConsequenceFilters);
+      $(this.$el.querySelector('#frequencyFilter')).on('hide.bs.dropdown', this.doNotChangeFrequencyFilters);
     },
     computed: {
     },
