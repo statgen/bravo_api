@@ -26,7 +26,7 @@ export const Model = {
   },
   beforeCreate() {
     this.field2title = {
-      "variant_id": "ID",
+      "variant_id": "ID (rsID)",
       "pos": "Position",
       "filter": "Quality",
       "cadd_phred": "CADD",

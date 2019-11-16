@@ -103,9 +103,9 @@ export default {
       }
       if (!this.tabulator.columnManager.findColumn(annotation_name)) {
         if (json_fields[2] == 'consequence') {
-          this.tabulator.addColumn(this.createConsequenceColumnDefinition(this.getTitle(annotation_name), annotation_name), false, 'pos');
+          this.tabulator.addColumn(this.createConsequenceColumnDefinition(this.getTitle(annotation_name), annotation_name), false, 'variant_id');
         } else if (json_fields[2] == 'lof') {
-          this.tabulator.addColumn(this.createLoFColumnDefinition(this.getTitle(annotation_name), annotation_name), false, 'pos');
+          this.tabulator.addColumn(this.createLoFColumnDefinition(this.getTitle(annotation_name), annotation_name), false, 'variant_id');
         }
       }
     },
@@ -354,10 +354,13 @@ export default {
       height: "600px",
       layout: "fitColumns",
       columns: [
-        { title: this.getTitle("variant_id"), width: 180, formatter: "link", field: "variant_id", formatterParams: {
-          url: cell => {  return `${this.api}variant/snv/${cell.getValue()}`;  }
+        { title: this.getTitle("variant_id"), width: 180, field: "variant_id", formatter: (cell, params, onrendered) => {
+            var rsids = cell.getData()['rsids'];
+            if (rsids.length > 0) {
+              return `<a href='${this.api}variant/snv/${cell.getValue()}'>${cell.getValue()}</a></br><span>(${rsids.join(',')})</span>`;
+            }
+            return `<a href='${this.api}variant/snv/${cell.getValue()}'>${cell.getValue()}</a>`;
         }},
-        { title: this.getTitle("pos"), field: "pos", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["pos"](cell.getValue())},
         { title: this.getTitle("filter"), field: "filter", width: 110, align: "left", formatter: (cell, params, onrendered) => {
             var html = "<div>";
             cell.getValue().forEach( v => {
@@ -374,7 +377,7 @@ export default {
         { title: this.getTitle("allele_freq"), field: "allele_freq", width: 130, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_freq"](cell.getValue()) },
       ],
       initialSort: [
-        { column: "pos", dir: "asc" }
+        { column: "variant_id", dir: "asc" }
       ],
       initialFilter: this.computedFilters,
       rowMouseEnter: (e, row) => {
