@@ -475,7 +475,7 @@ def region_variants_histogram(variants_type, chrom, start, stop):
       '=': 'eq',
       '!=': 'ne',
       '<': 'lt',
-      'gt': 'gt',
+      '>': 'gt',
       '<=': 'lte',
       '>=': 'gte'
    } 
@@ -484,7 +484,11 @@ def region_variants_histogram(variants_type, chrom, start, stop):
       params = request.get_json()
       if params:
          for f in params.get('filters', []):
-            args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
+            if isinstance(f, list):
+               if len(f) > 0 and len(set( x["field"] for x in f )) == 1:
+                  args.append('{}={}'.format(f[0]['field'], ','.join(f'{filter_type.get(x["type"], "eq")}:{x["value"]}' for x in f)))
+            else:   
+               args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
          if 'windows' in params:
             args.append(f'windows={params["windows"]}')
 
@@ -536,7 +540,7 @@ def gene_variants_histogram(variants_type, gene_name):
       '=': 'eq',
       '!=': 'ne',
       '<': 'lt',
-      'gt': 'gt',
+      '>': 'gt',
       '<=': 'lte',
       '>=': 'gte'
    } 
@@ -546,7 +550,11 @@ def gene_variants_histogram(variants_type, gene_name):
       if params:
          print('gene histogram params = ', params)
          for f in params.get('filters', []):
-            args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
+            if isinstance(f, list):
+               if len(f) > 0 and len(set( x["field"] for x in f )) == 1:
+                  args.append('{}={}'.format(f[0]['field'], ','.join(f'{filter_type.get(x["type"], "eq")}:{x["value"]}' for x in f)))
+            else:   
+               args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
          if 'windows' in params:
             args.append(f'windows={params["windows"]}')
          if 'introns' in params:
@@ -577,7 +585,7 @@ def variants(variants_type, chrom, start, stop):
       '=': 'eq',
       '!=': 'ne',
       '<': 'lt',
-      'gt': 'gt',
+      '>': 'gt',
       '<=': 'lte',
       '>=': 'gte'
    } 
@@ -590,7 +598,11 @@ def variants(variants_type, chrom, start, stop):
          if 'size' in params:
             size = int(params['size'])
          for f in params.get('filters', []):
-            args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
+            if isinstance(f, list):
+               if len(f) > 0 and len(set( x["field"] for x in f )) == 1:
+                  args.append('{}={}'.format(f[0]['field'], ','.join(f'{filter_type.get(x["type"], "eq")}:{x["value"]}' for x in f)))
+            else:   
+               args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
          for s in params.get('sorters', []):
             sort.append(f'{s["field"]}:{s["dir"]}')
 
@@ -631,7 +643,7 @@ def gene_variants(variants_type, gene_name):
       '=': 'eq',
       '!=': 'ne',
       '<': 'lt',
-      'gt': 'gt',
+      '>': 'gt',
       '<=': 'lte',
       '>=': 'gte'
    } 
@@ -647,7 +659,11 @@ def gene_variants(variants_type, gene_name):
          if 'introns' in params:
             args.append(f'introns={params["introns"]}')
          for f in params.get('filters', []):
-            args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
+            if isinstance(f, list):
+               if len(f) > 0 and len(set( x["field"] for x in f )) == 1:
+                  args.append('{}={}'.format(f[0]['field'], ','.join(f'{filter_type.get(x["type"], "eq")}:{x["value"]}' for x in f)))
+            else:   
+               args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
          for s in params.get('sorters', []):
             sort.append(f'{s["field"]}:{s["dir"]}')
 
