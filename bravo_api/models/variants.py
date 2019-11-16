@@ -310,6 +310,7 @@ def get_region_snv(chrom, start, stop, filter, sort, last, limit):
    projection = {
       '_id': True, 
       'variant_id': True,
+      'rsids': True,
       'chrom': True, 'pos': True, 'stop': True, 
       'ref': True, 'alt': True,
       'site_quality': True, 'filter': True,
@@ -496,6 +497,7 @@ def get_gene_snv(name, filter, sort, last, limit, introns):
       'xpos': True, # need this here, because can't move sort before projection
       'xstop': True, # need this here, because can't move sort before projection
       'variant_id': True,
+      'rsids': True,
       'chrom': True, 'pos': True, 'stop': True, 
       'ref': True, 'alt': True,
       'site_quality': True, 'filter': True,
