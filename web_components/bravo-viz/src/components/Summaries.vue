@@ -326,7 +326,7 @@
       updateHorizontalScroll: function() {
         var cards = this.$el.querySelector(".cards");
         this.hasLeftScroll = cards.scrollLeft != 0;
-        this.hasRightScroll = Math.abs(cards.scrollWidth - cards.clientWidth - cards.scrollLeft) >= 1;
+        this.hasRightScroll = Math.abs(cards.scrollWidth - cards.clientWidth - cards.scrollLeft) > 1;
       },
       scroll: function(value) {
         var cards = this.$el.querySelector(".cards");
