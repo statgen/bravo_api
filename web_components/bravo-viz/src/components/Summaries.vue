@@ -214,7 +214,7 @@
                           <td class="d-none d-md-table-cell text-right">{{this.count_inframe_deletions('all')}}</td>
                         </tr>
                         <tr>
-                          <td>Inframe insetions</td>
+                          <td>Inframe insertions</td>
                           <td class="text-right">{{this.count_inframe_insertions('passed')}}</td>
                           <td class="d-none d-sm-table-cell text-right">{{this.count_inframe_insertions('failed')}}</td>
                           <td class="d-none d-md-table-cell text-right">{{this.count_inframe_insertions('all')}}</td>

@@ -75,7 +75,7 @@ export const Model = {
         'stop_lost': { 'text': 'stop lost', 'color': '#fb0007' },
         'start_lost': { 'text': 'start lost', 'color': '#d8b60a' },
         'transcript_amplification': { 'text': 'transcript amplification', 'color': '#fc4ca5' },
-        'inframe_insertion': { 'text': 'inframe insetion', 'color': '#fc4ca5' },
+        'inframe_insertion': { 'text': 'inframe insertion', 'color': '#fc4ca5' },
         'inframe_deletion': { 'text': 'inframe deletion', 'color': '#fc4ca5' },
         'missense_variant': { 'text': 'missense', 'color': '#d8b60a' },
         'protein_altering_variant': { 'text': 'protein altering', 'color': '#fb006d' },

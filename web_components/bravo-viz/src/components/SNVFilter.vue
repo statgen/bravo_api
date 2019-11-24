@@ -418,7 +418,7 @@
       // initialize non reactive data
       this.consequenceFiltersMap = {};
       this.synonymous = ['synonymous', 'start retained', 'stop retained'];
-      this.nonsynonymous = ['missense', 'start lost', 'stop lost', 'stop gained', 'frameshift', 'inframe insetion', 'inframe deletion'];
+      this.nonsynonymous = ['missense', 'start lost', 'stop lost', 'stop gained', 'frameshift', 'inframe insertion', 'inframe deletion'];
     },
     created: function() {
       this.filters.forEach(filter => {
