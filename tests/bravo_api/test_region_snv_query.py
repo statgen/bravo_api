@@ -414,7 +414,7 @@ def test_consequence_sort_query(client, config):
 
    def get_weight(item):
       return sorted(set([ snv_consequence2code[x] for x in item['annotation']['region'].get('consequence',[]) ]), reverse = True)
-      
+  
    response = client.get(f'/region/snv?chrom={chrom}&start={start}&stop={stop}&sort=annotation.region.consequence:desc')
    assert response.status_code == 200, response.get_json()
    payload = response.get_json()
@@ -424,7 +424,8 @@ def test_consequence_sort_query(client, config):
    assert payload['limit'] is not None and payload['limit'] == config['BRAVO_API_PAGE_LIMIT']
    assert payload['next'] is None
    assert payload['error'] is None
-   all_data_sorted = payload['data']
+   all_data_sorted = payload['data']   
+
    assert sorted(all_data_nosort, key = lambda item: get_weight(item), reverse = True) == all_data_sorted
 
 
@@ -630,6 +631,32 @@ def test_consequence_sorted_paged_query(client, config):
    page_size = 100
    assert len(all_data) > page_size
    next_link = f'/region/snv?chrom={chrom}&start={start}&stop={stop}&sort=annotation.region.consequence:desc&limit={page_size}'
+   paged_data = []
+   while next_link is not None:
+      response = client.get(next_link)
+      assert response.status_code == 200
+      payload = response.get_json()
+      assert all(x in payload for x in ['data', 'total', 'limit', 'next', 'error'])
+      assert payload['data'] is not None and len(payload['data']) <= page_size
+      assert payload['total'] is not None and payload['total'] == len(all_data)
+      assert payload['limit'] is not None and payload['limit'] == page_size
+      assert payload['error'] is None
+      paged_data.extend(payload['data'])
+      next_link = payload['next']
+   assert all_data == paged_data
+
+
+#@pytest.mark.skip
+def test_rsid_sorted_paged_query(client, config):
+   chrom = 22
+   start = 50673415
+   stop = 50734298
+   rsid = 'rs5'
+   response = client.get(f'/region/snv?chrom={chrom}&start={start}&stop={stop}&rsids=like:{rsid}&sort=annotation.region.consequence:desc')
+   all_data = response.get_json()['data']
+   page_size = 100
+   assert len(all_data) > page_size
+   next_link = f'/region/snv?chrom={chrom}&start={start}&stop={stop}&rsids=like:{rsid}&sort=annotation.region.consequence:desc&limit={page_size}'
    paged_data = []
    while next_link is not None:
       response = client.get(next_link)
