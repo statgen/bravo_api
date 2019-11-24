@@ -161,6 +161,28 @@
               </form>
             </div>
           </div>
+          <div class="btn-group mr-1 mt-1" id="rsFilter">
+            <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': savedRsFilters.length > 0, 'btn-outline-primary': savedRsFilters.length == 0}" type="button" id="rsFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              rsID <span v-if="savedRsFilters.length > 0">(1)</span>
+            </button>
+            <div class="dropdown-menu shadow" @click.stop="">
+              <form class="p-2">
+                <div class="form-group">
+                  <label for="inputRs">Variant rsID</label>
+                  <input type="text" class="form-control" id = "inputRs" placeholder="Enter rs identifier" v-model="rsFilters">
+                </div>
+                <hr/>
+                <div class="form-row">
+                  <div class="col mr-auto">
+                    <button type="button" class="btn btn-secondary btn-sm" v-on:click="clearRsFilters" :disabled="rsFilters.length == 0">Clear</button>
+                  </div>
+                  <div class="col mr-auto">
+                    <button type="button" class="btn btn-primary btn-sm float-right" v-on:click="applyRsFilters">Save</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -191,7 +213,9 @@
         minFrequency: 0,
         maxFrequency: 100,
         savedMinFrequency: 0,
-        savedMaxFrequency: 100
+        savedMaxFrequency: 100,
+        rsFilters: "",
+        savedRsFilters: ""
       }
     },
     methods: {
@@ -216,6 +240,9 @@
             newFrequencyFilters.push({field: 'allele_freq', type: '<', value: this.savedMaxFrequency / 100});
           }
           newActiveFilters.push({tabulator_filter: newFrequencyFilters});
+        }
+        if (this.savedRsFilters.length > 0) {
+          newActiveFilters.push({tabulator_filter: { field: 'rsids', type: '=', value: this.savedRsFilters }});
         }
         this.$emit("filter", newActiveFilters);
       },
@@ -297,6 +324,34 @@
         this.minFrequency = 0;
         this.maxFrequency = 100;
       },
+      doNotChangeRsFilters: function() {
+        this.rsFilters = JSON.parse(JSON.stringify(this.savedRsFilters));
+      },
+      changeRsFilters: function() {
+        this.savedRsFilters = JSON.parse(JSON.stringify(this.rsFilters));
+      },
+      applyRsFilters: function() {
+        var nochange = true;
+        if (this.rsFilters.length != this.savedRsFilters.length) {
+          nochange = false;
+        } else {
+          for (var i = 0; i < this.rsFilters.length; ++i) {
+            if (!this.savedRsFilters.includes(this.rsFilters[i])) {
+              nochange = false;
+            }
+          }
+        }
+        if (!nochange) {
+          this.changeRsFilters();
+          this.emitFilters();
+        }
+        $(this.$el.querySelector('#rsFilterDropdownButton')).dropdown('hide'); // we assume that bootstrap with its jquery was loaded externally
+      },
+
+      clearRsFilters: function() {
+        this.rsFilters = [];
+      },
+
       changedAllPassedCheckbox: function(e) {
         if (e.target.checked) {
           if (!this.qualityFilters.includes('PASS')) {
@@ -377,6 +432,7 @@
       $(this.$el.querySelector('#qualityFilter')).on('hide.bs.dropdown', this.doNotChangeQualityFilters);
       $(this.$el.querySelector('#consequenceFilter')).on('hide.bs.dropdown', this.doNotChangeConsequenceFilters);
       $(this.$el.querySelector('#frequencyFilter')).on('hide.bs.dropdown', this.doNotChangeFrequencyFilters);
+      $(this.$el.querySelector('#rsFilter')).on('hide.bs.dropdown', this.doNotChangeRsFilters);
     },
     computed: {
     },
