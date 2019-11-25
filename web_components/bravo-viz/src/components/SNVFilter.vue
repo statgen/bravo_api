@@ -78,6 +78,21 @@
                 <div class="overflow-auto" style="min-width: 260px; max-height: 370px;">
                     <ul style="list-style-type: none; padding-left: 0;">
                       <div class="custom-control custom-checkbox">
+                        <input class="custom-control-input" type="checkbox" value="" id="allLoF" v-on:change="changedAllLoFCheckbox">
+                        <label class="custom-control-label" for="allLoF">Putative Loss-of-Function</label>
+                      </div>
+                      <ul style="list-style-type: none; padding-left: 1rem; padding-top: 0.2rem;">
+                      <li v-for="item in consequenceFiltersInputs.lof">
+                        <div class="custom-control custom-checkbox">
+                          <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="consequenceFilters">
+                          <label class="custom-control-label" v-bind:for="item">{{item}}</label>
+                          <!-- <small class="form-text text-muted"></small> -->
+                        </div>
+                      </li>
+                      </ul>
+                    </ul>
+                    <ul style="list-style-type: none; padding-left: 0;">
+                      <div class="custom-control custom-checkbox">
                         <input class="custom-control-input" type="checkbox" value="" id="allSynonymous" v-on:change="changedAllSynonymousCheckbox">
                         <label class="custom-control-label" for="allSynonymous">Synonymous</label>
                       </div>
@@ -381,6 +396,22 @@
           });
         }
       },
+      changedAllLoFCheckbox: function(e) {
+        if (e.target.checked) {
+          this.lof.forEach(filter => {
+            if (!this.consequenceFilters.includes(filter)) {
+              this.consequenceFilters.push(filter);
+            }
+          });
+        } else {
+          this.lof.forEach(filter => {
+            var i = this.consequenceFilters.indexOf(filter);
+            if (i >= 0) {
+              this.consequenceFilters.splice(i, 1);
+            }
+          });
+        }
+      },
       changedAllSynonymousCheckbox: function(e) {
         if (e.target.checked) {
           this.synonymous.forEach(filter => {
@@ -417,6 +448,7 @@
     beforeCreate: function() {
       // initialize non reactive data
       this.consequenceFiltersMap = {};
+      this.lof = ['High Confidence', 'Low Confidence'];
       this.synonymous = ['synonymous', 'start retained', 'stop retained'];
       this.nonsynonymous = ['missense', 'start lost', 'stop lost', 'stop gained', 'frameshift', 'inframe insertion', 'inframe deletion'];
     },
@@ -439,11 +471,25 @@
     watch: {
       suggestions: function(newSuggestions, oldSuggestions) {
         this.consequenceFiltersInputs = {
+          'lof': [],
           'synonymous': [],
           'nonsynonymous': [],
           'others': []
         };
         this.consequenceFiltersMap = {};
+
+        var lof = newSuggestions.LoF;
+        for (var name in lof.data.items) {
+          if (lof.data.items.hasOwnProperty(name)) {
+            var item = lof.data.items[name];
+            if (item.data.category != 'By Value') {
+              continue;
+            }
+            this.consequenceFiltersInputs.lof.push(item.value);
+            this.consequenceFiltersMap[item.value] = item.data.tabulator_filter;
+          }
+        }
+
         var consequences = newSuggestions.Consequence;
         for (var name in consequences.data.items) {
           if (consequences.data.items.hasOwnProperty(name)) {
@@ -489,6 +535,16 @@
         }
       },
       consequenceFilters: function(newFilters, oldFilters) {
+        if (this.lof.every(filter => newFilters.includes(filter))) {
+          this.$el.querySelector('#allLoF').indeterminate = false;
+          this.$el.querySelector('#allLoF').checked = true;
+        } else if (this.lof.some(filter => newFilters.includes(filter))) {
+          this.$el.querySelector('#allLoF').indeterminate = true;
+          this.$el.querySelector('#allLoF').checked = false;
+        } else {
+          this.$el.querySelector('#allLoF').indeterminate = false;
+          this.$el.querySelector('#allLoF').checked = false;
+        }
         if (this.synonymous.every(filter => newFilters.includes(filter))) {
           this.$el.querySelector('#allSynonymous').indeterminate = false;
           this.$el.querySelector('#allSynonymous').checked = true;
