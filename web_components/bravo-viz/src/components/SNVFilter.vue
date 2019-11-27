@@ -132,7 +132,7 @@
           </div>
           <div class="btn-group mr-1 mt-1" id="lofFilter">
             <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': savedLofFilters.length > 0, 'btn-outline-primary': savedLofFilters.length == 0}" type="button" id="lofFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              LoF <span v-if="savedLofFilters.length > 0">({{savedLofFilters.length}})</span>
+              pLoF <span v-if="savedLofFilters.length > 0">({{savedLofFilters.length}})</span>
             </button>
             <div class="dropdown-menu shadow" @click.stop="">
               <form class="p-2">

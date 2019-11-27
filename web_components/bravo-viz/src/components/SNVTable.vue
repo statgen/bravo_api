@@ -46,77 +46,56 @@ export default {
       loading: false,
       loaded: false,
       empty: true,
-      failed: false,
+      failed: false
     };
   },
   methods: {
-    createConsequenceColumnDefinition: function(title, field) {
+    createConsequenceColumnDefinition: function(region_type) {
       return {
-        title: title,
-        field: field,
+        title: "Consequence (pLoF) <a href='#' class='text-info' data-toggle='tooltip' title='List of variant consequence terms (defined by the Sequence Onthology (SO)) across all gene transcripts sorted from the most to least severe.'>?</a>",
+        field: `annotation.${region_type}.consequence`,
         align: "left",
+        headerTooltip: () => {
+          return "lala";
+        },
         formatter: (cell, params, onrendered) => {
-          var html = "<div>";
+          var html = "";
           cell.getValue().forEach( v => {
             var aes = this.domain_dictionary.consequence[v];
             html += `<span class="badge badge-light" style="margin-right:1px;color:${aes.color};font-weight:bold;-webkit-text-stroke: 0.15px black;">${aes.text}</span>`;
           });
-          html += "</div>";
-          return html;
-        }
-      };
-    },
-    createLoFColumnDefinition: function(title, field) {
-      return {
-        title: title,
-        field: field,
-        width: 110,
-        align: "left",
-        formatter: (cell, params, onrendered) => {
-          var html = "<div>";
-          if (cell.getValue()) {
-            cell.getValue().forEach(v => {
+          var all_annotations = cell.getData().annotation[`${region_type}`];
+          if (all_annotations.hasOwnProperty('lof')) {
+            html += "</br>(";
+            all_annotations['lof'].forEach(v => {
               var badge_type = v == "HC" ? "success" : "warning";
               var text = this.domain_dictionary.lof[v].text;
               html += `<span class="badge badge-${badge_type}" style="margin-right:1px">${text}</span>`;
             });
+            html += ")";
           }
-          html += "</div>";
           return html;
         }
       };
     },
-    addAnnotationColumn: function(annotation_name) {
-      const json_fields = annotation_name.split('.');
-      if ((json_fields.length != 3) || (json_fields[0] != 'annotation')) {
-        return;
-      }
-      if (json_fields[1] == 'region') {
-        var old_annotation_name = 'annotation.gene.' + json_fields[2];
-      } else if (json_fields[1] == 'gene') {
-        var old_annotation_name = 'annotation.region.' + json_fields[2];
-      } else {
-        return;
-      }
-      if (this.tabulator.columnManager.findColumn(old_annotation_name)) {
-        this.tabulator.deleteColumn(old_annotation_name);
-      }
-      if (!this.tabulator.columnManager.findColumn(annotation_name)) {
-        if (json_fields[2] == 'consequence') {
-          this.tabulator.addColumn(this.createConsequenceColumnDefinition(this.getTitle(annotation_name), annotation_name), false, 'variant_id');
-        } else if (json_fields[2] == 'lof') {
-          this.tabulator.addColumn(this.createLoFColumnDefinition(this.getTitle(annotation_name), annotation_name), false, 'variant_id');
-        }
-      }
-    },
     loadData: function() {
       if (this.region.gene != null) {
-        this.addAnnotationColumn('annotation.gene.lof');
-        this.addAnnotationColumn('annotation.gene.consequence');
+        if (this.tabulator.columnManager.findColumn('annotation.region.consequence')) {
+          this.tabulator.deleteColumn('annotation.region.consequence');
+        }
+        if (!this.tabulator.columnManager.findColumn('annotation.gene.consequence')) {
+          this.tabulator.addColumn(this.createConsequenceColumnDefinition('gene'), false, 'variant_id');
+        }
+        $(this.$el.querySelector('[data-toggle="tooltip"]')).tooltip();
         this.tabulator.setData(`${this.api}variants/gene/snv/${this.region.gene.gene_id}`);
       } else if ((this.region.regionChrom != null) && (this.region.regionStart !=null) && (this.region.regionStop != null)) {
-        this.addAnnotationColumn('annotation.region.lof');
-        this.addAnnotationColumn('annotation.region.consequence');
+        if (this.tabulator.columnManager.findColumn('annotation.gene.consequence')) {
+          this.tabulator.deleteColumn('annotation.gene.consequence');
+        }
+        if (!this.tabulator.columnManager.findColumn('annotation.region.consequence')) {
+          this.tabulator.addColumn(this.createConsequenceColumnDefinition('region'), false, 'variant_id');
+        }
+        $(this.$el.querySelector('[data-toggle="tooltip"]')).tooltip();
         this.tabulator.setData(`${this.api}variants/region/snv/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}`);
       }
     },

@@ -143,7 +143,7 @@
                     <table class="table table-sm">
                       <thead>
                         <tr>
-                          <th scope="col" style="border-top:none;">Loss-of-Function (LoF)</th>
+                          <th scope="col" style="border-top:none;">Putative Loss-of-Function (pLoF)</th>
                           <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
                           <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
                           <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
