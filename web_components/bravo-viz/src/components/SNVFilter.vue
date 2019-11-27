@@ -78,21 +78,6 @@
                 <div class="overflow-auto" style="min-width: 260px; max-height: 370px;">
                     <ul style="list-style-type: none; padding-left: 0;">
                       <div class="custom-control custom-checkbox">
-                        <input class="custom-control-input" type="checkbox" value="" id="allLoF" v-on:change="changedAllLoFCheckbox">
-                        <label class="custom-control-label" for="allLoF">Putative Loss-of-Function</label>
-                      </div>
-                      <ul style="list-style-type: none; padding-left: 1rem; padding-top: 0.2rem;">
-                      <li v-for="item in consequenceFiltersInputs.lof">
-                        <div class="custom-control custom-checkbox">
-                          <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="consequenceFilters">
-                          <label class="custom-control-label" v-bind:for="item">{{item}}</label>
-                          <!-- <small class="form-text text-muted"></small> -->
-                        </div>
-                      </li>
-                      </ul>
-                    </ul>
-                    <ul style="list-style-type: none; padding-left: 0;">
-                      <div class="custom-control custom-checkbox">
                         <input class="custom-control-input" type="checkbox" value="" id="allSynonymous" v-on:change="changedAllSynonymousCheckbox">
                         <label class="custom-control-label" for="allSynonymous">Synonymous</label>
                       </div>
@@ -140,6 +125,39 @@
                   </div>
                   <div class="col mr-auto">
                     <button type="button" class="btn btn-primary btn-sm float-right" v-on:click="applyConsequenceFilters">Save</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
+          <div class="btn-group mr-1 mt-1" id="lofFilter">
+            <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': savedLofFilters.length > 0, 'btn-outline-primary': savedLofFilters.length == 0}" type="button" id="lofFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              LoF <span v-if="savedLofFilters.length > 0">({{savedLofFilters.length}})</span>
+            </button>
+            <div class="dropdown-menu shadow" @click.stop="">
+              <form class="p-2">
+                <ul style="list-style-type: none; padding-left: 0;">
+                  <div class="custom-control custom-checkbox">
+                    <input class="custom-control-input" type="checkbox" value="" id="allLoF" v-on:change="changedAllLoFCheckbox">
+                    <label class="custom-control-label" for="allLoF">Putative Loss-of-Function</label>
+                  </div>
+                  <ul style="list-style-type: none; padding-left: 1rem; padding-top: 0.2rem;">
+                  <li v-for="item in consequenceFiltersInputs.lof">
+                    <div class="custom-control custom-checkbox">
+                      <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="lofFilters">
+                      <label class="custom-control-label" v-bind:for="item">{{item}}</label>
+                      <!-- <small class="form-text text-muted"></small> -->
+                    </div>
+                  </li>
+                  </ul>
+                </ul>
+                <hr/>
+                <div class="form-row">
+                  <div class="col mr-auto">
+                    <button type="button" class="btn btn-secondary btn-sm" v-on:click="clearLofFilters" :disabled="lofFilters.length == 0">Clear</button>
+                  </div>
+                  <div class="col mr-auto">
+                    <button type="button" class="btn btn-primary btn-sm float-right" v-on:click="applyLofFilters">Save</button>
                   </div>
                 </div>
               </form>
@@ -225,6 +243,8 @@
         consequenceFilters: [],
         savedConsequenceFilters: [],
         expandedConsequenceFilters: false,
+        lofFilters: [],
+        savedLofFilters: [],
         minFrequency: 0,
         maxFrequency: 100,
         savedMinFrequency: 0,
@@ -240,6 +260,13 @@
           newActiveFilters.push({ tabulator_filter: { field: 'filter', type: '=', value: filter}});
         });
         this.savedConsequenceFilters.forEach(filter => {
+          newActiveFilters.push({tabulator_filter: {
+            field: this.consequenceFiltersMap[filter].field,
+            type: this.consequenceFiltersMap[filter].type,
+            value: this.consequenceFiltersMap[filter].value
+          }});
+        });
+        this.savedLofFilters.forEach(filter => {
           newActiveFilters.push({tabulator_filter: {
             field: this.consequenceFiltersMap[filter].field,
             type: this.consequenceFiltersMap[filter].type,
@@ -313,6 +340,33 @@
       clearConsequenceFilters: function() {
         this.consequenceFilters = [];
       },
+
+      doNotChangeLofFilters: function() {
+        this.lofFilters = JSON.parse(JSON.stringify(this.savedLofFilters));
+      },
+      changeLofFilters: function() {
+        this.savedLofFilters = JSON.parse(JSON.stringify(this.lofFilters));
+      },
+      applyLofFilters: function() {
+        var nochange = true;
+        if (this.lofFilters.length != this.savedLofFilters.length) {
+          nochange = false;
+        } else {
+          for (var i = 0; i < this.lofFilters.length; ++i) {
+            if (!this.savedLofFilters.includes(this.lofFilters[i])) {
+              nochange = false;
+            }
+          }
+        }
+        if (!nochange) {
+          this.changeLofFilters();
+          this.emitFilters();
+        }
+        $(this.$el.querySelector('#lofFilterDropdownButton')).dropdown('hide'); // we assume that bootstrap with its jquery was loaded externally
+      },
+      clearLofFilters: function() {
+        this.lofFilters = [];
+      },
       doNotChangeFrequencyFilters: function() {
         this.minFrequency = this.savedMinFrequency;
         this.maxFrequency = this.savedMaxFrequency;
@@ -362,11 +416,9 @@
         }
         $(this.$el.querySelector('#rsFilterDropdownButton')).dropdown('hide'); // we assume that bootstrap with its jquery was loaded externally
       },
-
       clearRsFilters: function() {
         this.rsFilters = [];
       },
-
       changedAllPassedCheckbox: function(e) {
         if (e.target.checked) {
           if (!this.qualityFilters.includes('PASS')) {
@@ -399,15 +451,15 @@
       changedAllLoFCheckbox: function(e) {
         if (e.target.checked) {
           this.lof.forEach(filter => {
-            if (!this.consequenceFilters.includes(filter)) {
-              this.consequenceFilters.push(filter);
+            if (!this.lofFilters.includes(filter)) {
+              this.lofFilters.push(filter);
             }
           });
         } else {
           this.lof.forEach(filter => {
-            var i = this.consequenceFilters.indexOf(filter);
+            var i = this.lofFilters.indexOf(filter);
             if (i >= 0) {
-              this.consequenceFilters.splice(i, 1);
+              this.lofFilters.splice(i, 1);
             }
           });
         }
@@ -463,6 +515,7 @@
     mounted: function() {
       $(this.$el.querySelector('#qualityFilter')).on('hide.bs.dropdown', this.doNotChangeQualityFilters);
       $(this.$el.querySelector('#consequenceFilter')).on('hide.bs.dropdown', this.doNotChangeConsequenceFilters);
+      $(this.$el.querySelector('#lofFilter')).on('hide.bs.dropdown', this.doNotChangeLofFilters);
       $(this.$el.querySelector('#frequencyFilter')).on('hide.bs.dropdown', this.doNotChangeFrequencyFilters);
       $(this.$el.querySelector('#rsFilter')).on('hide.bs.dropdown', this.doNotChangeRsFilters);
     },
@@ -535,16 +588,6 @@
         }
       },
       consequenceFilters: function(newFilters, oldFilters) {
-        if (this.lof.every(filter => newFilters.includes(filter))) {
-          this.$el.querySelector('#allLoF').indeterminate = false;
-          this.$el.querySelector('#allLoF').checked = true;
-        } else if (this.lof.some(filter => newFilters.includes(filter))) {
-          this.$el.querySelector('#allLoF').indeterminate = true;
-          this.$el.querySelector('#allLoF').checked = false;
-        } else {
-          this.$el.querySelector('#allLoF').indeterminate = false;
-          this.$el.querySelector('#allLoF').checked = false;
-        }
         if (this.synonymous.every(filter => newFilters.includes(filter))) {
           this.$el.querySelector('#allSynonymous').indeterminate = false;
           this.$el.querySelector('#allSynonymous').checked = true;
@@ -564,6 +607,18 @@
         } else {
           this.$el.querySelector('#allNonsynonymous').indeterminate = false;
           this.$el.querySelector('#allNonsynonymous').checked = false;
+        }
+      },
+      lofFilters: function(newFilters, oldFilters) {
+        if (this.lof.every(filter => newFilters.includes(filter))) {
+          this.$el.querySelector('#allLoF').indeterminate = false;
+          this.$el.querySelector('#allLoF').checked = true;
+        } else if (this.lof.some(filter => newFilters.includes(filter))) {
+          this.$el.querySelector('#allLoF').indeterminate = true;
+          this.$el.querySelector('#allLoF').checked = false;
+        } else {
+          this.$el.querySelector('#allLoF').indeterminate = false;
+          this.$el.querySelector('#allLoF').checked = false;
         }
       }
     }
