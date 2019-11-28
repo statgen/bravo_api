@@ -37,14 +37,14 @@
                         <div class="custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" value="SVM" id="SVM" v-model="qualityFilters">
                           <label class="custom-control-label" for="SVM">SVM</label>
-                          <small class="form-text text-muted">Variant failed SVM filter.</small>
+                          <small class="form-text text-muted">Variant failed SVM filter</small>
                         </div>
                       </li>
                       <li>
                         <div class="custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" value="DISC" id="DISC" v-model="qualityFilters">
                           <label class="custom-control-label" for="DISC">DISC</label>
-                          <small class="form-text text-muted">Mendelian or duplicate genotype discordance is high.</small>
+                          <small class="form-text text-muted">Mendelian or duplicate genotype discordance is high</small>
                         </div>
                       </li>
                       <li>
@@ -79,14 +79,14 @@
                     <ul style="list-style-type: none; padding-left: 0;">
                       <div class="custom-control custom-checkbox">
                         <input class="custom-control-input" type="checkbox" value="" id="allSynonymous" v-on:change="changedAllSynonymousCheckbox">
-                        <label class="custom-control-label" for="allSynonymous">Synonymous</label>
+                        <label class="custom-control-label" for="allSynonymous">All synonymous variants</label>
                       </div>
                       <ul style="list-style-type: none; padding-left: 1rem; padding-top: 0.2rem;">
                       <li v-for="item in consequenceFiltersInputs.synonymous">
                         <div class="custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="consequenceFilters">
                           <label class="custom-control-label" v-bind:for="item">{{item}}</label>
-                          <!-- <small class="form-text text-muted"></small> -->
+                          <small class="form-text text-muted">{{domain_dictionary.consequence[consequenceFiltersMap[item].value].desc}}</small>
                         </div>
                       </li>
                       </ul>
@@ -94,14 +94,14 @@
                     <ul style="list-style-type: none; padding-left: 0;">
                       <div class="custom-control custom-checkbox">
                         <input class="custom-control-input" type="checkbox" value="" id="allNonsynonymous" v-on:change="changedAllNonsynonymousCheckbox">
-                        <label class="custom-control-label" for="allNonsynonymous">Non-synonymous</label>
+                        <label class="custom-control-label" for="allNonsynonymous">All non-synonymous variants</label>
                       </div>
                       <ul style="list-style-type: none; padding-left: 1rem; padding-top: 0.2rem;">
                       <li v-for="item in consequenceFiltersInputs.nonsynonymous">
                         <div class="custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="consequenceFilters">
                           <label class="custom-control-label" v-bind:for="item">{{item}}</label>
-                          <!-- <small class="form-text text-muted"></small> -->
+                          <small class="form-text text-muted">{{domain_dictionary.consequence[consequenceFiltersMap[item].value].desc}}</small>
                         </div>
                       </li>
                       </ul>
@@ -114,6 +114,7 @@
                         <div class="custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="consequenceFilters">
                           <label class="custom-control-label" v-bind:for="item">{{item}}</label>
+                          <small class="form-text text-muted">{{domain_dictionary.consequence[consequenceFiltersMap[item].value].desc}}</small>
                         </div>
                       </li>
                     </ul>
@@ -139,14 +140,14 @@
                 <ul style="list-style-type: none; padding-left: 0;">
                   <div class="custom-control custom-checkbox">
                     <input class="custom-control-input" type="checkbox" value="" id="allLoF" v-on:change="changedAllLoFCheckbox">
-                    <label class="custom-control-label" for="allLoF">Putative Loss-of-Function</label>
+                    <label class="custom-control-label" for="allLoF">All putative Loss-of-Function (pLoF) variants</label>
                   </div>
                   <ul style="list-style-type: none; padding-left: 1rem; padding-top: 0.2rem;">
                   <li v-for="item in consequenceFiltersInputs.lof">
                     <div class="custom-control custom-checkbox">
                       <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="lofFilters">
                       <label class="custom-control-label" v-bind:for="item">{{item}}</label>
-                      <!-- <small class="form-text text-muted"></small> -->
+                      <small class="form-text text-muted">{{domain_dictionary.lof[consequenceFiltersMap[item].value].desc}}</small>
                     </div>
                   </li>
                   </ul>
@@ -223,7 +224,10 @@
 </template>
 
 <script>
+  import { Model } from '../mixins/model.js'
+
   export default {
+    mixins: [ Model ],
     name: "snvfilter",
     props: {
       suggestions: {
@@ -500,7 +504,7 @@
     beforeCreate: function() {
       // initialize non reactive data
       this.consequenceFiltersMap = {};
-      this.lof = ['High Confidence', 'Low Confidence'];
+      this.lof = ['high-confidence', 'low-confidence'];
       this.synonymous = ['synonymous', 'start retained', 'stop retained'];
       this.nonsynonymous = ['missense', 'start lost', 'stop lost', 'stop gained', 'frameshift', 'inframe insertion', 'inframe deletion'];
     },

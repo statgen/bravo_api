@@ -55,9 +55,6 @@ export default {
         title: "Consequence (pLoF) <a href='#' class='text-info' data-toggle='tooltip' title='List of variant consequence terms (defined by the Sequence Onthology (SO)) across all gene transcripts sorted from the most to least severe.'>?</a>",
         field: `annotation.${region_type}.consequence`,
         align: "left",
-        headerTooltip: () => {
-          return "lala";
-        },
         formatter: (cell, params, onrendered) => {
           var html = "";
           cell.getValue().forEach( v => {
