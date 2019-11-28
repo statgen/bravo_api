@@ -55,6 +55,7 @@ export default {
         title: "Consequence (pLoF) <a href='#' class='text-info' data-toggle='tooltip' title='List of variant consequence terms (defined by the Sequence Onthology (SO)) across all gene transcripts sorted from the most to least severe.'>?</a>",
         field: `annotation.${region_type}.consequence`,
         align: "left",
+        minWidth: 170,
         formatter: (cell, params, onrendered) => {
           var html = "";
           cell.getValue().forEach( v => {
@@ -330,27 +331,26 @@ export default {
       height: "600px",
       layout: "fitColumns",
       columns: [
-        { title: this.getTitle("variant_id"), width: 180, field: "variant_id", formatter: (cell, params, onrendered) => {
+        { title: this.getTitle("variant_id"), width: 130, field: "variant_id", formatter: (cell, params, onrendered) => {
             var rsids = cell.getData()['rsids'];
             if (rsids.length > 0) {
               return `<a href='${this.api}variant/snv/${cell.getValue()}'>${cell.getValue()}</a></br><span>(${rsids.join(',')})</span>`;
             }
             return `<a href='${this.api}variant/snv/${cell.getValue()}'>${cell.getValue()}</a>`;
         }},
-        { title: this.getTitle("filter"), field: "filter", width: 110, align: "left", formatter: (cell, params, onrendered) => {
-            var html = "<div>";
+        { title: this.getTitle("filter"), field: "filter", width: 80, align: "left", formatter: (cell, params, onrendered) => {
+            var html = "";
             cell.getValue().forEach( v => {
               var badge_type = v == "PASS" ? "success" : "danger";
               html += `<span class="badge badge-${badge_type}" style="margin-right:1px">${v}</span>`;
             });
-            html += "</div>";
             return html;
         }},
         { title: this.getTitle("cadd_phred"), field: "cadd_phred", width: 70, align: "left", formatter: (cell, params, onrendered) =>  this.value2text["cadd_phred"](cell.getValue()) },
-        { title: this.getTitle("allele_num"), field: "allele_num", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_num"](cell.getValue()) },
-        { title: this.getTitle("het_count"), field: "het_count", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["het_count"](cell.getValue()) },
-        { title: this.getTitle("hom_count"), field: "hom_count", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["hom_count"](cell.getValue()) },
-        { title: this.getTitle("allele_freq"), field: "allele_freq", width: 130, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_freq"](cell.getValue()) },
+        { title: this.getTitle("allele_num"), field: "allele_num", width: 88, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_num"](cell.getValue()) },
+        { title: this.getTitle("het_count"), field: "het_count", width: 80, align: "left", formatter: (cell, params, onrendered) => this.value2text["het_count"](cell.getValue()) },
+        { title: this.getTitle("hom_count"), field: "hom_count", width: 80, align: "left", formatter: (cell, params, onrendered) => this.value2text["hom_count"](cell.getValue()) },
+        { title: this.getTitle("allele_freq"), field: "allele_freq", width: 125, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_freq"](cell.getValue()) },
       ],
       initialSort: [
         { column: "variant_id", dir: "asc" }
