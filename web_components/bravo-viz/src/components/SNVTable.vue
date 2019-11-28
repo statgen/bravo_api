@@ -52,7 +52,7 @@ export default {
   methods: {
     createConsequenceColumnDefinition: function(region_type) {
       return {
-        title: "Consequence (pLoF) <a href='#' class='text-info' data-toggle='tooltip' title='List of variant consequence terms (defined by the Sequence Onthology (SO)) across all gene transcripts sorted from the most to least severe.'>?</a>",
+        title: "Consequence (pLoF) <a href='#' class='text-info' data-toggle='tooltip' title='List of variant consequences (defined by Sequence Onthology) across all gene transcripts sorted from most to least severe.'>?</a>",
         field: `annotation.${region_type}.consequence`,
         align: "left",
         minWidth: 170,
@@ -84,7 +84,7 @@ export default {
         if (!this.tabulator.columnManager.findColumn('annotation.gene.consequence')) {
           this.tabulator.addColumn(this.createConsequenceColumnDefinition('gene'), false, 'variant_id');
         }
-        $(this.$el.querySelector('[data-toggle="tooltip"]')).tooltip();
+        $(this.$el.querySelectorAll('[data-toggle="tooltip"]')).tooltip();
         this.tabulator.setData(`${this.api}variants/gene/snv/${this.region.gene.gene_id}`);
       } else if ((this.region.regionChrom != null) && (this.region.regionStart !=null) && (this.region.regionStop != null)) {
         if (this.tabulator.columnManager.findColumn('annotation.gene.consequence')) {
@@ -93,7 +93,7 @@ export default {
         if (!this.tabulator.columnManager.findColumn('annotation.region.consequence')) {
           this.tabulator.addColumn(this.createConsequenceColumnDefinition('region'), false, 'variant_id');
         }
-        $(this.$el.querySelector('[data-toggle="tooltip"]')).tooltip();
+        $(this.$el.querySelectorAll('[data-toggle="tooltip"]')).tooltip();
         this.tabulator.setData(`${this.api}variants/region/snv/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}`);
       }
     },
@@ -346,10 +346,13 @@ export default {
             });
             return html;
         }},
-        { title: this.getTitle("cadd_phred"), field: "cadd_phred", width: 70, align: "left", formatter: (cell, params, onrendered) =>  this.value2text["cadd_phred"](cell.getValue()) },
+        { title: this.getTitle("cadd_phred") + " <a href='#' class='text-info' data-toggle='tooltip' title='Variant deleteriousness score computed with Combined Annoation Dependent Depletion (CADD) tool.'>?</a>",
+          field: "cadd_phred", width: 80, align: "left", formatter: (cell, params, onrendered) =>  this.value2text["cadd_phred"](cell.getValue()) },
         { title: this.getTitle("allele_num"), field: "allele_num", width: 88, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_num"](cell.getValue()) },
-        { title: this.getTitle("het_count"), field: "het_count", width: 80, align: "left", formatter: (cell, params, onrendered) => this.value2text["het_count"](cell.getValue()) },
-        { title: this.getTitle("hom_count"), field: "hom_count", width: 80, align: "left", formatter: (cell, params, onrendered) => this.value2text["hom_count"](cell.getValue()) },
+        { title: this.getTitle("het_count") + " <a href='#' class='text-info' data-toggle='tooltip' title='Number of heterozygotes.'>?</a>",
+          field: "het_count", width: 80, align: "left", formatter: (cell, params, onrendered) => this.value2text["het_count"](cell.getValue()) },
+        { title: this.getTitle("hom_count") + " <a href='#' class='text-info' data-toggle='tooltip' title='Number of homozygotes for alternate allele.'>?</a>",
+          field: "hom_count", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["hom_count"](cell.getValue()) },
         { title: this.getTitle("allele_freq"), field: "allele_freq", width: 125, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_freq"](cell.getValue()) },
       ],
       initialSort: [
@@ -366,6 +369,7 @@ export default {
     this.$el.querySelector(".tabulator-tableHolder").addEventListener("scroll", this.scrolled);
     this.loadFilterSuggestions();
     this.loadData();
+    $(this.$el.querySelectorAll('[data-toggle="tooltip"]')).tooltip();
   },
   beforeDestroy: function() {
   },
