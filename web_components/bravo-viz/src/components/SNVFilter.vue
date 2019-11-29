@@ -195,6 +195,37 @@
               </form>
             </div>
           </div>
+          <div class="btn-group mr-1 mt-1" id="caddFilter">
+            <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': (savedMinCadd > 0) || (savedMaxCadd < 100), 'btn-outline-primary': (savedMinCadd == 0) && (savedMaxCadd == 100)}" type="button" id="caddFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+              CADD <span v-if="(savedMinCadd > 0) || (savedMaxCadd < 100)">({{(savedMinCadd > 0) + (savedMaxCadd < 100)}})</span>
+            </button>
+            <div class="dropdown-menu shadow" @click.stop="">
+              <form class="p-2">
+                <h6>Deleteriousness score (CADD)</h6>
+                <div class="form-group row">
+                  <label for="minFrequency" class="col-sm-2 col-form-label">Min</label>
+                  <div class="col-sm-10">
+                    <input class="form-control" id="minCadd" type="number" name="" min="0" max="100" step="0.01" v-model="minCadd" required>
+                  </div>
+                </div>
+                <div class="form-group row">
+                  <label for="maxFrequency" class="col-sm-2 col-form-label">Max</label>
+                  <div class="col-sm-10">
+                    <input class="form-control" id="maxCadd" type="number" name="" min="0" max="100" step="0.01" v-model="maxCadd" required>
+                  </div>
+                </div>
+                </hr>
+                <div class="form-row">
+                  <div class="col mr-auto">
+                    <button type="button" class="btn btn-secondary btn-sm" v-on:click="clearCaddFilters" :disabled="(minCadd == 0) && (maxCadd == 100)">Clear</button>
+                  </div>
+                  <div class="col mr-auto">
+                    <button type="button" class="btn btn-primary btn-sm float-right" v-on:click="applyCaddFilters" :disabled="(minCadd === '') || (maxCadd === '') || (minCadd < 0) || (minCadd > 100) || (maxCadd < 0) || (maxCadd > 100) || (minCadd > maxCadd)">Save</button>
+                  </div>
+                </div>
+              </form>
+            </div>
+          </div>
           <div class="btn-group mr-1 mt-1" id="rsFilter">
             <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': savedRsFilters.length > 0, 'btn-outline-primary': savedRsFilters.length == 0}" type="button" id="rsFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               rsID <span v-if="savedRsFilters.length > 0">(1)</span>
@@ -253,6 +284,10 @@
         maxFrequency: 100,
         savedMinFrequency: 0,
         savedMaxFrequency: 100,
+        minCadd: 0,
+        maxCadd: 100,
+        savedMinCadd: 0,
+        savedMaxCadd: 100,
         rsFilters: "",
         savedRsFilters: ""
       }
@@ -286,6 +321,16 @@
             newFrequencyFilters.push({field: 'allele_freq', type: '<', value: this.savedMaxFrequency / 100});
           }
           newActiveFilters.push({tabulator_filter: newFrequencyFilters});
+        }
+        if ((this.savedMinCadd > 0) || (this.savedMaxCadd < 100)) {
+          var newCaddFilters = [];
+          if (this.savedMinCadd > 0) {
+            newCaddFilters.push({field: 'cadd_phred', type: '>', value: this.savedMinCadd});
+          }
+          if (this.savedMaxCadd < 100) {
+            newCaddFilters.push({field: 'cadd_phred', type: '<', value: this.savedMaxCadd});
+          }
+          newActiveFilters.push({tabulator_filter: newCaddFilters});
         }
         if (this.savedRsFilters.length > 0) {
           newActiveFilters.push({tabulator_filter: { field: 'rsids', type: '=', value: this.savedRsFilters }});
@@ -396,6 +441,32 @@
       clearFrequencyFilters: function() {
         this.minFrequency = 0;
         this.maxFrequency = 100;
+      },
+      doNotChangeCaddFilters: function() {
+        this.minCadd = this.savedMinCadd;
+        this.maxCadd = this.savedMaxCadd;
+      },
+      changeCaddFilters: function() {
+        this.savedMinCadd = this.minCadd;
+        this.savedMaxCadd = this.maxCadd;
+      },
+      applyCaddFilters: function() {
+        var nochange = true;
+        if (this.minCadd != this.savedMinCadd) {
+          nochange = false;
+        }
+        if (this.maxCadd != this.savedMaxCadd) {
+          nochange = false;
+        }
+        if (!nochange) {
+          this.changeCaddFilters();
+          this.emitFilters();
+        }
+        $(this.$el.querySelector('#caddFilterDropdownButton')).dropdown('hide'); // we assume that bootstrap with its jquery was loaded externally
+      },
+      clearCaddFilters: function() {
+        this.minCadd = 0;
+        this.maxCadd = 100;
       },
       doNotChangeRsFilters: function() {
         this.rsFilters = JSON.parse(JSON.stringify(this.savedRsFilters));
@@ -521,6 +592,7 @@
       $(this.$el.querySelector('#consequenceFilter')).on('hide.bs.dropdown', this.doNotChangeConsequenceFilters);
       $(this.$el.querySelector('#lofFilter')).on('hide.bs.dropdown', this.doNotChangeLofFilters);
       $(this.$el.querySelector('#frequencyFilter')).on('hide.bs.dropdown', this.doNotChangeFrequencyFilters);
+      $(this.$el.querySelector('#caddFilter')).on('hide.bs.dropdown', this.doNotChangeCaddFilters);
       $(this.$el.querySelector('#rsFilter')).on('hide.bs.dropdown', this.doNotChangeRsFilters);
     },
     computed: {
