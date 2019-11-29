@@ -346,7 +346,7 @@ export default {
             });
             return html;
         }},
-        { title: this.getTitle("cadd_phred") + " <a href='#' class='text-info' data-toggle='tooltip' title='Variant deleteriousness score computed with Combined Annoation Dependent Depletion (CADD) tool.'>?</a>",
+        { title: this.getTitle("cadd_phred") + " <a href='#' class='text-info' data-toggle='tooltip' title='Variant deleteriousness score (PHRED-like scaled) computed with Combined Annoation Dependent Depletion (CADD) tool.'>?</a>",
           field: "cadd_phred", width: 80, align: "left", formatter: (cell, params, onrendered) =>  this.value2text["cadd_phred"](cell.getValue()) },
         { title: this.getTitle("allele_num"), field: "allele_num", width: 88, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_num"](cell.getValue()) },
         { title: this.getTitle("het_count") + " <a href='#' class='text-info' data-toggle='tooltip' title='Number of heterozygotes.'>?</a>",

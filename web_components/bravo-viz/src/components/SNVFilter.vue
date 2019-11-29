@@ -168,7 +168,7 @@
             <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': (savedMinFrequency > 0) || (savedMaxFrequency < 100), 'btn-outline-primary': (savedMinFrequency == 0) && (savedMaxFrequency == 100)}" type="button" id="frequencyFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               Frequency <span v-if="(savedMinFrequency > 0) || (savedMaxFrequency < 100)">({{(savedMinFrequency > 0) + (savedMaxFrequency < 100)}})</span>
             </button>
-            <div class="dropdown-menu shadow" @click.stop="">
+            <div class="dropdown-menu shadow" style="max-width: 250px;" @click.stop="">
               <form class="p-2">
                 <h6>Alternate allele frequency (%)</h6>
                 <div class="form-group row">
@@ -199,9 +199,9 @@
             <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': (savedMinCadd > 0) || (savedMaxCadd < 100), 'btn-outline-primary': (savedMinCadd == 0) && (savedMaxCadd == 100)}" type="button" id="caddFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
               CADD <span v-if="(savedMinCadd > 0) || (savedMaxCadd < 100)">({{(savedMinCadd > 0) + (savedMaxCadd < 100)}})</span>
             </button>
-            <div class="dropdown-menu shadow" @click.stop="">
+            <div class="dropdown-menu shadow" style="max-width: 250px;" @click.stop="">
               <form class="p-2">
-                <h6>Deleteriousness score (CADD)</h6>
+                <h6>Variant deleteriousness score (CADD) on PHRED-like scale</h6>
                 <div class="form-group row">
                   <label for="minFrequency" class="col-sm-2 col-form-label">Min</label>
                   <div class="col-sm-10">
