@@ -262,13 +262,14 @@ def get_region_snv():
       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
       'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
       'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
       'sort': fields.Function(deserialize = lambda x: deserialize_query_sort(x, allowed_snv_sort_keys)),
       'limit': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}, missing = current_app.config['BRAVO_API_PAGE_LIMIT']),
       'last': fields.Function(deserialize = lambda x: deserialize_query_last(x, allowed_snv_sort_keys))
    }
    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
-   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'rsids' ] if key in args }
+   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
    result = variants.get_region_snv(args['chrom'], args['start'], args['stop'], filter, args.get('sort', []), args.get('last', {}), args['limit'])
    url = None   
    if result['last'] is not None:
@@ -288,6 +289,7 @@ def get_gene_snv():
       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
       'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
       'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
       'sort': fields.Function(deserialize = lambda x: deserialize_query_sort(x, allowed_snv_sort_keys)),
       'introns': fields.Bool(required = False, missing = True),
@@ -295,7 +297,7 @@ def get_gene_snv():
       'last': fields.Function(deserialize = lambda x: deserialize_query_last(x, allowed_snv_sort_keys))
    }
    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
-   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'rsids' ] if key in args }
+   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
    result = variants.get_gene_snv(args['name'], filter, args.get('sort', []), args.get('last', {}), args['limit'], args['introns'])
    url = None   
    if result['last'] is not None:
@@ -326,10 +328,11 @@ def get_region_snv_histogram():
       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
       'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
       'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
    }
    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
-   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'rsids' ] if key in args }
+   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
    data = variants.get_region_snv_histogram(args['chrom'], args['start'], args['stop'], filter, args['windows'])
    response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
    response.mimetype = 'application/json'
@@ -359,11 +362,12 @@ def get_gene_snv_histogram():
       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
       'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
       'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
       'introns': fields.Bool(required = False, missing = True)
    }
    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
-   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'rsids' ] if key in args }
+   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
    data = variants.get_gene_snv_histogram(args['name'], filter, args['windows'], args['introns'])
    response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
    response.mimetype = 'application/json'
