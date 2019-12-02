@@ -52,7 +52,7 @@ export default {
   methods: {
     createConsequenceColumnDefinition: function(region_type) {
       return {
-        title: "Consequence (pLoF) <a href='#' class='text-info' data-toggle='tooltip' title='List of variant consequences (defined by Sequence Onthology) across all gene transcripts sorted from most to least severe.'>?</a>",
+        title: "Consequence (pLoF) <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='List of variant consequences (defined by Sequence Onthology) across all gene transcripts sorted from most to least severe.'>?</a>",
         field: `annotation.${region_type}.consequence`,
         align: "left",
         minWidth: 170,
@@ -62,7 +62,11 @@ export default {
             var aes = this.domain_dictionary.consequence[v];
             html += `<span class="badge badge-light" style="margin-right:1px;color:${aes.color};font-weight:bold;-webkit-text-stroke: 0.15px black;">${aes.text}</span>`;
           });
-          var all_annotations = cell.getData().annotation[`${region_type}`];
+
+          if (region_type == 'gene') {
+            html += `<button class="cell-button" style="display: none;">Details</button>`;
+          }
+          const all_annotations = cell.getData().annotation[`${region_type}`];
           if (all_annotations.hasOwnProperty('lof')) {
             html += "</br>(";
             all_annotations['lof'].forEach(v => {
@@ -72,6 +76,47 @@ export default {
             });
             html += ")";
           }
+
+          if (region_type != 'gene') {
+            return html;
+          }
+
+          // TODO: move this dynamic html creation to other function i.e. don't create it in each formatter but only when popup is rendered.
+          if (all_annotations.hasOwnProperty('transcripts')) {
+            var more_info = '<ul class="list-unstyled">';
+            all_annotations.transcripts.forEach(d => {
+              d.consequence.forEach(c => {
+                var aes = this.domain_dictionary.consequence[c];
+                more_info += `<li><span class="badge badge-light" style="color:${aes.color};font-weight:bold;-webkit-text-stroke: 0.15px black;">${aes.text}</span>`;
+                if ('HGVS' in d) {
+                  more_info += `(${d['HGVS']})`;
+                } else if ('HGVSc' in d) {
+                  more_info += `(${d['HGVSc']})`;
+                }
+                more_info += '</li>';
+                more_info += '<ul>';
+                more_info += `<li>${d.name}</li>`;
+                more_info += '</ul>';
+              });
+            });
+            more_info += '</ul>'
+          }
+
+          onrendered(() => {
+            var btn = cell.getElement().querySelector('.cell-button');
+            if ((this.hoveredRowPosition != null) && (cell.getRow().getPosition() == this.hoveredRowPosition)) {
+              btn.style.display = 'block';
+            }
+            $(btn).popover({
+              title: '',
+              content: function() { return $(more_info); },
+              html: true,
+              container: 'body',
+              placement: 'bottom',
+              trigger: 'click',
+              animation: false,
+            });
+          });
           return html;
         }
       };
@@ -248,6 +293,15 @@ export default {
     scrolled: function(event) {
       if (this.tabulator.getData().length > 0) {
         var visible = this.getVisibleVariants();
+        if (this.region.gene != null) { // gene mode
+          if ((this.hoveredRowPosition != null) && ((this.hoveredRowPosition < visible.firstVisibleRowIndex) || (this.hoveredRowPosition > visible.lastVisibleRowIndex))) { // # we need explicitelt hide popover when scrolling on mobile touch screen
+            var row = this.tabulator.getRowFromPosition(this.hoveredRowPosition);
+            var cell = row.getCell('annotation.gene.consequence');
+            if (cell) {
+              $(cell.getElement().querySelector('.cell-button')).popover('hide');
+            }
+          }
+        }
         this.$emit("scroll", visible.firstVisibleRowIndex, visible.lastVisibleRowIndex, visible.data);
       }
     },
@@ -263,6 +317,7 @@ export default {
   beforeCreate: function() {
     // DOM-manipulating widgets should store reference statically, not dynamically
     this.tabulator = null;
+    this.hoveredRowPosition = null;
   },
   created: function() {
   },
@@ -324,6 +379,17 @@ export default {
       renderComplete: (data) => {
         if (this.tabulator != null) {
           var visible = this.getVisibleVariants();
+
+          if (this.hoveredRowPosition != null) { // make sure that row is hovered after re-rendering on mobile touch screen
+            var row = this.tabulator.getRowFromPosition(this.hoveredRowPosition);
+            row.getElement().classList.add('row-hovered');
+            if (this.region.gene != null) { //gene mode
+              var cell = row.getCell('annotation.gene.consequence');
+              if (cell) {
+                cell.getElement().querySelector('.cell-button').style.display = 'block';
+              }
+            }
+          }
           this.$emit("scroll", visible.firstVisibleRowIndex, visible.lastVisibleRowIndex, visible.data);
         }
       },
@@ -346,12 +412,12 @@ export default {
             });
             return html;
         }},
-        { title: this.getTitle("cadd_phred") + " <a href='#' class='text-info' data-toggle='tooltip' title='Variant deleteriousness score (PHRED-like scaled) computed with Combined Annoation Dependent Depletion (CADD) tool.'>?</a>",
+        { title: this.getTitle("cadd_phred") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Variant deleteriousness score (PHRED-like scaled) computed with Combined Annoation Dependent Depletion (CADD) tool.'>?</a>",
           field: "cadd_phred", width: 80, align: "left", formatter: (cell, params, onrendered) =>  this.value2text["cadd_phred"](cell.getValue()) },
         { title: this.getTitle("allele_num"), field: "allele_num", width: 88, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_num"](cell.getValue()) },
-        { title: this.getTitle("het_count") + " <a href='#' class='text-info' data-toggle='tooltip' title='Number of heterozygotes.'>?</a>",
+        { title: this.getTitle("het_count") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Number of heterozygotes.'>?</a>",
           field: "het_count", width: 80, align: "left", formatter: (cell, params, onrendered) => this.value2text["het_count"](cell.getValue()) },
-        { title: this.getTitle("hom_count") + " <a href='#' class='text-info' data-toggle='tooltip' title='Number of homozygotes for alternate allele.'>?</a>",
+        { title: this.getTitle("hom_count") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Number of homozygotes for alternate allele.'>?</a>",
           field: "hom_count", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["hom_count"](cell.getValue()) },
         { title: this.getTitle("allele_freq"), field: "allele_freq", width: 125, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_freq"](cell.getValue()) },
       ],
@@ -360,16 +426,37 @@ export default {
       ],
       initialFilter: this.computedFilters,
       rowMouseEnter: (e, row) => {
-        this.$emit("hover", this.tabulator.getRowPosition(row), row.getData(), true);
+        if ((this.hoveredRowPosition != null) && (this.hoveredRowPosition != row.getPosition())) { // row was hovered from before and mouseleave was never called
+          var hoveredRow = this.tabulator.getRowFromPosition(this.hoveredRowPosition);
+          hoveredRow.getElement().classList.remove('row-hovered');
+          if (this.region.gene != null) { // gene mode
+            $(hoveredRow.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button')).popover('hide');
+            hoveredRow.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'none';
+          }
+          this.$emit("hover", hoveredRow.getPosition(), hoveredRow.getData(), false);
+          this.hoveredRowPosition = null;
+        }
+        this.hoveredRowPosition = row.getPosition();
+        row.getElement().classList.add('row-hovered');
+        if (this.region.gene != null) { // gene mode
+          row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'block';
+        }
+        this.$emit("hover", row.getPosition(), row.getData(), true);
       },
       rowMouseLeave: (e, row) => {
-        this.$emit("hover", this.tabulator.getRowPosition(row), row.getData(), false);
+        row.getElement().classList.remove('row-hovered');
+        if (this.region.gene != null) { // gene mode
+          $(row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button')).popover('hide');
+          row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'none';
+        }
+        this.$emit("hover", row.getPosition(), row.getData(), false);
+        this.hoveredRowPosition = null;
       }
     });
     this.$el.querySelector(".tabulator-tableHolder").addEventListener("scroll", this.scrolled);
     this.loadFilterSuggestions();
     this.loadData();
-    $(this.$el.querySelectorAll('[data-toggle="tooltip"]')).tooltip();
+    $(this.$el.querySelectorAll('[data-toggle="tooltip"]')).tooltip(); // not needed?
   },
   beforeDestroy: function() {
   },
@@ -445,12 +532,13 @@ export default {
 .child-component >>> .tabulator {
   font-size: 12px;
 }
-.child-component >>> .tabulator .tabulator-row:hover {
+/* BEGIN. :hover doesn't behave as expected on mobile device, so we mannually append our own row-hovered css class */
+.child-component >>> .tabulator .tabulator-row.tabulator-selectable.row-hovered {
   background-color: orange;
 }
-.child-component >>> .tabulator .tabulator-row.hover {
-  background-color: orange;
+.child-component >>> .tabulator .tabulator-row.tabulator-selectable:hover {
 }
+/* END. */
 .bravo-message {
   position: absolute;
   top: 50%;
@@ -463,5 +551,22 @@ export default {
   opacity: 1.0;
   border-radius: 5%;
   z-index: 9999;
+}
+.child-component >>> .cell-button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  outline: none;
+  padding: 0px 7px 0px 7px;
+  margin: 0px 1px 0px 1px;
+  color: white;
+  background-color: #007bff;
+  border: 1px solid #007bff;
+  border-radius: 2px;
+  box-shadow: none;
+}
+.child-component >>> .cell-button:hover {
+  background-color: #0062cc;
+  border-color: #0062cc;
 }
 </style>
