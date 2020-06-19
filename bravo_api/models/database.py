@@ -49,7 +49,7 @@ def load_genes(canonical_transcripts_file, omim_file, genenames_file, gencode_fi
    
    canonical_transcripts = {read_canonical_transcripts(canonical_transcripts_file)}
    omim_annotations = {gene_id: (accession, description) for gene_id, transcrip_id, accession, description in read_omim(omim_file)}
-   genenames = {gene_id: (name, other_names) for gene_symbol, gene_id, name, other_names in read_hgnc(genenames_file)}
+   genenames = {gene_id: (gene_symbol, name, other_names) for gene_symbol, gene_id, name, other_names in read_hgnc(genenames_file)}
    for gene in read_gencode(gencode_file, ['gene']):
       gene_id = gene['gene_id']
       if gene_id in canonical_transcripts:
@@ -58,8 +58,9 @@ def load_genes(canonical_transcripts_file, omim_file, genenames_file, gencode_fi
          gene['omim_accession'] = omim_annotations[gene_id][0]
          gene['omim_description'] = omim_annotations[gene_id][1]
       if gene_id in genenames:
-         gene['full_gene_name'] = genenames[gene_id][0]
-         gene['other_names'] = genenames[gene_id][1]
+         gene['gene_name'] = genenames[gene_id][0]
+         gene['full_gene_name'] = genenames[gene_id][1]
+         gene['other_names'] = genenames[gene_id][2]
       mongo.db.genes.insert_one(gene)
    mongo.db.genes.create_indexes([pymongo.operations.IndexModel(key) for key in ['gene_id', 'gene_name', 'other_names', 'xstart', 'xstop']])
    sys.stdout.write(f"Created 'genes' collection and inserted {mongo.db.genes.count_documents({})} gene(s).\n")
