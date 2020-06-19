@@ -36,6 +36,7 @@ allowed_snv_sort_keys = {
    'hom_count': int,
    'het_count': int,
    'cadd_phred': float,
+   'rsids': list,
    'annotation.region.lof': list,
    'annotation.region.consequence': list,
    'annotation.gene.lof': list,
