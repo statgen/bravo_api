@@ -113,7 +113,6 @@ def load_snv(threads, variants_files):
 
    variants_files -- one or several VCF/BCF files with single nucleotide variants and short indels.\n
    """
-
    mongo.db.snv.drop()
    with Pool(threads) as p:
       p.map(_load_snv, variants_files)
