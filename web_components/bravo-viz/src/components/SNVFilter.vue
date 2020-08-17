@@ -71,7 +71,7 @@
           </div>
           <div class="btn-group mr-1 mt-1" id="consequenceFilter">
             <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': savedConsequenceFilters.length > 0, 'btn-outline-primary': savedConsequenceFilters.length == 0}" type="button" id="consequenceFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              Consequence <span v-if="savedConsequenceFilters.length > 0">({{savedConsequenceFilters.length}})</span>
+              Annotation <span v-if="savedConsequenceFilters.length > 0">({{savedConsequenceFilters.length}})</span>
             </button>
             <div class="dropdown-menu shadow" @click.stop="">
               <form class="p-2">
@@ -86,7 +86,7 @@
                         <div class="custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="consequenceFilters">
                           <label class="custom-control-label" v-bind:for="item">{{item}}</label>
-                          <small class="form-text text-muted">{{domain_dictionary.consequence[consequenceFiltersMap[item].value].desc}}</small>
+                          <small class="form-text text-muted">{{ $DOMAIN_DICTIONARY.consequence[consequenceFiltersMap[item].value].desc }}</small>
                         </div>
                       </li>
                       </ul>
@@ -101,7 +101,7 @@
                         <div class="custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="consequenceFilters">
                           <label class="custom-control-label" v-bind:for="item">{{item}}</label>
-                          <small class="form-text text-muted">{{domain_dictionary.consequence[consequenceFiltersMap[item].value].desc}}</small>
+                          <small class="form-text text-muted">{{ $DOMAIN_DICTIONARY.consequence[consequenceFiltersMap[item].value].desc }}</small>
                         </div>
                       </li>
                       </ul>
@@ -114,7 +114,7 @@
                         <div class="custom-control custom-checkbox">
                           <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="consequenceFilters">
                           <label class="custom-control-label" v-bind:for="item">{{item}}</label>
-                          <small class="form-text text-muted">{{domain_dictionary.consequence[consequenceFiltersMap[item].value].desc}}</small>
+                          <small class="form-text text-muted">{{ $DOMAIN_DICTIONARY.consequence[consequenceFiltersMap[item].value].desc }}</small>
                         </div>
                       </li>
                     </ul>
@@ -133,7 +133,7 @@
           </div>
           <div class="btn-group mr-1 mt-1" id="lofFilter">
             <button class="btn btn-sm dropdown-toggle" v-bind:class="{'btn-primary': savedLofFilters.length > 0, 'btn-outline-primary': savedLofFilters.length == 0}" type="button" id="lofFilterDropdownButton" data-boundary="window" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-              pLoF <span v-if="savedLofFilters.length > 0">({{savedLofFilters.length}})</span>
+              LOFTEE <span v-if="savedLofFilters.length > 0">({{savedLofFilters.length}})</span>
             </button>
             <div class="dropdown-menu shadow" @click.stop="">
               <form class="p-2">
@@ -147,7 +147,7 @@
                     <div class="custom-control custom-checkbox">
                       <input class="custom-control-input" type="checkbox" v-bind:value="item" v-bind:key="item" v-bind:id="item" v-model="lofFilters">
                       <label class="custom-control-label" v-bind:for="item">{{item}}</label>
-                      <small class="form-text text-muted">{{domain_dictionary.lof[consequenceFiltersMap[item].value].desc}}</small>
+                      <small class="form-text text-muted">{{ $DOMAIN_DICTIONARY.lof[consequenceFiltersMap[item].value].desc }}</small>
                     </div>
                   </li>
                   </ul>
@@ -255,10 +255,7 @@
 </template>
 
 <script>
-  import { Model } from '../mixins/model.js'
-
   export default {
-    mixins: [ Model ],
     name: "snvfilter",
     props: {
       suggestions: {

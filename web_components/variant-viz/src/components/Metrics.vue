@@ -2,7 +2,6 @@
   <div class="card shadow-sm">
     <div class="card-body">
       <div class="container-fluid">
-
         <div v-if="this.ready" class="row">
           <div class="col-sm-12">
             <div class="table-responsive">

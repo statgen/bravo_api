@@ -1,26 +1,67 @@
 /* eslint-disable */
 
 <template>
-<div class="child-component">
+<div class="child-component" v-on:click-annotations="showAnnotationsModal">
+
+  <div class="modal" id="modalAnnotations" role="dialog" data-backdrop="false" style="z-index:99999;">
+    <div class="modal-dialog modal-dialog-centered modal-sm" role="document">
+       <div class="modal-content">
+         <div class="modal-header">
+           <h5 class="modal-title">{{ selectedVariantId }}</h5>
+           <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+             <span aria-hidden="true">&times;</span>
+           </button>
+         </div>
+          <div class="modal-body">
+            <small>
+              <div id="accordion">
+                <div v-for="(c, index) in selectedVariantAnnotations" :key="c.consequence">
+                  <span class="badge badge-light" v-bind:style="'color:' + $DOMAIN_DICTIONARY.consequence[c.consequence].color + ';font-weight:bold;-webkit-text-stroke: 0.15px black;'">&#9632;</span><a data-toggle="collapse" v-bind:href="'#collapse' + index">{{ $DOMAIN_DICTIONARY.consequence[c.consequence].text }}</a>
+                  <div v-if="c.transcripts.length > 0" v-bind:id="'collapse' + index" v-bind:class="index == 0 ? 'collapse show' : 'collapse'" data-parent="#accordion">
+                    <ul class="list-unstyled">
+                      <li v-for="transcript in c.transcripts">
+                        {{ transcript.gene_name }}: {{ transcript.transcript_name }}
+                        <ul>
+                          <li><span style="color: #85144b;">{{ transcript.biotype }}</span></li>
+                          <li v-if="transcript.HGVSc">HGVSc: <b>{{ transcript.HGVSc }}</b></li>
+                          <li v-if="transcript.HGVSp">HGVSp: <b>{{ transcript.HGVSp}}</b></li>
+                        </ul>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </small>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-sm btn-primary" data-dismiss="modal">Close</button>
+          </div>
+      </div>
+    </div>
+  </div>
+
   <div v-if="loading" class="d-flex align-items-center bravo-message">
     <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
     <strong>&nbsp;Loading...</strong>
   </div>
   <div v-if="loaded && empty" class="bravo-message">No variants</div>
   <div v-if="failed" class="bravo-message">Error while loading variants</div>
+  <div ref="snvtable" class="table-sm">
 
-  <div ref="snvtable" class="table-sm"></div>
+
+  </div>
+
 </div>
 </template>
 
 <script>
-import { Model } from '../mixins/model.js'
+// import { Model } from '../mixins/model.js'
 import axios from "axios";
 import Tabulator from "tabulator-tables";
 import 'tabulator-tables/dist/css/bootstrap/tabulator_bootstrap4.min.css';
 
 export default {
-  mixins: [ Model ],
+  // mixins: [ Model ],
   name: "snvtable",
   props: {
     'region': {
@@ -37,106 +78,221 @@ export default {
     },
     'download': {
       type: Number
+    },
+    'showColumnVariantID': {
+      type: Boolean
+    },
+    'showColumnRsID': {
+      type: Boolean
+    },
+    'showColumnConsequence': {
+      type: Boolean
+    },
+    'showColumnAnnotation': {
+      type: Boolean
+    },
+    'showColumnLOFTEE': {
+      type: Boolean
+    },
+    'showColumnQuality': {
+      type: Boolean
+    },
+    'showColumnCADD': {
+      type: Boolean
+    },
+    'showColumnNAlleles': {
+      type: Boolean
+    },
+    'showColumnHet': {
+      type: Boolean
+    },
+    'showColumHomAlt': {
+      type: Boolean
+    },
+    'showColumnFrequency': {
+      type: Boolean
     }
-  },
-  components: {
   },
   data: function() {
     return {
       loading: false,
       loaded: false,
       empty: true,
-      failed: false
+      failed: false,
+      selectedVariantId: "",
+      selectedVariantAnnotations: [],
     };
   },
   methods: {
-    createConsequenceColumnDefinition: function(region_type) {
-      return {
-        title: "Consequence (pLoF) <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='List of variant consequences (defined by Sequence Onthology) across all gene transcripts sorted from most to least severe.'>?</a>",
-        field: `annotation.${region_type}.consequence`,
-        align: "left",
-        minWidth: 170,
-        formatter: (cell, params, onrendered) => {
-          var html = "";
-          cell.getValue().forEach( v => {
-            var aes = this.domain_dictionary.consequence[v];
-            html += `<span class="badge badge-light" style="margin-right:1px;color:${aes.color};font-weight:bold;-webkit-text-stroke: 0.15px black;">${aes.text}</span>`;
-          });
-
-          if (region_type == 'gene') {
-            html += `<button class="cell-button" style="display: none;">Details</button>`;
-          }
-          const all_annotations = cell.getData().annotation[`${region_type}`];
-          if (all_annotations.hasOwnProperty('lof')) {
-            html += "</br>(";
-            all_annotations['lof'].forEach(v => {
-              var badge_type = v == "HC" ? "success" : "warning";
-              var text = this.domain_dictionary.lof[v].text;
-              html += `<span class="badge badge-${badge_type}" style="margin-right:1px">${text}</span>`;
+    showAnnotationsModal: function(e) {
+      if (this.tabulator != null) {
+        var maxTitleLength = 17;
+        var data = this.tabulator.getData()[e.detail];
+        if (data.variant_id.length >= maxTitleLength) {
+          this.selectedVariantId = data.variant_id.substring(0, maxTitleLength) + '...';
+        } else {
+          this.selectedVariantId = data.variant_id;
+        }
+        var all_consequences_nosort = {};
+        var all_consequences_sorted = [];
+        if ("gene" in data.annotation) {
+          data.annotation.gene.transcripts.forEach(transcript => {
+            var entry = { "gene_name": data.annotation.gene.name, "transcript_name": transcript.name, "biotype": transcript.biotype };
+            if ('HGVSc' in transcript) { entry['HGVSc'] = transcript.HGVSc; }
+            if ('HGVSp' in transcript) { entry['HGVSp'] = transcript.HGVSp; }
+            transcript.consequence.forEach(consequence => {
+              if (!(consequence in all_consequences_nosort)) {
+                all_consequences_nosort[consequence] = [];
+              }
+              all_consequences_nosort[consequence].push(entry);
             });
-            html += ")";
-          }
-
-          if (region_type != 'gene') {
-            return html;
-          }
-
-          // TODO: move this dynamic html creation to other function i.e. don't create it in each formatter but only when popup is rendered.
-          if (all_annotations.hasOwnProperty('transcripts')) {
-            var more_info = '<ul class="list-unstyled">';
-            all_annotations.transcripts.forEach(d => {
-              d.consequence.forEach(c => {
-                var aes = this.domain_dictionary.consequence[c];
-                more_info += `<li><span class="badge badge-light" style="color:${aes.color};font-weight:bold;-webkit-text-stroke: 0.15px black;">${aes.text}</span>`;
-                if ('HGVS' in d) {
-                  more_info += `(${d['HGVS']})`;
-                } else if ('HGVSc' in d) {
-                  more_info += `(${d['HGVSc']})`;
-                }
-                more_info += '</li>';
-                more_info += '<ul>';
-                more_info += `<li>${d.name}</li>`;
-                more_info += '</ul>';
+          });
+          // order by severity
+          data.annotation.gene.consequence.forEach(consequence => {
+            all_consequences_sorted.push({ 'consequence': consequence, 'transcripts':  all_consequences_nosort[consequence]});
+          });
+        } else if ("region" in data.annotation) {
+          if ("genes" in data.annotation) {
+            data.annotation.genes.forEach(gene => {
+              gene.transcripts.forEach(transcript => {
+                var entry = { "gene_name": gene.name, "transcript_name": transcript.name, "biotype": transcript.biotype };
+                if ('HGVSc' in transcript) { entry['HGVSc'] = transcript.HGVSc; }
+                if ('HGVSp' in transcript) { entry['HGVSp'] = transcript.HGVSp; }
+                transcript.consequence.forEach(consequence => {
+                  if (!(consequence in all_consequences_nosort)) {
+                    all_consequences_nosort[consequence] = [];
+                  }
+                  all_consequences_nosort[consequence].push(entry);
+                });
               });
             });
-            more_info += '</ul>'
           }
-
-          onrendered(() => {
-            var btn = cell.getElement().querySelector('.cell-button');
-            if ((this.hoveredRowPosition != null) && (cell.getRow().getPosition() == this.hoveredRowPosition)) {
-              btn.style.display = 'block';
+          // order by severity
+          data.annotation.region.consequence.forEach(consequence => {
+            if (consequence in all_consequences_nosort) {
+              var consequence_transcripts = all_consequences_nosort[consequence];
+            } else {
+              var consequence_transcripts = [];
             }
-            $(btn).popover({
-              title: '',
-              content: function() { return $(more_info); },
-              html: true,
-              container: 'body',
-              placement: 'bottom',
-              trigger: 'click',
-              animation: false,
-            });
+            all_consequences_sorted.push({ 'consequence': consequence, 'transcripts':  consequence_transcripts });
           });
+        }
+        this.selectedVariantAnnotations.splice(0, this.selectedVariantAnnotations.length, ...all_consequences_sorted);
+        $('#modalAnnotations').modal('show');
+      }
+    },
+    createAnnotationColumnDefinition: function(region_type) {
+      return {
+        title: "Annotation <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Variant annotation (defined by Sequence Onthology) with most severe effect (total number of annotations).'>?</a>",
+        titleDownload: "Annotation",
+        field: `annotation.${region_type}.consequence`,
+        hozAlign: "left",
+        minWidth: 120,
+        visible: this.showColumnAnnotation,
+        formatter: (cell, params, onrendered) => {
+          var html = "";
+          var annotations = cell.getValue();
+          if (annotations.length > 0) {
+            var aes = this.$DOMAIN_DICTIONARY.consequence[annotations[0]];
+            html += `<span class="badge badge-light" style="margin-right:1px;color:${aes.color};font-weight:bold;-webkit-text-stroke: 0.15px black;">${aes.text}</span>`;
+            html += ` <a href="javascript:void(0)" role="button" onclick='this.dispatchEvent(new CustomEvent("click-annotations", { "bubbles": true, "detail": ${cell.getRow().getPosition()} }))'>(${annotations.length})</a>` // we emit here an Event intead of directly calling Bootstrap modal, because we want to do all modal's dynamics through VueJs.
+          }
           return html;
+        },
+        accessorDownload: (value) => {
+          if (value != null) {
+            return value.join(';');
+          } else {
+            return "";
+          }
+        }
+      };
+    },
+    createLOFTEEColumnDefinition: function(region_type) {
+      return {
+        title: "LOFTEE <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Variant was predicted to be Loss-of-Function by LOFTEE.'>?</a>",
+        titleDownload: "LOFTEE",
+        field: `annotation.${region_type}.lof`,
+        hozAlign: "left",
+        minWidth: 95,
+        visible: this.showColumnLOFTEE,
+        formatter: (cell, params, onrendered) => {
+          var html = "";
+          if (cell.getValue() != undefined) {
+              cell.getValue().forEach(v => {
+                var badge_type = v == "HC" ? "success" : "warning";
+                var text = this.$DOMAIN_DICTIONARY.lof[v].text;
+                html += `<span class="badge badge-${badge_type}" style="margin-right:1px">${text}</span>`;
+              });
+          }
+          return html;
+        },
+        accessorDownload: (value) => {
+          if (value != null) {
+            return value.join(';');
+          } else {
+            return "";
+          }
+        }
+      };
+    },
+    createConsequenceColumnDefinition: function(region_type) {
+      return {
+        title: "Consequence <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='HGVSc/HGVSp nomenclature for the most severe variant effect (total number of HGVSc/HGVSp).'>?</a>",
+        titleDownload: "Consequence",
+        field: `annotation.${region_type}.hgvs`,
+        hozAlign: "left",
+        headerSort: false,
+        minWidth: 120,
+        visible: this.showColumnConsequence,
+        formatter: (cell, params, onrendered) => {
+          if ((cell.getValue() != undefined) && (cell.getValue().length > 0)) {
+            return cell.getValue()[0] + ` <a href="javascript:void(0)" role="button" onclick='this.dispatchEvent(new CustomEvent("click-annotations", { "bubbles": true, "detail": ${cell.getRow().getPosition()} }))'>(${cell.getValue().length})</a>`
+          } else {
+            return "";
+          }
+        },
+        accessorDownload: (value) => {
+          if (value != null) {
+            return value.join(';');
+          } else {
+            return ""
+          }
         }
       };
     },
     loadData: function() {
       if (this.region.gene != null) {
-        if (this.tabulator.columnManager.findColumn('annotation.region.consequence')) {
-          this.tabulator.deleteColumn('annotation.region.consequence');
+        ['annotation.region.hgvs', 'annotation.region.consequence', 'annotation.region.lof'].forEach(v => {
+          if (this.tabulator.columnManager.findColumn(v)) {
+            this.tabulator.deleteColumn(v);
+          }
+        });
+        if (!this.tabulator.columnManager.findColumn('annotation.gene.hgvs')) {
+          this.tabulator.addColumn(this.createConsequenceColumnDefinition('gene'), false, 'rsids');
         }
         if (!this.tabulator.columnManager.findColumn('annotation.gene.consequence')) {
-          this.tabulator.addColumn(this.createConsequenceColumnDefinition('gene'), false, 'variant_id');
+          this.tabulator.addColumn(this.createAnnotationColumnDefinition('gene'), false, 'annotation.gene.hgvs');
+        }
+        if (!this.tabulator.columnManager.findColumn('annotation.gene.lof')) {
+          this.tabulator.addColumn(this.createLOFTEEColumnDefinition('gene'), false, 'annotation.gene.consequence');
         }
         $(this.$el.querySelectorAll('[data-toggle="tooltip"]')).tooltip();
         this.tabulator.setData(`${this.api}variants/gene/snv/${this.region.gene.gene_id}`);
       } else if ((this.region.regionChrom != null) && (this.region.regionStart !=null) && (this.region.regionStop != null)) {
-        if (this.tabulator.columnManager.findColumn('annotation.gene.consequence')) {
-          this.tabulator.deleteColumn('annotation.gene.consequence');
+        ['annotation.gene.hgvs', 'annotation.gene.consequence', 'annotation.gene.lof'].forEach(v => {
+          if (this.tabulator.columnManager.findColumn(v)) {
+            this.tabulator.deleteColumn(v);
+          }
+        });
+        if (!this.tabulator.columnManager.findColumn('annotation.region.hgvs')) {
+          this.tabulator.addColumn(this.createConsequenceColumnDefinition('region'), false, 'rsids');
         }
         if (!this.tabulator.columnManager.findColumn('annotation.region.consequence')) {
-          this.tabulator.addColumn(this.createConsequenceColumnDefinition('region'), false, 'variant_id');
+          this.tabulator.addColumn(this.createAnnotationColumnDefinition('region'), false, 'annotation.region.hgvs');
+        }
+        if (!this.tabulator.columnManager.findColumn('annotation.region.lof')) {
+          this.tabulator.addColumn(this.createLOFTEEColumnDefinition('region'), false, 'annotation.region.consequence');
         }
         $(this.$el.querySelectorAll('[data-toggle="tooltip"]')).tooltip();
         this.tabulator.setData(`${this.api}variants/region/snv/${this.region.regionChrom}-${this.region.regionStart}-${this.region.regionStop}`);
@@ -156,27 +312,28 @@ export default {
             data: {
               category: 'By Group',
               filters: [
-                { title: 'Consequence', text: this.value2text[`${annotation_field}.consequence`]('synonymous_variant'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'synonymous_variant' }},
-                { title: 'Consequence', text: this.value2text[`${annotation_field}.consequence`]('start_retained_variant'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'start_retained_variant' }},
-                { title: 'Consequence', text: this.value2text[`${annotation_field}.consequence`]('stop_retained_variant'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'stop_retained_variant' }}
+                { title: 'Consequence', text: this.$VALUE2TEXT[`${annotation_field}.consequence`]('synonymous_variant'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'synonymous_variant' }},
+                { title: 'Consequence', text: this.$VALUE2TEXT[`${annotation_field}.consequence`]('start_retained_variant'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'start_retained_variant' }},
+                { title: 'Consequence', text: this.$VALUE2TEXT[`${annotation_field}.consequence`]('stop_retained_variant'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'stop_retained_variant' }}
               ]
             }
           };
+
           suggestions['Consequence'].data.items['Non-synonymous'] = {
             value: 'Non-synonymous',
             data: {
               category: 'By Group',
               filters: [
-                { title: 'Consequence', text: this.value2text[`${annotation_field}.consequence`]('missense_variant'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'missense_variant' }},
-                { title: 'Consequence', text: this.value2text[`${annotation_field}.consequence`]('start_lost'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'start_lost' }},
-                { title: 'Consequence', text: this.value2text[`${annotation_field}.consequence`]('stop_gained'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'stop_gained' }},
-                { title: 'Consequence', text: this.value2text[`${annotation_field}.consequence`]('stop_lost'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'stop_lost' }},
+                { title: 'Consequence', text: this.$VALUE2TEXT[`${annotation_field}.consequence`]('missense_variant'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'missense_variant' }},
+                { title: 'Consequence', text: this.$VALUE2TEXT[`${annotation_field}.consequence`]('start_lost'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'start_lost' }},
+                { title: 'Consequence', text: this.$VALUE2TEXT[`${annotation_field}.consequence`]('stop_gained'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'stop_gained' }},
+                { title: 'Consequence', text: this.$VALUE2TEXT[`${annotation_field}.consequence`]('stop_lost'), tabulator_filter: { field: `${annotation_field}.consequence`, type: '=', value: 'stop_lost' }},
               ]
             }
           };
 
           payload.data['consequence'].forEach ( v => {
-            var text_value = this.value2text[`${annotation_field}.consequence`](v.value);
+            var text_value = this.$VALUE2TEXT[`${annotation_field}.consequence`](v.value);
             suggestions['Consequence'].data.items[text_value] = {
               value: text_value,
               data: {
@@ -192,13 +349,13 @@ export default {
             data: {
               category: 'By Group',
               filters: [
-                { title: 'LoF', text: this.value2text[`${annotation_field}.lof`]('HC'), tabulator_filter: { field: `${annotation_field}.lof`, type: '=', value: 'HC' }},
-                { title: 'LoF', text: this.value2text[`${annotation_field}.lof`]('LC'), tabulator_filter: { field: `${annotation_field}.lof`, type: '=', value: 'LC' }}
+                { title: 'LoF', text: this.$VALUE2TEXT[`${annotation_field}.lof`]('HC'), tabulator_filter: { field: `${annotation_field}.lof`, type: '=', value: 'HC' }},
+                { title: 'LoF', text: this.$VALUE2TEXT[`${annotation_field}.lof`]('LC'), tabulator_filter: { field: `${annotation_field}.lof`, type: '=', value: 'LC' }}
               ]
             }
           };
           payload.data['lof'].forEach ( v => {
-            var text_value = this.value2text[`${annotation_field}.lof`](v.value);
+            var text_value = this.$VALUE2TEXT[`${annotation_field}.lof`](v.value);
             suggestions['LoF'].data.items[text_value] = {
               value: text_value,
               data: {
@@ -214,7 +371,7 @@ export default {
             data: {
               category: 'By Group',
               filters: [
-                { title: 'Quality', text: this.value2text['filter']('PASS'), tabulator_filter: { field: 'filter', type: '=', value: 'PASS' }}
+                { title: 'Quality', text: this.$VALUE2TEXT['filter']('PASS'), tabulator_filter: { field: 'filter', type: '=', value: 'PASS' }}
               ]
             }
           };
@@ -223,14 +380,14 @@ export default {
             data: {
               category: 'By Group',
               filters: [
-                { title: 'Quality', text: this.value2text['filter']('SVM'), tabulator_filter: {field: 'filter', type: '=', value: 'SVM' }},
-                { title: 'Quality', text: this.value2text['filter']('DISC'), tabulator_filter: {field: 'filter', type: '=', value: 'DISC' }},
-                { title: 'Quality', text: this.value2text['filter']('EXHET'), tabulator_filter: {field: 'filter', type: '=', value: 'EXHET' }}
+                { title: 'Quality', text: this.$VALUE2TEXT['filter']('SVM'), tabulator_filter: {field: 'filter', type: '=', value: 'SVM' }},
+                { title: 'Quality', text: this.$VALUE2TEXT['filter']('DISC'), tabulator_filter: {field: 'filter', type: '=', value: 'DISC' }},
+                { title: 'Quality', text: this.$VALUE2TEXT['filter']('EXHET'), tabulator_filter: {field: 'filter', type: '=', value: 'EXHET' }}
               ]
             }
           };
           payload.data['filter'].forEach ( v => {
-            var text_value = this.value2text['filter'](v.value);
+            var text_value = this.$VALUE2TEXT['filter'](v.value);
             suggestions['Quality'].data.items[text_value] = {
               value: text_value,
               data: {
@@ -251,6 +408,7 @@ export default {
               }
             };
           });
+
           this.$emit("suggestions", suggestions);
         })
         .catch(error => {
@@ -293,15 +451,15 @@ export default {
     scrolled: function(event) {
       if (this.tabulator.getData().length > 0) {
         var visible = this.getVisibleVariants();
-        if (this.region.gene != null) { // gene mode
-          if ((this.hoveredRowPosition != null) && ((this.hoveredRowPosition < visible.firstVisibleRowIndex) || (this.hoveredRowPosition > visible.lastVisibleRowIndex))) { // # we need explicitelt hide popover when scrolling on mobile touch screen
-            var row = this.tabulator.getRowFromPosition(this.hoveredRowPosition);
-            var cell = row.getCell('annotation.gene.consequence');
-            if (cell) {
-              $(cell.getElement().querySelector('.cell-button')).popover('hide');
-            }
-          }
-        }
+        // if (this.region.gene != null) { // gene mode
+        //   if ((this.hoveredRowPosition != null) && ((this.hoveredRowPosition < visible.firstVisibleRowIndex) || (this.hoveredRowPosition > visible.lastVisibleRowIndex))) { // # we need explicitelt hide popover when scrolling on mobile touch screen
+        //     var row = this.tabulator.getRowFromPosition(this.hoveredRowPosition);
+        //     var cell = row.getCell('annotation.gene.consequence');
+        //     if (cell) {
+        //       $(cell.getElement().querySelector('.cell-button')).popover('hide');
+        //     }
+        //   }
+        // }
         this.$emit("scroll", visible.firstVisibleRowIndex, visible.lastVisibleRowIndex, visible.data);
       }
     },
@@ -373,6 +531,7 @@ export default {
       },
       dataLoaded: (data) => {
         if (this.tabulator != null) {
+          // console.log(data);
           this.empty = data.length == 0;
         }
       },
@@ -383,12 +542,12 @@ export default {
           if (this.hoveredRowPosition != null) { // make sure that row is hovered after re-rendering on mobile touch screen
             var row = this.tabulator.getRowFromPosition(this.hoveredRowPosition);
             row.getElement().classList.add('row-hovered');
-            if (this.region.gene != null) { //gene mode
-              var cell = row.getCell('annotation.gene.consequence');
-              if (cell) {
-                cell.getElement().querySelector('.cell-button').style.display = 'block';
-              }
-            }
+            // if (this.region.gene != null) { //gene mode
+            //   var cell = row.getCell('annotation.gene.consequence');
+            //   if (cell) {
+            //     cell.getElement().querySelector('.cell-button').style.display = 'block';
+            //   }
+            // }
           }
           this.$emit("scroll", visible.firstVisibleRowIndex, visible.lastVisibleRowIndex, visible.data);
         }
@@ -397,29 +556,103 @@ export default {
       height: "600px",
       layout: "fitColumns",
       columns: [
-        { title: this.getTitle("variant_id"), width: 130, field: "variant_id", formatter: (cell, params, onrendered) => {
-            var rsids = cell.getData()['rsids'];
-            if (rsids.length > 0) {
-              return `<a href='${this.api}variant/snv/${cell.getValue()}'>${cell.getValue()}</a></br><span>(${rsids.join(',')})</span>`;
+        {
+          title: this.$GET_FIELD_TITLE("variant_id") + " <a class='text-info' onclick='event.stopPropagation();' data-html='true' data-toggle='tooltip' title='(1) Chromosome<br>(2) Position<br>(3) Reference allele<br>(4) Alternate allele<br>'>?</a>",
+          titleDownload: this.$GET_FIELD_TITLE("variant_id"),
+          width: 130,
+          field: "variant_id",
+          visible: this.showColumnVariantID,
+          formatter: (cell) => { return `<a href='${this.api}variant/snv/${cell.getValue()}'>${cell.getValue()}</a>`; }
+        },
+        {
+          title: this.$GET_FIELD_TITLE("rsids"),
+          titleDownload: this.$GET_FIELD_TITLE("rsids"),
+          width: 100,
+          field: "rsids",
+          visible: this.showColumnRsID,
+          formatter: (cell) => {
+            var html = "";
+            cell.getValue().forEach(v => {
+              html += `<a href='${this.api}variant/snv/${v}'>${v}</a>`;
+            });
+            return html;
+          },
+          accessorDownload: (value) => {
+            if (value != null) {
+              return value.join(';');
+            } else {
+              return "";
             }
-            return `<a href='${this.api}variant/snv/${cell.getValue()}'>${cell.getValue()}</a>`;
-        }},
-        { title: this.getTitle("filter"), field: "filter", width: 80, align: "left", formatter: (cell, params, onrendered) => {
+          }
+        },
+        {
+          title: this.$GET_FIELD_TITLE("filter"),
+          titleDownload: this.$GET_FIELD_TITLE("filter"),
+          field: "filter",
+          width: 78,
+          hozAlign: "left",
+          visible: this.showColumnQuality,
+          formatter: (cell, params, onrendered) => {
             var html = "";
             cell.getValue().forEach( v => {
               var badge_type = v == "PASS" ? "success" : "danger";
               html += `<span class="badge badge-${badge_type}" style="margin-right:1px">${v}</span>`;
             });
             return html;
-        }},
-        { title: this.getTitle("cadd_phred") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Variant deleteriousness score (PHRED-like scaled) computed with Combined Annoation Dependent Depletion (CADD) tool.'>?</a>",
-          field: "cadd_phred", width: 80, align: "left", formatter: (cell, params, onrendered) =>  this.value2text["cadd_phred"](cell.getValue()) },
-        { title: this.getTitle("allele_num"), field: "allele_num", width: 88, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_num"](cell.getValue()) },
-        { title: this.getTitle("het_count") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Number of heterozygotes.'>?</a>",
-          field: "het_count", width: 80, align: "left", formatter: (cell, params, onrendered) => this.value2text["het_count"](cell.getValue()) },
-        { title: this.getTitle("hom_count") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Number of homozygotes for alternate allele.'>?</a>",
-          field: "hom_count", width: 90, align: "left", formatter: (cell, params, onrendered) => this.value2text["hom_count"](cell.getValue()) },
-        { title: this.getTitle("allele_freq"), field: "allele_freq", width: 125, align: "left", formatter: (cell, params, onrendered) => this.value2text["allele_freq"](cell.getValue()) },
+          },
+          accessorDownload: (value) => {
+            if (value != null) {
+              return value.join(';');
+            } else {
+              return "";
+            }
+          }
+        },
+        {
+          title: this.$GET_FIELD_TITLE("cadd_phred") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Variant deleteriousness score (PHRED-like scaled) computed with Combined Annoation Dependent Depletion (CADD) tool.'>?</a>",
+          titleDownload: this.$GET_FIELD_TITLE("cadd_phred"),
+          field: "cadd_phred",
+          width: 80,
+          hozAlign: "left",
+          visible: this.showColumnCADD,
+          formatter: (cell, params, onrendered) =>  this.$VALUE2TEXT["cadd_phred"](cell.getValue())
+        },
+        {
+          title: this.$GET_FIELD_TITLE("allele_num"),
+          titleDownload: this.$GET_FIELD_TITLE("allele_num"),
+          field: "allele_num",
+          width: 88,
+          hozAlign: "left",
+          visible: this.showColumnNAlleles,
+          formatter: (cell, params, onrendered) => this.$VALUE2TEXT["allele_num"](cell.getValue())
+        },
+        {
+          title: this.$GET_FIELD_TITLE("het_count") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Number of heterozygotes.'>?</a>",
+          titleDownload: this.$GET_FIELD_TITLE("het_count"),
+          field: "het_count",
+          width: 80,
+          hozAlign: "left",
+          visible: this.showColumnHet,
+          formatter: (cell, params, onrendered) => this.$VALUE2TEXT["het_count"](cell.getValue())
+        },
+        {
+          title: this.$GET_FIELD_TITLE("hom_count") + " <a class='text-info' onclick='event.stopPropagation();' data-toggle='tooltip' title='Number of homozygotes for alternate allele.'>?</a>",
+          titleDownload: this.$GET_FIELD_TITLE("hom_count"),
+          field: "hom_count",
+          width: 90,
+          hozAlign: "left",
+          visible: this.showColumHomAlt,
+          formatter: (cell, params, onrendered) => this.$VALUE2TEXT["hom_count"](cell.getValue())
+        },
+        {
+          title: this.$GET_FIELD_TITLE("allele_freq"),
+          titleDownload: this.$GET_FIELD_TITLE("allele_freq"),
+          field: "allele_freq",
+          width: 125,
+          hozAlign: "left",
+          visible: this.showColumnFrequency,
+          formatter: (cell, params, onrendered) => this.$VALUE2TEXT["allele_freq"](cell.getValue())
+        },
       ],
       initialSort: [
         { column: "variant_id", dir: "asc" }
@@ -429,26 +662,27 @@ export default {
         if ((this.hoveredRowPosition != null) && (this.hoveredRowPosition != row.getPosition())) { // row was hovered from before and mouseleave was never called
           var hoveredRow = this.tabulator.getRowFromPosition(this.hoveredRowPosition);
           hoveredRow.getElement().classList.remove('row-hovered');
-          if (this.region.gene != null) { // gene mode
-            $(hoveredRow.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button')).popover('hide');
-            hoveredRow.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'none';
-          }
+          // if (this.region.gene != null) { // gene mode
+          //   $(hoveredRow.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button')).popover('hide');
+          //   hoveredRow.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'none';
+          // }
           this.$emit("hover", hoveredRow.getPosition(), hoveredRow.getData(), false);
           this.hoveredRowPosition = null;
         }
+
         this.hoveredRowPosition = row.getPosition();
         row.getElement().classList.add('row-hovered');
-        if (this.region.gene != null) { // gene mode
-          row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'block';
-        }
+        // if (this.region.gene != null) { // gene mode
+        //   row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'block';
+        // }
         this.$emit("hover", row.getPosition(), row.getData(), true);
       },
       rowMouseLeave: (e, row) => {
         row.getElement().classList.remove('row-hovered');
-        if (this.region.gene != null) { // gene mode
-          $(row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button')).popover('hide');
-          row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'none';
-        }
+        // if (this.region.gene != null) { // gene mode
+        //   $(row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button')).popover('hide');
+        //   row.getCell('annotation.gene.consequence').getElement().querySelector('.cell-button').style.display = 'none';
+        // }
         this.$emit("hover", row.getPosition(), row.getData(), false);
         this.hoveredRowPosition = null;
       }
@@ -507,6 +741,87 @@ export default {
         }
         this.tabulator.download('csv', name);
       }
+    },
+    showColumnVariantID: function() {
+      if (this.tabulator != null) {
+        this.tabulator.toggleColumn('variant_id');
+        this.tabulator.redraw();
+      }
+    },
+    showColumnRsID: function() {
+      if (this.tabulator != null) {
+        this.tabulator.toggleColumn('rsids');
+        this.tabulator.redraw();
+      }
+    },
+    showColumnConsequence: function() {
+      if (this.tabulator != null) {
+        if (this.region.gene != null) {
+          this.tabulator.toggleColumn(`annotation.gene.hgvs`);
+          this.tabulator.redraw();
+        } else if ((this.region.regionChrom != null) && (this.region.regionStart !=null) && (this.region.regionStop != null)) {
+          this.tabulator.toggleColumn(`annotation.region.hgvs`);
+          this.tabulator.redraw();
+        }
+      }
+    },
+    showColumnAnnotation: function() {
+      if (this.tabulator != null) {
+        if (this.region.gene != null) {
+          this.tabulator.toggleColumn(`annotation.gene.consequence`);
+          this.tabulator.redraw();
+        } else if ((this.region.regionChrom != null) && (this.region.regionStart !=null) && (this.region.regionStop != null)) {
+          this.tabulator.toggleColumn(`annotation.region.consequence`);
+          this.tabulator.redraw();
+        }
+      }
+    },
+    showColumnLOFTEE: function() {
+      if (this.tabulator != null) {
+        if (this.region.gene != null) {
+          this.tabulator.toggleColumn(`annotation.gene.lof`);
+          this.tabulator.redraw();
+        } else if ((this.region.regionChrom != null) && (this.region.regionStart !=null) && (this.region.regionStop != null)) {
+          this.tabulator.toggleColumn(`annotation.region.lof`);
+          this.tabulator.redraw();
+        }
+      }
+    },
+    showColumnQuality: function() {
+      if (this.tabulator != null) {
+        this.tabulator.toggleColumn('filter');
+        this.tabulator.redraw();
+      }
+    },
+    showColumnCADD: function() {
+      if (this.tabulator != null) {
+        this.tabulator.toggleColumn('cadd_phred');
+        this.tabulator.redraw();
+      }
+    },
+    showColumnNAlleles: function() {
+      if (this.tabulator != null) {
+        this.tabulator.toggleColumn('allele_num');
+        this.tabulator.redraw();
+      }
+    },
+    showColumnHet: function() {
+      if (this.tabulator != null) {
+        this.tabulator.toggleColumn('het_count');
+        this.tabulator.redraw();
+      }
+    },
+    showColumHomAlt: function() {
+      if (this.tabulator != null) {
+        this.tabulator.toggleColumn('hom_count');
+        this.tabulator.redraw();
+      }
+    },
+    showColumnFrequency: function () {
+      if (this.tabulator != null) {
+        this.tabulator.toggleColumn('allele_freq');
+        this.tabulator.redraw();
+      }
     }
   },
   computed: {
@@ -535,6 +850,7 @@ export default {
 /* BEGIN. :hover doesn't behave as expected on mobile device, so we mannually append our own row-hovered css class */
 .child-component >>> .tabulator .tabulator-row.tabulator-selectable.row-hovered {
   background-color: orange;
+  cursor: default;
 }
 .child-component >>> .tabulator .tabulator-row.tabulator-selectable:hover {
 }

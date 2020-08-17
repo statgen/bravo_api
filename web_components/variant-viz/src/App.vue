@@ -98,6 +98,20 @@ export default {
           this.variant = payload.data[0];
           this.loading = false;
           this.ready = true;
+          var datasets = [];
+          if ('pub_freq' in this.variant) {
+            this.variant.pub_freq.forEach(freqs => {
+              datasets.push(freqs.ds);
+            });
+          } else {
+            this.variant['pub_freq'] = [];
+          }
+          if (!datasets.includes('1000G')) {
+            this.variant.pub_freq.push({ 'ds': '1000G' });
+          }
+          if (!datasets.includes('gnomAD')) {
+            this.variant.pub_freq.push({ 'ds': 'gnomAD' });
+          }
         })
         .catch( error => {
           this.failed = true;

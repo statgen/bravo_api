@@ -4,7 +4,7 @@
 
 <script>
 import $ from "jquery";
-import _ from 'devbridge-autocomplete';
+import _ from "devbridge-autocomplete";
 
 export default {
   name: 'autocomplete',
@@ -39,7 +39,7 @@ export default {
         value += "<div>" + $.Autocomplete.defaults.formatResult(suggestion, currentValue) + "</div>"
         value += "<div style='font-size: 0.75em; color: #85144b'>" + suggestion.data.type + "</div>"
         if (suggestion.data.feature == 'gene') {
-          var chrom = suggestion.data.chrom;
+          let chrom = suggestion.data.chrom;
           if (chrom.substring(0, 3) != "chr") {
             chrom = "chr" + chrom;
           }
@@ -47,7 +47,7 @@ export default {
             ":" + parseInt(suggestion.data.start).toLocaleString() +
             "-" + parseInt(suggestion.data.stop).toLocaleString() + "</div>"
         } else if (suggestion.data.feature == 'snv') {
-          var [chrom, pos, ref, alt] = suggestion.data.variant_id.split('-');
+          let [chrom, pos, ref, alt] = suggestion.data.variant_id.split('-');
           if (chrom.substring(0, 3) != "chr") {
             chrom = "chr" + chrom;
           }
@@ -57,8 +57,6 @@ export default {
         }
         value += "</div>"
         return value;
-      },
-      beforeRender: function(container, suggestions) {
       },
       onSearchComplete: function(query, suggestions) {
         if (suggestions.length > 0) {
@@ -71,8 +69,8 @@ export default {
       onSelect: function (suggestion) {
         if (suggestion.data.feature == 'gene') {
           window.location.assign(self.searchapi + "?value=" + suggestion.value + "&chrom=" + suggestion.data.chrom + "&start=" + suggestion.data.start + "&stop=" + suggestion.data.stop);
-        } else if (suggestion.data.feature = 'snv') {
-          var [chrom, pos, ref, alt] = suggestion.data.variant_id.split('-');
+        } else if (suggestion.data.feature == 'snv') {
+          let [chrom, pos, ref, alt] = suggestion.data.variant_id.split('-');
           window.location.assign(self.searchapi + "?value=" + suggestion.value + "&chrom=" + chrom + "&pos=" + pos + "&ref=" + ref + "&alt=" + alt);
         }
       }
@@ -87,7 +85,7 @@ export default {
     this.ready = false;
   },
   watch: {
-    width: function(newValue, oldValue) {
+    width: function() {
       if (this.ready) {
         $(this.$el).autocomplete().setOptions({
           width: this.width

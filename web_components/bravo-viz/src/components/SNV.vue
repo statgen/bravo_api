@@ -144,7 +144,6 @@ export default {
       this.drawing_clip
         .attr("width", this.dimensions.width - this.dimensions.margin.left - this.dimensions.margin.right)
         .attr("height", this.height);
-
       this.x_scale.range(this.region.segments.plot).domain(this.region.segments.region);
 
       var max_count = d3.max(this.histogram_data, function(d) { return d.count; });

@@ -60,11 +60,14 @@ export default {
           this.loaded_data_size += payload.data.length;
           draw = draw.then( () => {
             if (payload.data.length > 0) {
-              // this.coverage_stats = this.coverage_stats.concat(payload.data); -- visualizations doesn't work when making new array copy
-              // payload.data.forEach(d => {
-              //   this.coverage_stats.push(d);
-              // });
+              // remove last element which is just a copy of preceding element
+              this.coverage_stats.pop();
+
               this.coverage_stats.push(...payload.data); // ECMA6
+
+              // add copy of the last window to mark an end
+              this.coverage_stats.push(JSON.parse(JSON.stringify(payload.data[payload.data.length - 1])));
+              this.coverage_stats[this.coverage_stats.length - 1].last = true;
               this.initializeCoverageSVG();
               this.draw();
             }
@@ -138,7 +141,8 @@ export default {
       this.y_axis.scale(this.y_scale).ticks(4).tickFormat(this.format_y_ticks);
       this.y_axis_g.call(this.y_axis);
       var area = d3.area()
-        .x( d => this.x_scale(d.start) )
+        // .x( d => this.x_scale(d.start) )
+        .x( (d, i) => { return d.last ? this.x_scale(d.end): this.x_scale(d.start); } )
         .y0(d => 0)
         .y1(d => 0)
         .y0( d => this.height )

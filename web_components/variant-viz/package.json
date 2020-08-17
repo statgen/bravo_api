@@ -1,11 +1,11 @@
 {
-  "name": "variant-viz",
+  "name": "bravo-variant",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "build-bundle": "vue-cli-service build --target lib --name variantviz",
+    "build-bundle": "vue-cli-service build --target lib --name bravo-variant",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {

@@ -4,7 +4,8 @@
   <div class="child-component">
     <div class="control-buttons">
       <button v-if="hasLeftScroll || hasRightScroll" class="control-button" v-on:click="collapsed = !collapsed">
-        <div style="display: inline" v-if="collapsed">Expand</div><div style="display: inline" v-else>Collapse</div>
+        <div style="display: inline" v-if="collapsed">Expand <font-awesome-icon style="background-color: transparent;" :icon="expandIcon"></font-awesome-icon></div>
+        <div style="display: inline" v-else>Collapse <font-awesome-icon style="background-color: transparent;" :icon="collapseIcon"></font-awesome-icon></div>
       </button>
       <button class="control-button" v-on:click="$emit('close')">
         <font-awesome-icon style="background-color: transparent;" :icon="closeIcon"></font-awesome-icon>
@@ -19,12 +20,21 @@
     <div class="container-fluid">
       <div v-bind:class="{ 'cards': collapsed, 'card-columns': !collapsed }">
         <div class="card shadow-sm small">
+
           <div class="card-body">
+
             <div v-if="loading" class="container-fluid">
               <div class="row">
                 <div class="col-sm-12 text-center">
                   <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
                   <strong>&nbsp;Loading...</strong>
+                </div>
+              </div>
+            </div>
+            <div v-if="failed" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  Error while loading data
                 </div>
               </div>
             </div>
@@ -36,29 +46,21 @@
                       <thead>
                         <tr>
                           <th scope="col" style="border-top:none;">Variant type</th>
-                          <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
-                          <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
-                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
+                          <th scope="col" class="d-md-table-cell text-right" style="border-top:none;">Number</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
                           <td>All</td>
-                          <td class="text-right">{{(summary.passed['total'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['total'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{(summary.all['total'] || 0).toLocaleString()}}</td>
+                          <td class="d-md-table-cell text-right">{{(summary.all['total'] || 0).toLocaleString()}}</td>
                         </tr>
                         <tr>
                           <td>SNVs</td>
-                          <td class="text-right">{{(summary.passed['snv'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['snv'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{(summary.all['snv'] || 0).toLocaleString()}}</td>
+                          <td class="d-md-table-cell text-right">{{(summary.all['snv'] || 0).toLocaleString()}}</td>
                         </tr>
                         <tr>
                           <td>Indels</td>
-                          <td class="text-right">{{(summary.passed['indels'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['indels'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{(summary.all['indels'] || 0).toLocaleString()}}</td>
+                          <td class="d-md-table-cell text-right">{{(summary.all['indels'] || 0).toLocaleString()}}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -68,6 +70,7 @@
             </div>
           </div>
         </div>
+
         <div class="card shadow-sm small">
           <div class="card-body">
             <div v-if="loading" class="container-fluid">
@@ -93,23 +96,17 @@
                       <thead>
                         <tr>
                           <th scope="col" style="border-top:none;">SNVs</th>
-                          <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
-                          <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
-                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
+                          <th scope="col" class="d-md-table-cell text-right" style="border-top:none;">Number</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
                           <td>Synonymous</td>
-                          <td class="text-right">{{this.count_synonymous('passed')}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{this.count_synonymous('failed')}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{this.count_synonymous('all')}}</td>
+                          <td class="d-md-table-cell text-right">{{this.count_synonymous('all')}}</td>
                         </tr>
                         <tr>
                           <td>Non-synonymous</td>
-                          <td class="text-right">{{this.count_nonsynonymous('passed')}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{this.count_nonsynonymous('failed')}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{this.count_nonsynonymous('all')}}</td>
+                          <td class="d-md-table-cell text-right">{{this.count_nonsynonymous('all')}}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -119,57 +116,7 @@
             </div>
           </div>
         </div>
-        <div class="card shadow-sm small">
-          <div class="card-body">
-            <div v-if="loading" class="container-fluid">
-              <div class="row">
-                <div class="col-sm-12 text-center">
-                  <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
-                  <strong>&nbsp;Loading...</strong>
-                </div>
-              </div>
-            </div>
-            <div v-if="failed" class="container-fluid">
-              <div class="row">
-                <div class="col-sm-12 text-center">
-                  Error while loading data
-                </div>
-              </div>
-            </div>
-            <div v-if="loaded" class="container-fluid">
-              <div class="row">
-                <div class="col-sm-12">
-                  <div class="table-responsive">
-                    <table class="table table-sm">
-                      <thead>
-                        <tr>
-                          <th scope="col" style="border-top:none;">Putative Loss-of-Function (pLoF)</th>
-                          <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
-                          <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
-                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        <tr>
-                          <td>High Confidence (HC)</td>
-                          <td class="text-right">{{(summary.passed['LoF (HC)'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['LoF (HC)'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{(summary.all['LoF (HC)'] || 0).toLocaleString()}}</td>
-                        </tr>
-                        <tr>
-                          <td>Low Confidence (LC)</td>
-                          <td class="text-right">{{(summary.passed['LoF (LC)'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{(summary.failed['LoF (LC)'] || 0).toLocaleString()}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{(summary.all['LoF (LC)'] || 0).toLocaleString()}}</td>
-                        </tr>
-                      </tbody>
-                    </table>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+
         <div class="card shadow-sm small">
           <div class="card-body">
             <div v-if="loading" class="container-fluid">
@@ -195,29 +142,21 @@
                       <thead>
                         <tr>
                           <th scope="col" style="border-top:none;">Indels</th>
-                          <th scope="col" class="text-right" style="border-top:none;">Passed QC</th>
-                          <th scope="col" class="d-none d-sm-table-cell text-right" style="border-top:none;">Failed QC</th>
-                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">All</th>
+                          <th scope="col" class="d-md-table-cell text-right" style="border-top:none;">Number</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr>
                           <td>Frameshifts</td>
-                          <td class="text-right">{{this.count_frameshifts('passed')}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{this.count_frameshifts('failed')}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{this.count_frameshifts('all')}}</td>
+                          <td class="d-md-table-cell text-right">{{this.count_frameshifts('all')}}</td>
                         </tr>
                         <tr>
                           <td>Inframe deletions</td>
-                          <td class="text-right">{{this.count_inframe_deletions('passed')}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{this.count_inframe_deletions('failed')}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{this.count_inframe_deletions('all')}}</td>
+                          <td class="d-md-table-cell text-right">{{this.count_inframe_deletions('all')}}</td>
                         </tr>
                         <tr>
                           <td>Inframe insertions</td>
-                          <td class="text-right">{{this.count_inframe_insertions('passed')}}</td>
-                          <td class="d-none d-sm-table-cell text-right">{{this.count_inframe_insertions('failed')}}</td>
-                          <td class="d-none d-md-table-cell text-right">{{this.count_inframe_insertions('all')}}</td>
+                          <td class="d-md-table-cell text-right">{{this.count_inframe_insertions('all')}}</td>
                         </tr>
                       </tbody>
                     </table>
@@ -227,6 +166,53 @@
             </div>
           </div>
         </div>
+
+        <div class="card shadow-sm small">
+          <div class="card-body">
+            <div v-if="loading" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  <div class="spinner-border spinner-border-sm text-primary ml-auto" role="status" aria-hidden="true"></div>
+                  <strong>&nbsp;Loading...</strong>
+                </div>
+              </div>
+            </div>
+            <div v-if="failed" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12 text-center">
+                  Error while loading data
+                </div>
+              </div>
+            </div>
+            <div v-if="loaded" class="container-fluid">
+              <div class="row">
+                <div class="col-sm-12">
+                  <div class="table-responsive">
+                    <table class="table table-sm">
+                      <thead>
+                        <tr>
+                          <th scope="col" style="border-top:none;">Putative Loss-of-Function (pLoF)</th>
+                          <th scope="col" class="d-none d-md-table-cell text-right" style="border-top:none;">Number</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <td>High Confidence (HC)</td>
+                          <td class="d-md-table-cell text-right">{{(summary.all['LoF (HC)'] || 0).toLocaleString()}}</td>
+                        </tr>
+                        <tr>
+                          <td>Low Confidence (LC)</td>
+                          <td class="d-md-table-cell text-right">{{(summary.all['LoF (LC)'] || 0).toLocaleString()}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
@@ -237,6 +223,8 @@
   import { faTimes } from '@fortawesome/free-solid-svg-icons';
   import { faAngleRight } from '@fortawesome/free-solid-svg-icons';
   import { faAngleLeft } from '@fortawesome/free-solid-svg-icons';
+  import { faPlusSquare, faMinusSquare } from '@fortawesome/free-solid-svg-icons';
+
   import axios from "axios";
 
   export default {
@@ -247,7 +235,10 @@
       },
       'region': {
         type: Object
-      }
+      },
+      'filters': {
+        type: Array
+      },
     },
     components: {
         FontAwesomeIcon,
@@ -258,6 +249,8 @@
         closeIcon: faTimes,
         scrollRightIcon: faAngleRight,
         scrollLeftIcon: faAngleLeft,
+        expandIcon: faPlusSquare,
+        collapseIcon: faMinusSquare,
         hasLeftScroll: false,
         hasRightScroll: false,
         loading: false,
@@ -283,7 +276,10 @@
         this.failed = false;
         this.loading = true;
         axios
-          .post(url)
+          .post(url, {
+            filters: this.computedFilters,
+            introns: this.computedRegion.introns,
+          })
           .then(response => {
             var payload = response.data;
             this.summary = payload['data'];
@@ -345,25 +341,35 @@
     computed: {
       computedRegion: function() {
         return JSON.parse(JSON.stringify(this.region));
+      },
+      computedFilters: function() {
+        var filters = [];
+        this.filters.forEach(f => {
+          filters.push(f.tabulator_filter);
+        });
+        return filters;
       }
     },
     watch: {
       computedRegion: {
         handler: function(newValue, oldValue) {
           if (newValue.gene != null) {
-            if ((oldValue.gene == null) || (oldValue.gene.gene_id != newValue.gene.gene_id)) {
+            if ((oldValue.gene == null) || (oldValue.gene.gene_id != newValue.gene.gene_id) || (oldValue.introns != newValue.introns)) {
               this.load();
             }
           } else if (newValue.gene == null) {
             if (oldValue.gene != null) {
               this.load();
-            } else if ((newValue.regionChrom != oldValue.regionChrom) || (newValue.regionStart != oldValue.regionStart) || (newValue.regionStop != oldValue.regionStop)) {
+            } else if ((newValue.regionChrom != oldValue.regionChrom) || (newValue.regionStart != oldValue.regionStart) || (newValue.regionStop != oldValue.regionStop) || (oldValue.introns != newValue.introns)) {
               this.load();
             }
           }
           this.updateHorizontalScroll();
         },
         deep: true
+      },
+      filters: function(newValue, oldValue) {
+        this.load();
       },
     }
   }

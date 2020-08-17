@@ -1,32 +1,13 @@
+export default {
 
-export const Model = {
-  methods: {
-    getField(title, isGene) {
-      var main_fields = Object.keys(this.field2title);
-      var feature = isGene ? 'gene' : 'region';
-      for (var i = 0; i < main_fields.length; ++i) {
-        let main_field = main_fields[i];
-        if (typeof this.field2title[main_field] === "object") {
-          if (feature in this.field2title[main_field]) {
-            let nested_field = Object.keys(this.field2title[main_field][feature]).find( nested_field => this.field2title[main_field][feature][nested_field] == title);
-            if (nested_field) {
-              return `${main_field}.${feature}.${nested_field}`;
-            }
-          }
-        } else if (this.field2title[main_field] == title) {
-          return main_field;
-        }
-      }
-      return null;
-    },
-    getTitle(field) {
-      var title = field.split('.').reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : undefined, this.field2title);
+  install(Vue) {
+    Vue.prototype.$GET_FIELD_TITLE =  function(field) {
+      var title = field.split('.').reduce((obj, key) => (obj && obj[key] !== undefined) ? obj[key] : undefined, this.$FIELD2TITLE);
       return title ? title : field;
-    }
-  },
-  beforeCreate() {
-    this.field2title = {
-      "variant_id": "ID (rsID)",
+    };
+    Vue.prototype.$FIELD2TITLE = {
+      "variant_id": "Variant ID",
+      "rsids": "rsID",
       "pos": "Position",
       "filter": "Quality",
       "cadd_phred": "CADD",
@@ -45,10 +26,7 @@ export const Model = {
         }
       }
     };
-    this.text2value = {
-      'filter': (text) => text,
-    },
-    this.value2text = {
+    Vue.prototype.$VALUE2TEXT = {
       'pos': (value) => value.toLocaleString(),
       'filter': (value) => `${value}`,
       'cadd_phred': (value) => value != null ? `${value.toFixed(2)}` : null,
@@ -56,12 +34,12 @@ export const Model = {
       'het_count': (value) => value.toLocaleString(),
       'hom_count': (value) => value.toLocaleString(),
       'allele_freq': (value) => `${(value * 100).toPrecision(3)}%`,
-      'annotation.region.consequence': (value) => this.domain_dictionary.consequence[value].text,
-      'annotation.region.lof': (value) => this.domain_dictionary.lof[value].text,
-      'annotation.gene.consequence': (value) => this.domain_dictionary.consequence[value].text,
-      'annotation.gene.lof': (value) => this.domain_dictionary.lof[value].text
-    },
-    this.domain_dictionary = {
+      'annotation.region.consequence': (value) => Vue.prototype.$DOMAIN_DICTIONARY.consequence[value].text,
+      'annotation.region.lof': (value) => Vue.prototype.$DOMAIN_DICTIONARY.lof[value].text,
+      'annotation.gene.consequence': (value) => Vue.prototype.$DOMAIN_DICTIONARY.consequence[value].text,
+      'annotation.gene.lof': (value) => Vue.prototype.$DOMAIN_DICTIONARY.lof[value].text
+    };
+    Vue.prototype.$DOMAIN_DICTIONARY = {
       'lof': {
         'HC': { 'text': 'high-confidence', 'color': 'black', 'desc': 'Variants which pass all LOFTEE filters' },
         'LC': { 'text': 'low-confidence', 'color': 'black', 'desc': 'Variants which fail at least one LOFTEE filter' },
@@ -103,6 +81,19 @@ export const Model = {
         'regulatory_region_variant': { 'text': 'regulatory region', 'color': '#921a20', 'desc': 'A sequence variant located within a regulatory region' },
         'feature_truncation': { 'text': 'feature truncation', 'color': '#6c6c6c', 'desc': 'A sequence variant that causes the reduction of a genomic feature, with regard to the reference sequence' },
         'intergenic_variant': { 'text': 'intergenic', 'color': '#505050', 'desc': 'A sequence variant located in the intergenic region, between genes' },
+      },
+      'populations': {
+        'ALL': 'All individuals',
+        'OTH': 'Others',
+        'AFR': 'African',
+        'AMR': 'Ad Mixed American',
+        'EAS': 'East Asian',
+        'ASN': 'Asian',
+        'EUR': 'European',
+        'SAS': 'South Asian',
+        'FIN': 'Finnish',
+        'NFE': 'Non-Finnish European',
+        'ASJ': 'Ashkenazi Jewish'
       }
     };
   }
