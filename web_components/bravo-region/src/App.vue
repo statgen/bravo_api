@@ -128,7 +128,7 @@ import info from './components/Info.vue';
 import snvfilter from './components/SNVFilter.vue';
 
 export default {
-  name: "bravoviz",
+  name: "bravoregion",
   components: {
     FontAwesomeIcon,
     coordinates,

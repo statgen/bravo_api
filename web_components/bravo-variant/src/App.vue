@@ -57,7 +57,7 @@ import reads from './components/Reads.vue';
 
 
 export default {
-  name: 'variantviz',
+  name: 'bravovariant',
   components: {
     basicinfo,
     counts,
