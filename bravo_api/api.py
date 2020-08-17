@@ -36,6 +36,7 @@ allowed_snv_sort_keys = {
    'hom_count': int,
    'het_count': int,
    'cadd_phred': float,
+   'rsids': list,
    'annotation.region.lof': list,
    'annotation.region.consequence': list,
    'annotation.gene.lof': list,
@@ -345,9 +346,16 @@ def get_region_snv_summary():
       'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
       'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
       'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+      'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+      'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+      'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
    }
    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
-   data = variants.get_region_snv_summary(args['chrom'], args['start'], args['stop'])
+   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
+   data = variants.get_region_snv_summary(args['chrom'], args['start'], args['stop'], filter)
    response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
    response.mimetype = 'application/json'
    return response
@@ -377,10 +385,18 @@ def get_gene_snv_histogram():
 @bp.route('/gene/snv/summary', methods = ['GET'])
 def get_gene_snv_summary():
    arguments = {
-      'name': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
+      'name': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+      'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+      'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+      'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+      'introns': fields.Bool(required = False, missing = True)
    }
    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
-   data = variants.get_gene_snv_summary(args['name'])
+   filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
+   data = variants.get_gene_snv_summary(args['name'], filter, args['introns'])
    response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
    response.mimetype = 'application/json'
    return response

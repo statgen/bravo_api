@@ -585,7 +585,7 @@ def get_region_snv_histogram(chrom, start, stop, filter, windows):
    return data
 
 
-def get_region_snv_summary(chrom, start, stop):
+def get_region_snv_summary(chrom, start, stop, filter):
    xstart = make_xpos(chrom, start)
    xstop = make_xpos(chrom, stop)
 
@@ -593,55 +593,61 @@ def get_region_snv_summary(chrom, start, stop):
    # query optimizer didn't work well on Mongo 3.4 and {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}} filter wasn't performing well
    # since here we work with short variants, to improve performance we add additional limits to xpos and xstop 
    mongo_filter = [ {'xpos': {'$gte': xstart - 1000}}, {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}}, {'xstop': {'$lte': xstop + 1000}} ]
+   mongo_filter.extend(build_mongo_filter(filter))
 
    pipeline = [
       { '$match': { '$and': mongo_filter }},
       { '$project': { '_id': False, 'variant_id': True, 'filter': True, 'annotation.region.consequence': True, 'annotation.region.lof': True }}
    ]   
-   data = {
-      'all': Counter(),
-      'passed': Counter(),
-      'failed': Counter()
+   result = {
+      'all': Counter()
    }
    cursor = mongo.db.snv.aggregate(pipeline, hint = 'xpos_1_xstop_1')
    for entry in cursor:
       chrom, position, ref, alt = entry['variant_id'].split('-')
-      data['all']['total'] += 1
-      if 'PASS' in entry['filter']:
-         filter = 'passed'
-      else:
-         filter = 'failed'
-      data[filter]['total'] += 1
+      result['all']['total'] += 1
       if len(ref) == 1 and len(alt) == 1:
-         data['all']['snv'] += 1
-         data[filter]['snv'] += 1
+         result['all']['snv'] += 1
       elif len(ref) != len(alt):
-         data['all']['indels'] += 1
-         data[filter]['indels'] += 1
+         result['all']['indels'] += 1
       if 'lof' in entry['annotation']['region']:
-         data['all'][f'LoF ({entry["annotation"]["region"]["lof"][0]})'] += 1
-         data[filter][f'LoF ({entry["annotation"]["region"]["lof"][0]})'] += 1
+         result['all'][f'LoF ({entry["annotation"]["region"]["lof"][0]})'] += 1
       if entry['annotation']['region']['consequence']:
-         data['all'][entry['annotation']['region']['consequence'][0]] += 1
-         data[filter][entry['annotation']['region']['consequence'][0]] += 1
-   return data
+         result['all'][entry['annotation']['region']['consequence'][0]] += 1
+   return result
 
 
-def get_gene_snv_summary(name):
-   gene = None
-   data = {
+def get_gene_snv_summary(name, filter, introns):
+   result = {
       'all': Counter(),
-      'passed': Counter(),
-      'failed': Counter()
    }
+
    gene = get_gene(name, True)
    if gene is None:
-      return data
+      return result
+
+   if not introns:
+      exons = IntervalTree()
+      for feature in gene['features']:
+         if feature['feature_type'] == 'exon':
+            exons.addi(feature['start'], feature['stop'] + 1)
+      mongo_exons_filter = []
+      exon_length = 0
+      exons.merge_overlaps()
+      for exon in exons:
+         mongo_exons_filter.append({'pos': {'$gte': exon.begin, '$lt': exon.end}})
+         exon_length += exon.end - exon.begin
+
    gene_id = gene['gene_id']
    xstart = make_xpos(gene['chrom'], gene['start'])
    xstop = make_xpos(gene['chrom'], gene['stop'])
 
+   # prepare user-specified filter conditions in mongo format
+   # query optimizer didn't work well on Mongo 3.4 and {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}} filter wasn't performing well
+   # since here we work with short variants, to improve performance we add additional limits to xpos and xstop 
    mongo_filter = [ {'xpos': {'$gte': xstart - 1000}}, {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}}, {'xstop': {'$lte': xstop + 1000}} ]
+   mongo_filter.extend(build_mongo_filter(filter))
+
    projection = {
       '_id': False, 
       'variant_id': True,
@@ -655,32 +661,27 @@ def get_gene_snv_summary(name):
    }
 
    pipeline = [
-      { '$match': { '$and': mongo_filter }},
-      { '$project': projection }
+      { '$match': { '$and': mongo_filter }}
    ]
+   if not introns:
+      pipeline.extend([{ '$match': { '$or': mongo_exons_filter}}])
+   pipeline.extend([
+      { '$project': projection }
+   ])
 
    cursor = mongo.db.snv.aggregate(pipeline, hint = 'xpos_1_xstop_1')
    for entry in cursor:
       chrom, position, ref, alt = entry['variant_id'].split('-')
-      data['all']['total'] += 1
-      if 'PASS' in entry['filter']:
-         filter = 'passed'
-      else:
-         filter = 'failed'
-      data[filter]['total'] += 1
+      result['all']['total'] += 1
       if len(ref) == 1 and len(alt) == 1:
-         data['all']['snv'] += 1
-         data[filter]['snv'] += 1
+         result['all']['snv'] += 1
       elif len(ref) != len(alt):
-         data['all']['indels'] += 1
-         data[filter]['indels'] += 1
+         result['all']['indels'] += 1
       if 'lof' in entry['annotation']['genes'][0]:
-         data['all'][f'LoF ({entry["annotation"]["genes"][0]["lof"][0]})'] += 1
-         data[filter][f'LoF ({entry["annotation"]["genes"][0]["lof"][0]})'] += 1
+         result['all'][f'LoF ({entry["annotation"]["genes"][0]["lof"][0]})'] += 1
       if entry['annotation']['genes'][0]['consequence']:
-         data['all'][entry['annotation']['genes'][0]['consequence'][0]] += 1
-         data[filter][entry['annotation']['genes'][0]['consequence'][0]] += 1
-   return data
+         result['all'][entry['annotation']['genes'][0]['consequence'][0]] += 1
+   return result
 
 
 def get_gene_snv_histogram(name, filter, windows, introns):

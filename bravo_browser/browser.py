@@ -508,7 +508,32 @@ def region_variants_histogram(variants_type, chrom, start, stop):
 @bp.route('/variants/region/<string:variants_type>/<string:chrom>-<int:start>-<int:stop>/summary', methods = ['POST', 'GET'])
 @require_authorization
 def region_variants_summary(variants_type, chrom, start, stop):
+   args = []
+   url = None
+
+   filter_type = {
+      '=': 'eq',
+      '!=': 'ne',
+      '<': 'lt',
+      '>': 'gt',
+      '<=': 'lte',
+      '>=': 'gte'
+   } 
+
+   if request.method == 'POST':
+      params = request.get_json()
+      if params:
+         for f in params.get('filters', []):
+            if isinstance(f, list):
+               if len(f) > 0 and len(set( x["field"] for x in f )) == 1:
+                  args.append('{}={}'.format(f[0]['field'], ','.join(f'{filter_type.get(x["type"], "eq")}:{x["value"]}' for x in f)))
+            else:   
+               args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
+
    url = f"{current_app.config['BRAVO_API_URI']}/region/{variants_type}/summary?chrom={chrom}&start={start}&stop={stop}"
+   if args:
+      url += f"&{'&'.join(args)}"
+
    api_response = requests.get(url)
    if api_response.status_code == 200:
       payload = api_response.json()
@@ -519,13 +544,40 @@ def region_variants_summary(variants_type, chrom, start, stop):
 @bp.route('/variants/gene/<string:variants_type>/<string:gene_name>/summary', methods = ['POST', 'GET'])
 @require_authorization
 def gene_variants_summary(variants_type, gene_name):
+   args = []
+   url = None
+
+   filter_type = {
+      '=': 'eq',
+      '!=': 'ne',
+      '<': 'lt',
+      '>': 'gt',
+      '<=': 'lte',
+      '>=': 'gte'
+   } 
+
+   if request.method == 'POST':
+      params = request.get_json()
+      if params:
+         # print('gene summary params = ', params)
+         for f in params.get('filters', []):
+            if isinstance(f, list):
+               if len(f) > 0 and len(set( x["field"] for x in f )) == 1:
+                  args.append('{}={}'.format(f[0]['field'], ','.join(f'{filter_type.get(x["type"], "eq")}:{x["value"]}' for x in f)))
+            else:   
+               args.append(f'{f["field"]}={filter_type.get(f["type"], "eq")}:{f["value"]}')
+         if 'introns' in params:
+            args.append(f'introns={params["introns"]}')
+
    url = f"{current_app.config['BRAVO_API_URI']}/gene/{variants_type}/summary?name={gene_name}"
+   if args:
+      url += f"&{'&'.join(args)}"
+
    api_response = requests.get(url)
    if api_response.status_code == 200:
       payload = api_response.json()
       return make_response(jsonify(payload), 200)
    return render_template('not_found.html', show_brand = True, message = "Bad query!"), 404
-
 
 
 @bp.route('/variants/gene/<string:variants_type>/<string:gene_name>/histogram', methods = ['POST', 'GET'])

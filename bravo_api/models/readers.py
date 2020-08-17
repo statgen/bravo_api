@@ -117,14 +117,19 @@ def annotation_from_effects(allele_effects):
          }
          hgvs_c = unquote(effect['HGVSc']).split(':', 1)[-1]
          hgvs_p = unquote(effect['HGVSp']).split(':', 1)[-1]
+         hgvs = None
          if hgvs_p:
             transcript['HGVSp'] = hgvs_p
             if '=' not in hgvs_p: # ie. non-synonymous
-               transcript['HGVS'] = hgvs_p
-            elif hgvs_c:
-               transcript['HGVS'] = hgvs_c
+               hgvs = hgvs_p
          if hgvs_c:
             transcript['HGVSc'] = hgvs_c
+            if hgvs is None:
+               hgvs = hgvs_c
+         if hgvs is not None:
+            for consequence_code in consequences_coded:
+               region.setdefault('hgvs', dict()).setdefault(consequence_code, set()).add(hgvs)
+               gene.setdefault('hgvs', dict()).setdefault(consequence_code, set()).add(hgvs)
          if lof is not None:
             gene.setdefault('lof', set()).add(lof)
             gene.setdefault('_lof', set()).add(lof_coded)
@@ -152,6 +157,12 @@ def annotation_from_effects(allele_effects):
          region[key] = sorted(value, key = lambda x: snv_consequence2code[x], reverse = True)
       elif key == 'lof':
          region[key] = sorted(value, key = lambda x: snv_lof2code[x], reverse = True)
+      elif key == 'hgvs':
+         region[key] = []
+         for _, hgvss in sorted(value.items(), reverse = True):
+            for hgvs in hgvss:
+                if hgvs not in region[key]:
+                   region[key].append(hgvs)
    annotations['region'] = region
    if genes:
       annotations['genes'] = []
@@ -165,7 +176,13 @@ def annotation_from_effects(allele_effects):
             elif key == 'lof':
                gene[key] = sorted(value, key = lambda x: snv_lof2code[x], reverse = True)
             elif key == 'transcripts':
-               gene[key] = value           
+               gene[key] = value 
+            elif key == 'hgvs':
+               gene[key] = []
+               for _, hgvss in sorted(value.items(), reverse = True):
+                  for hgvs in hgvss:
+                     if hgvs not in gene[key]:
+                        gene[key].append(hgvs)
          annotations['genes'].append(gene)
    if regulators:
       annotations['regulatory'] = regulators
