@@ -1,20 +1,26 @@
 {
-  "name": "bravosearch",
+  "name": "bravoregion",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "build-bundle": "vue-cli-service build --target lib --name bravosearch",
+    "build-bundle": "vue-cli-service build --target lib --name bravoregion",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
-    "@fortawesome/fontawesome-svg-core": "^1.2.30",
-    "@fortawesome/free-solid-svg-icons": "^5.14.0",
+    "@fortawesome/fontawesome-svg-core": "^1.2.29",
+    "@fortawesome/free-solid-svg-icons": "^5.13.1",
     "@fortawesome/vue-fontawesome": "^0.1.10",
+    "@vue/eslint-config-standard": "^4.0.0",
+    "axios": "^0.19.2",
     "core-js": "^2.6.11",
-    "devbridge-autocomplete": "^1.4.11",
+    "d3": "^5.16.0",
+    "d3-tip": "^0.9.1",
+    "d3fc-discontinuous-scale": "^2.0.5",
     "jquery": "^3.5.1",
+    "popper.js": "^1.16.1",
+    "tabulator-tables": "^4.7.1",
     "vue": "^2.6.11"
   },
   "devDependencies": {
@@ -23,7 +29,7 @@
     "@vue/cli-service": "^3.12.1",
     "babel-eslint": "^10.1.0",
     "eslint": "^5.8.0",
-    "eslint-plugin-vue": "^5.0.0",
+    "eslint-plugin-vue": "^5.2.3",
     "vue-template-compiler": "^2.6.11"
   },
   "eslintConfig": {
