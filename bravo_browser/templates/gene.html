@@ -2,7 +2,7 @@
 
 {% block head %}
 <!-- Styles for Bravo visualizations -->
-<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='bravoviz.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='bravoregion.css') }}">
 
 <style type="text/css">
 .bravo-tab {
@@ -59,7 +59,7 @@ BRAVO
          <p class="text-center"><strong>This page is under active development and will be available soon.</strong></p>
          {% else %}
          <div id="bravo-plot"> 
-            <bravoviz :pagination-size="100" :homepage="'{{ url_for('.home', _external = True, _scheme='https') }}'" :api="'{{ url_for('.home', _external = True, _scheme='https') }}'" :gene_name = "'{{ gene_name }}'"></bravoviz>
+            <bravoregion :pagination-size="100" :homepage="'{{ url_for('.home', _external = True, _scheme='https') }}'" :api="'{{ url_for('.home', _external = True, _scheme='https') }}'" :gene_name = "'{{ gene_name }}'"></bravoregion>
          </div>
          {% endif %}
       </div>
@@ -70,13 +70,14 @@ BRAVO
 {% block jscripts %}
 <!-- Bravo plot libraries -->
 <script type="text/javascript" charser="utf8" src="https://unpkg.com/vue"></script>
-<script type="text/javascript" charset="utf8" src="{{ url_for('.static', filename='bravoviz.umd.min.js') }}"></script>
-
+<script type="text/javascript" charset="utf8" src="{{ url_for('.static', filename='bravomodel.umd.min.js') }}"></script>
+<script type="text/javascript" charset="utf8" src="{{ url_for('.static', filename='bravoregion.umd.min.js') }}"></script>
 
 <script type="text/javascript">
+Vue.use(bravomodel.default);
 var bravoviz_vm = new Vue({
   components: {
-    bravoviz
+    bravoregion
   }
 });
 bravoviz_vm.$mount('#bravo-plot');

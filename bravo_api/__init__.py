@@ -21,7 +21,7 @@ def create_app(test_config = None):
    from bravo_api.models.coverage import init_coverage
    init_coverage(app.config['COVERAGE_DIR'])
 
-   from bravo_api.models.sequences import init_sequences
+   from bravo_api.models.sequences_new import init_sequences
    init_sequences(app.config['SEQUENCES_DIR'], app.config['REFERENCE_SEQUENCE'], app.config['SEQUENCES_CACHE_DIR'])
 
    from bravo_api import api

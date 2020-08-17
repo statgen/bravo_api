@@ -5,7 +5,7 @@ from marshmallow import Schema
 from webargs.flaskparser import parser
 from webargs import fields, ValidationError
 from functools import partial
-from bravo_api.models import variants, coverage, sequences, qc_metrics
+from bravo_api.models import variants, coverage, sequences_new, qc_metrics
 import string
 import re
 
@@ -438,6 +438,18 @@ def get_qc():
    return response
 
 
+@bp.route('/sequence/summary', methods = ['GET'])
+def get_sequence_summary():
+   arguments = {
+      'variant_id': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
+   }
+   args = parser.parse(arguments, validate = partial(validate_http_request_args, all_args = arguments.keys()))
+   data = sequences_new.get_info(args['variant_id'])
+   response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
+   response.mimetype = 'application/json'
+   return response
+
+
 @bp.route('/sequence', methods = ['GET'])
 def get_sequence():
    arguments = {
@@ -456,7 +468,7 @@ def get_sequence():
          if m:
             start = int(m.group(1))
             stop = int(m.group(2))
-      result = sequences.get_cram(args['variant_id'], args['sample_no'], args['heterozygous'], start, stop)
+      result = sequences_new.get_cram(args['variant_id'], args['sample_no'], args['heterozygous'], start, stop)
       if result is None:
          abort(500) 
       response = make_response(result['file_bytes'], 206)
@@ -464,7 +476,7 @@ def get_sequence():
       response.mimetype = 'application/octet-stream'
       response.direct_passthrough = True
    else:
-      result = sequences.get_crai(args['variant_id'], args['sample_no'], args['heterozygous'])
+      result = sequences_new.get_crai(args['variant_id'], args['sample_no'], args['heterozygous'])
       if result is None:
          abort(500)
       response = make_response(send_file(result, as_attachment = False))
