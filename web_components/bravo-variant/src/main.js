@@ -1,7 +1,7 @@
 import Vue from 'vue'
 import App from './App.vue'
 
-import Model from "../../model/src/model.js";
+import Model from "../../bravo-model/src/model.js";
 Vue.use(Model);
 
 Vue.config.productionTip = false

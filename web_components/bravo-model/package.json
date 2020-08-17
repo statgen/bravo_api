@@ -1,12 +1,12 @@
 {
-  "name": "model",
+  "name": "bravo-model",
   "main": "src/model.js",
   "version": "0.1.0",
   "private": true,
   "scripts": {
     "serve": "vue-cli-service serve",
     "build": "vue-cli-service build",
-    "build-bundle": "vue-cli-service build --target lib --name model src/model.js",
+    "build-bundle": "vue-cli-service build --target lib --name bravo-model src/model.js",
     "lint": "vue-cli-service lint"
   },
   "dependencies": {
