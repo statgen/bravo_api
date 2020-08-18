@@ -2,7 +2,7 @@
 
 {% block head %}
 <!-- Styles for Bravo visualizations -->
-<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='variantviz.css') }}">
+<link rel="stylesheet" type="text/css" href="{{ url_for('.static', filename='bravovariant.css') }}">
 
 <style type="text/css">
 .bravo-tab {
@@ -45,7 +45,7 @@ BRAVO
    <div class="row justify-content-center">
       <div class="col-10 col-sm-10 col-md-10">
          <div id="variant-plot"> 
-            <variantviz :homepage="'{{ url_for('.home', _external = True, _scheme='https') }}'" :api="'{{ url_for('.home', _external = True, _scheme='https') }}'" :variant-id="'{{ variant_id }}'" :total-samples="132345" />
+            <bravovariant :homepage="'{{ url_for('.home', _external = True, _scheme='https') }}'" :api="'{{ url_for('.home', _external = True, _scheme='https') }}'" :variant-id="'{{ variant_id }}'" :total-samples="132345" />
          </div>
       </div>
    </div>
@@ -55,13 +55,15 @@ BRAVO
 {% block jscripts %}
 <!-- Bravo plot libraries -->
 <script type="text/javascript" charser="utf8" src="https://unpkg.com/vue"></script>
-<script type="text/javascript" charset="utf8" src="{{ url_for('.static', filename='variantviz.umd.min.js') }}"></script>
+<script type="text/javascript" charset="utf8" src="{{ url_for('.static', filename='bravomodel.umd.min.js') }}"></script>
+<script type="text/javascript" charset="utf8" src="{{ url_for('.static', filename='bravovariant.umd.min.js') }}"></script>
 
 
 <script type="text/javascript">
+Vue.use(bravomodel.default);
 var variantviz_vm = new Vue({
   components: {
-    variantviz
+    bravovariant
   }
 });
 variantviz_vm.$mount('#variant-plot');

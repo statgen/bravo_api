@@ -438,6 +438,18 @@ def get_qc():
    return response
 
 
+@bp.route('/sequence/summary', methods = ['GET'])
+def get_sequence_summary():
+   arguments = {
+      'variant_id': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
+   }
+   args = parser.parse(arguments, validate = partial(validate_http_request_args, all_args = arguments.keys()))
+   data = sequences.get_info(args['variant_id'])
+   response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
+   response.mimetype = 'application/json'
+   return response
+
+
 @bp.route('/sequence', methods = ['GET'])
 def get_sequence():
    arguments = {

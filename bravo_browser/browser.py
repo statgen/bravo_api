@@ -347,6 +347,19 @@ def variant(variant_id):
    return not_found(f'I couldn\'t find what you wanted')
 
 
+@bp.route('/variant/api/snv/cram/summary/<string:variant_id>')
+@require_authorization
+def variant_cram_info(variant_id):
+   arguments = {
+      'variant_id': fields.Str(location = 'view_args', required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
+   }
+   args = parser.parse(arguments)
+   api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/sequence/summary?variant_id={variant_id}")
+   if api_response.status_code == 200:
+      return make_response(api_response.content, 200)
+   return not_found(f'I couldn\'t find what you wanted')
+
+
 @bp.route('/variant/api/snv/cram/<string:variant_id>-<int:sample_het>-<int:sample_no>')
 @require_authorization
 def variant_cram(variant_id, sample_het, sample_no):
