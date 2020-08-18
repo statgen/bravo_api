@@ -13,28 +13,30 @@
         </div>
       </div>
       <div v-else class="container-fluid">
-        <div v-if="this.counts.n_hets > 0" class="row mb-1">
-          <div class="col-sm-auto">
-            Displaying sequences for heterozygous individual:
-          </div>
-          <div class="col-sm-auto">
-            <div class="btn-group" role="group">
-              <button v-for="individual in this.counts.n_hets" v-bind:id="'btn-het-' + individual" type="button" class="btn btn-secondary btn-sm" v-on:click="sequence(true, individual, $event)">{{ individual }}</button>
-            </div>
-          </div>
-        </div>
-        <div v-if="this.counts.n_homs > 0" class="row mb-1">
-          <div class="col-sm-auto">
-            Displaying sequences for homozygous individual:
-          </div>
-          <div class="col-sm-auto">
-            <div class="btn-group" role="group">
-              <button v-for="individual in this.counts.n_homs" v-bind:id="'btn-hom-' + individual" type="button" class="btn btn-secondary btn-sm" v-on:click="sequence(false, individual, $event)">{{ individual }}</button>
-            </div>
-          </div>
+        <div class="table-responsive">
+          <table class="table table-sm table-borderless">
+            <tbody>
+              <tr v-if="this.counts.n_hets > 0">
+                <td class="text-left" style="width: 45%;">Displaying sequences for heterozygous individual:</td>
+                <td class="text-left">
+                  <div class="btn-group" role="group">
+                    <button v-for="individual in this.counts.n_hets" v-bind:id="'btn-het-' + individual" type="button" class="btn btn-secondary btn-sm" v-on:click="sequence(true, individual, $event)">{{ individual }}</button>
+                  </div>
+                </td>
+              </tr>
+              <tr v-if="this.counts.n_homs > 0">
+                <td class="text-left" style="width: 45%;">Displaying sequences for homozygous individual:</td>
+                <td class="text-left">
+                  <div class="btn-group" role="group">
+                    <button v-for="individual in this.counts.n_homs" v-bind:id="'btn-hom-' + individual" type="button" class="btn btn-secondary btn-sm" v-on:click="sequence(false, individual, $event)">{{ individual }}</button>
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </table>
         </div>
         <div class="row">
-          <div class="col-sm-12">
+          <div class="col-12 col-sm-12">
             <div ref="igv"></div>
           </div>
         </div>

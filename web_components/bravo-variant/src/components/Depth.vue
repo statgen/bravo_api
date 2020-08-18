@@ -1,5 +1,5 @@
 <template>
-  <div class="card shadow-sm" style="min-width: 340px;">
+  <div class="card shadow-sm" style="width: 300px;">
     <div class="card-body">
     </div>
   </div>
@@ -135,7 +135,7 @@ export default {
   },
   beforeCreate: function() {
     // initialize non-reactive data
-    this.width = 300;
+    this.width = 260;
     this.height = 300;
     this.margin = {
       left: 42,

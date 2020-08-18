@@ -15,9 +15,9 @@ new Vue({
       // chrom: "22",
       // start: 23970365,
       // stop: 23981469,
-      // chrom: "1",
-      // start: 55039548,
-      // stop: 55064852,
+      chrom: "1",
+      start: 55039548,
+      stop: 55064852,
 
       // no genes in this region
       // chrom: "22",
@@ -26,7 +26,7 @@ new Vue({
 
 
       // gene_name: 'DAB1',
-      gene_name: 'PCSK9',
+      // gene_name: 'PCSK9',
       // gene_name: 'M1AP',
       // gene_name: 'JADE1',
       // gene_name: 'LARGE1',
