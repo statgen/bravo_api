@@ -8,15 +8,15 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-md-6 mt-3">
+          <div class="col-12 col-md-6 mt-3">
             <basicinfo v-bind:variant="this.variant"/>
           </div>
-          <div class="col-md-6 mt-3">
+          <div class="col-12 col-md-6 mt-3">
             <counts v-bind:variant="this.variant" v-bind:n_samples="this.totalSamples"/>
           </div>
         </div>
         <div v-if="'pub_freq' in this.variant" class="row">
-          <div v-for="ds in this.variant.pub_freq" class="col-6 mt-3">
+          <div v-for="ds in this.variant.pub_freq" class="col-12 col-md-6 mt-3">
             <frequency v-bind:ds="ds"/>
           </div>
         </div>
@@ -110,7 +110,7 @@ export default {
             this.variant.pub_freq.push({ 'ds': '1000G' });
           }
           if (!datasets.includes('gnomAD')) {
-            this.variant.pub_freq.push({ 'ds': 'gnomAD' });
+            this.variant.pub_freq.push({ 'ds': 'gnomAD r2.1' });
           }
         })
         .catch( error => {

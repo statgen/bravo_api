@@ -1,5 +1,5 @@
 <template>
-  <div class="card shadow-sm" style="min-width: 420px">
+  <div class="card shadow-sm" style="min-width: 300px">
     <div class="card-body">
       <div class="container-fluid">
         <div class="row">
@@ -11,8 +11,8 @@
       <div v-if="frequencies.length > 0">
         <div v-for="frequency in frequencies" class="container-fluid">
           <div class="row">
-            <div class="col-sm-7 text-left text-truncate">{{ frequency.name }}</div>
-            <div class="col-sm-5 text-right">{{ frequency.value }}</div>
+            <div class="col-6 col-sm-7 text-left text-truncate">{{ frequency.name }}</div>
+            <div class="col-6 col-sm-5 text-right">{{ frequency.value }}</div>
           </div>
           <div class="row" style="margin-bottom:8px;">
             <div class="col-sm-12">
@@ -23,7 +23,7 @@
           </div>
         </div>
       </div>
-      <div v-else class="text-muted text-center">Not available</div>
+      <div v-else class="text-muted text-center">Variant not found</div>
     </div>
   </div>
 </template>
@@ -37,7 +37,7 @@ export default {
       var frequencies = [];
       for (const key in this.ds) {
         if (key != 'ds') {
-          frequencies.push({ name: `${this.$DOMAIN_DICTIONARY.populations[key]} (${key})`, value: this.ds[key], percent: this.ds[key] * 100, max: 1.0 });
+          frequencies.push({ name: `${key} (${this.$DOMAIN_DICTIONARY.populations[key]})`, value: this.ds[key], percent: this.ds[key] * 100, max: 1.0 });
         }
       }
       return frequencies;

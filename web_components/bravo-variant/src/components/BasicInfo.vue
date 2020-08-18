@@ -1,40 +1,40 @@
 <template>
-  <div class="card shadow-sm" style="min-width: 420px">
+  <div class="card shadow-sm" style="min-width: 300px">
     <div class="card-body">
       <div class="container-fluid">
         <div class="row">
-          <div class="col-sm-8 text-left text-truncate">Chromosome</div>
-          <div class="col-sm-4 text-right">{{ this.variant.chrom }}</div>
+          <div class="col-6 col-sm-7 text-left text-truncate">Chromosome</div>
+          <div class="col-6 col-sm-5 text-right">{{ this.variant.chrom }}</div>
         </div>
         <div class="row">
-          <div class="col-sm-8 text-left text-truncate">Position</div>
-          <div class="col-sm-4 text-right">{{ this.variant.pos.toLocaleString() }}</div>
+          <div class="col-5 col-sm-7 text-left text-truncate">Position</div>
+          <div class="col-7 col-sm-5 text-right">{{ this.variant.pos.toLocaleString() }}</div>
         </div>
         <div class="row">
-          <div class="col-sm-8 text-left text-truncate">Reference allele</div>
-          <div class="col-sm-4 text-right">{{ this.variant.variant_id.split("-")[2] }}</div>
+          <div class="col-7 col-sm-7 text-left text-truncate">Reference allele</div>
+          <div class="col-5 col-sm-5 text-right text-truncate">{{ this.variant.variant_id.split("-")[2] }}</div>
         </div>
         <div class="row">
-          <div class="col-sm-8 text-left text-truncate">Alternate allele</div>
-          <div class="col-sm-4 text-right">{{ this.variant.variant_id.split("-")[3] }}</div>
+          <div class="col-7 col-sm-7 text-left text-truncate">Alternate allele</div>
+          <div class="col-5 col-sm-5 text-right text-truncate">{{ this.variant.variant_id.split("-")[3] }}</div>
         </div>
         <div v-if="variant.rsids.length > 0" class="row">
-          <div class="col-sm-8 text-left text-truncate">rsID</div>
-          <div class="col-sm-4 text-right">
+          <div class="col-5 col-sm-6 text-left text-truncate">rsID</div>
+          <div class="col-7 col-sm-6 text-right">
             <span v-for="item in this.variant.rsids" style="margin-left:5px">
               <a :href="'https://www.ncbi.nlm.nih.gov/projects/SNP/snp_ref.cgi?rs=' + item">{{ item }}</a>
             </span>
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-8 text-left text-truncate">Filter</div>
-          <div class="col-sm-4 text-right">
+          <div class="col-4 col-sm-8 text-left text-truncate">Filter</div>
+          <div class="col-8 col-sm-4 text-right">
             <span v-for="item in this.variant.filter" v-bind:class="{ 'badge badge-success': item == 'PASS', 'badge badge-danger': item != 'PASS' }" style="margin-right:1px">{{ item }}</span>
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-8 text-left text-truncate">ClinVar</div>
-          <div class="col-sm-4 text-right">
+          <div class="col-4 col-sm-8 text-left text-truncate">ClinVar</div>
+          <div class="col-8 col-sm-4 text-right">
             <span v-if="clinvar_loading" class="text-muted">Checking...</span>
             <span v-else-if="clinvar_error" class="text-muted">Unavailable</span>
             <span v-else-if="this.clinvar_links.length == 0" class="text-muted">None</span>
@@ -44,8 +44,8 @@
           </div>
         </div>
         <div class="row">
-          <div class="col-sm-8 text-left text-truncate">PubMed</div>
-          <div class="col-sm-4 text-right">
+          <div class="col-4 col-sm-8 text-left text-truncate">PubMed</div>
+          <div class="col-8 col-sm-4 text-right">
             <span v-if="pubmed_loading">Checking...</span>
             <span v-else-if="pubmed_error">Unavailable</span>
             <span v-else-if="this.pubmed_links.length == 0" class="text-muted">None</span>
