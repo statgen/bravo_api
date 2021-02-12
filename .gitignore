@@ -3,3 +3,9 @@ __pycache__
 instance
 web_components/*/dist
 web_components/*/node_modules
+
+# data directory for local testing
+data/*
+
+# file fragments, examples, etc supporting in progress development
+scratch/*
