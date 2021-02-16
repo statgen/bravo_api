@@ -8,13 +8,13 @@ GZIP_COMPRESSION = True
 BASE_DIR = os.path.abspath('data')
 
 # directory with coverage files
-COVERAGE_DIR = os.path.join('coverage')
+COVERAGE_DIR = os.path.join(BASE_DIR, 'coverage')
 
 # directory with BAM/CRAM sequence files
-SEQUENCES_DIR = os.path.join('crams', 'demo')
+SEQUENCES_DIR = os.path.join(BASE_DIR, 'crams', 'demo')
 
 # directory for the runtime cached BAM/CRAM files
-SEQUENCES_CACHE_DIR = os.path.join('cache')
+SEQUENCES_CACHE_DIR = os.path.join(BASE_DIR, 'cache')
 
 # path to reference sequence for cram files
-REFERENCE_SEQUENCE = os.path.join('reference','demoChr.fa')
+REFERENCE_SEQUENCE = os.path.join(BASE_DIR, 'reference','demoChr.fa')
