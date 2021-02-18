@@ -1,13 +1,13 @@
 from flask import Flask
 
 
-def create_app(test_config = None):
-    app = Flask(__name__, instance_relative_config = True)
+def create_app(test_config=None):
+    app = Flask(__name__, instance_relative_config=True)
 
     if test_config is None:
         app.config.from_object('config.web_default')
-        app.config.from_pyfile('web_config.py', silent = True)
-        app.config.from_envvar('BRAVO_BROWSER_CONFIG_FILE', silent = True)
+        app.config.from_pyfile('web_config.py', silent=True)
+        app.config.from_envvar('BRAVO_BROWSER_CONFIG_FILE', silent=True)
     else:
         app.config.from_mapping(test_config)
 
@@ -17,7 +17,7 @@ def create_app(test_config = None):
     app.cli.add_command(load_whitelist)
 
     from bravo_browser import browser
-    app.register_blueprint(browser.bp, url_prefix = app.config['URL_PREFIX'])
+    app.register_blueprint(browser.bp, url_prefix=app.config['URL_PREFIX'])
     if app.config['GZIP_COMPRESSION']:
         app.config['COMPRESS_MIMETYPES'] = ['application/json']
         app.config['COMPRESS_LEVEL'] = 3

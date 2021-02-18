@@ -1,5 +1,4 @@
-import os
-from bravo_api import create_app
+from bravo_browser import create_app
 import pytest
 
 
