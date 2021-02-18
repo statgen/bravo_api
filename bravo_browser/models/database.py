@@ -1,8 +1,8 @@
 from flask_pymongo import PyMongo
-import pymongo
 import click
 from flask.cli import with_appcontext
 import sys
+
 
 mongo = PyMongo()
 
@@ -19,7 +19,7 @@ def create_users():
 
 
 @click.command('load-whitelist')
-@click.argument('whitelist_file', type = click.Path(exists = True))
+@click.argument('whitelist_file', type=click.Path(exists=True))
 def load_whitelist(whitelist_file):
     """DESCRIPTION:
 
@@ -36,4 +36,5 @@ def load_whitelist(whitelist_file):
             if email and '@' in email:
                 mongo.db.whitelist.insert({'user_id': email})
     mongo.db.whitelist.create_index('user_id')
-    sys.stdout.write(f"Created 'whitelist' collection and inserted {mongo.db.whitelist.count()} email(s).\n ")
+    sys.stdout.write(f"Created 'whitelist' collection and inserted "
+                     f"{mongo.db.whitelist.count()} email(s).\n ")
