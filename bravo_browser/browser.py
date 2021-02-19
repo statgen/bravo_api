@@ -5,13 +5,15 @@ from flask_login import LoginManager, UserMixin, current_user, login_user, logou
 import google_auth_oauthlib.flow
 import functools
 import requests
-from webargs.flaskparser import parser
-from webargs import fields, ValidationError
+from webargs import fields, validate
+from webargs.flaskparser import parser, use_kwargs
 from datetime import timedelta
 import re
 import json
 import urllib.parse
 from bravo_browser.models import users, feedbacks
+
+import pdb
 
 bp = Blueprint('browser', __name__, template_folder='templates', static_folder='static')
 CORS(bp)
@@ -37,9 +39,8 @@ def user_loader(email):
 
 
 def get_authorization_url():
-    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file(
-       current_app.config['GOOGLE_OAUTH_CLIENT_SECRET'],
-       scopes = ['openid', 'https://www.googleapis.com/auth/userinfo.email'])
+    flow = google_auth_oauthlib.flow.Flow.from_client_secrets_file( current_app.config['GOOGLE_OAUTH_CLIENT_SECRET'],
+       scopes=['openid', 'https://www.googleapis.com/auth/userinfo.email'])
     flow.redirect_uri = url_for('.oauth2callback', _external = True, _scheme = 'https')
     return flow.authorization_url(access_type = 'offline', include_granted_scopes = 'true')
 
@@ -218,32 +219,41 @@ _regex_chr_pos_ref_alt = re.compile(_regex_pattern_chr_pos_ref_alt+'$', re.IGNOR
 _regex_rsid = re.compile(_regex_pattern_rsid+'$')
 
 
+search_argmap = {
+    'value': fields.Str(required = True, validate = lambda x: len(x) > 0,
+                        error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0,
+                        error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'pos': fields.Int(required = False, validate = lambda x: x > 0,
+                      error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'start': fields.Int(required = False, validate = lambda x: x > 0,
+                        error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'stop': fields.Int(required = False, validate = lambda x: x > 0,
+                       error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'ref': fields.Str(required = False, validate = lambda x: len(x) > 0,
+                      error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'alt': fields.Str(required = False, validate = lambda x: len(x) > 0,
+                      error_messages = {'validator_failed': 'Value myst be a non-empty string.'})
+}
+
+
 @bp.route('/search', methods = ['GET'])
-def search():
-    arguments = {
-       'value': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'pos': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'start': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'stop': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'ref': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'alt': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value myst be a non-empty string.'})
-    }
-    args = parser.parse(arguments)
-    if 'value' in args and 'chrom' in args and 'start' in args and 'stop' in args: # suggested gene name
+@use_kwargs(search_argmap, location='query')
+def search(value, **kwargs):
+    if 'chrom' in kwargs and 'start' in kwargs and 'stop' in kwargs: # suggested gene name
         args = {
            'variants_type': 'snv',
-           'gene_name': args['value']
+           'gene_name': value
         }
         return redirect(url_for('.gene_page', **args))
-    elif 'value' in args and 'chrom' in args and 'pos' in args and 'ref' in args and 'alt' in args: # suggested snv
+    elif 'chrom' in kwargs and 'pos' in kwargs and 'ref' in kwargs and 'alt' in kwargs: # suggested snv
         args = {
           'variant_type': 'snv',
-          'variant_id': f"{args['chrom']}-{args['pos']}-{args['ref']}-{args['alt']}"
+          'variant_id': f"{kwargs['chrom']}-{kwargs['pos']}-{kwargs['ref']}-{kwargs['alt']}"
         }
         return redirect(url_for('.variant_page', **args))
-    elif 'value' in args: # typed value
-        match = _regex_chr_start_end.match(args['value'])
+    else:  # typed value
+        match = _regex_chr_start_end.match(value)
         if match is not None:
             args = {
                'variants_type': 'snv',
@@ -252,7 +262,7 @@ def search():
                'stop': match.groups()[2]}
             return redirect(url_for('.region_page', **args))
         else:
-            match = _regex_chr_pos_ref_alt.match(args['value'])
+            match = _regex_chr_pos_ref_alt.match(value)
             if match is not None:
                 variant_id = f'{match.groups()[0]}-{match.groups()[1]}-{match.groups()[2]}-{match.groups()[3]}'.upper()
                 if variant_id.startswith('CHR'):
@@ -271,27 +281,27 @@ def search():
             else:
                 match = _regex_rsid.match(args['value'])
                 if match is not None:
-                    api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={args['value']}")
+                    api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/snv?variant_id={value}")
                     if api_response.status_code == 200:
                         payload = api_response.json()
                         if not payload['error']:
                             for variant in payload['data']:
-                                if any(rsid == args['value'] for rsid in variant['rsids']):
+                                if any(rsid == value for rsid in variant['rsids']):
                                     args = {
                                        'variant_type': 'snv',
                                        'variant_id': variant['variant_id']
                                     }
                                     return redirect(url_for('.variant_page', **args))
                 else:
-                    api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/genes?name={args['value']}")
+                    api_response = requests.get(f"{current_app.config['BRAVO_API_URI']}/genes?name={value}")
                     if api_response.status_code == 200:
                         payload = api_response.json()
                         if not payload['error']:
                             for gene in payload['data']:
-                                if gene['gene_name'].upper() == args['value'].upper():
+                                if gene['gene_name'].upper() == value.upper():
                                     args = {
                                        'variants_type': 'snv',
-                                       'gene_name': args['value'].upper()
+                                       'gene_name': value.upper()
                                     }
                                     return redirect(url_for('.gene_page', **args))
     return redirect(url_for('.not_found', message = f'We coudn\'t find what you wanted.'))
