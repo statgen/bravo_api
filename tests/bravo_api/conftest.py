@@ -11,7 +11,8 @@ def app():
        'SEQUENCES_CACHE_DIR': '',
        'REFERENCE_SEQUENCE': '',
        'BRAVO_API_PAGE_LIMIT': 100000,
-       'GZIP_COMPRESSION': True
+       'GZIP_COMPRESSION': True,
+       'URL_PREFIX': ''
     })
     yield app
 

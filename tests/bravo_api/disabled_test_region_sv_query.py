@@ -1,6 +1,7 @@
 import pytest
 
 
+@pytest.mark.integration
 def test_noargs_query(client, config):
     response = client.get('/region/sv')
     assert response.status_code == 422
@@ -13,6 +14,7 @@ def test_noargs_query(client, config):
     assert payload['error'] is not None and len(payload['error']) > 0
 
 
+@pytest.mark.integration
 def test_minargs_query(client, config):
     chrom = 22
     start = 50673415
@@ -28,6 +30,7 @@ def test_minargs_query(client, config):
     assert payload['error'] is None
 
 
+@pytest.mark.integration
 def test_extraargs_query(client, config):
     chrom = 22
     start = 50673415
@@ -43,6 +46,7 @@ def test_extraargs_query(client, config):
     assert payload['error'] is not None and len(payload['error']) > 0
 
 
+@pytest.mark.integration
 def test_filter_query(client, config):
     chrom = 22
     start = 50673415
@@ -107,6 +111,7 @@ def test_filter_query(client, config):
     assert inversions_or_deletions == payload['data']
 
 
+@pytest.mark.integration
 def test_PASS_filter_query(client, config):
     chrom = 22
     start = 50673415
@@ -156,7 +161,7 @@ def test_PASS_filter_query(client, config):
     assert nonpassed == payload['data']
 
 
-
+@pytest.mark.integration
 def test_sort_query(client, config):
     chrom = 22
     start = 50673415
@@ -177,6 +182,7 @@ def test_sort_query(client, config):
     assert sorted(all_data_nosort, key = lambda item: item['avglen'], reverse = True) == all_data_sorted
 
 
+@pytest.mark.integration
 def test_limit_too_high_query(client, config):
     chrom = 22
     start = 50673415
@@ -192,6 +198,7 @@ def test_limit_too_high_query(client, config):
     assert payload['error'] is not None and len(payload['error']) > 0
 
 
+@pytest.mark.integration
 def test_paged_query(client, config):
     chrom = 22
     start = 50673415
@@ -216,6 +223,7 @@ def test_paged_query(client, config):
     assert all_data == paged_data
 
 
+@pytest.mark.integration
 def test_filtered_paged_query(client, config):
     print("test_filtered_paged_query")
     chrom = 22
@@ -242,6 +250,7 @@ def test_filtered_paged_query(client, config):
     assert inversions == paged_inversions
 
 
+@pytest.mark.integration
 def test_sorted_paged_query(client, config):
     chrom = 22
     start = 50673415

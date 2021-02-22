@@ -1,6 +1,7 @@
 import pytest
 
 
+@pytest.mark.integration
 def test_noargs_query(client, config):
     response = client.get('/coverage')
     assert response.status_code == 422
@@ -13,6 +14,7 @@ def test_noargs_query(client, config):
     assert payload['error'] is not None and len(payload['error']) > 0
 
 
+@pytest.mark.integration
 def test_minargs_small_query(client, config):
     chrom = 22
     start = 50673415
@@ -31,6 +33,7 @@ def test_minargs_small_query(client, config):
         assert item['start'] == item['end']
 
 
+@pytest.mark.integration
 def test_minargs_large_query(client, config):
     chrom = 22
     start = 25016233
@@ -46,6 +49,7 @@ def test_minargs_large_query(client, config):
     assert payload['error'] is None
 
 
+@pytest.mark.integration
 def test_limit_too_high_query(client, config):
     chrom = 22
     start = 25016233
@@ -61,6 +65,7 @@ def test_limit_too_high_query(client, config):
     assert payload['error'] is not None and len(payload['error']) > 0
 
 
+@pytest.mark.integration
 def test_paged_large_query(client, config):
     chrom = 22
     start = 25016233

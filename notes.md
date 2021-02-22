@@ -53,11 +53,11 @@ mongo bravo-demo --norc --eval 'db.getCollectionNames().reduce((acc,cur)=>{acc[c
 
 ## Testing
 
-Do `python -m pytest` will add the current directory to `sys.path`.
+Do `python -m pytest` as it will add the current directory to `sys.path`.
 Do not `pytest` as that will not allow the current testing setup to find the bravo modules.
 
 Existing tests are integration tests.  
-Will be marked using `@pytest.mark.integration` decorator to differentiate from unit tests.
-
+They depend on a particular data set and are marked with `@pytest.mark.integration` decorator to differentiate from unit tests.
+Test non-integration tests with `python -m pytest -m 'not integration'`
 
 # Bravo UI

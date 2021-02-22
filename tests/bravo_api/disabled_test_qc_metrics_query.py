@@ -1,7 +1,7 @@
 import pytest
 
 
-#@pytest.mark.skip
+@pytest.mark.integration
 def test_noargs_query(client, config):
     response = client.get('/qc')
     assert response.status_code == 200
@@ -14,7 +14,7 @@ def test_noargs_query(client, config):
     assert payload['error'] is None
 
 
-#@pytest.mark.skip
+@pytest.mark.integration
 def test_name_query(client, config):
     response = client.get('/qc?name=STZ')
     assert response.status_code == 200
@@ -27,7 +27,7 @@ def test_name_query(client, config):
     assert payload['error'] is None
 
 
-#@pytest.mark.skip
+@pytest.mark.integration
 def test_bad_name_query(client, config):
     response = client.get('/qc?name=badname')
     assert response.status_code == 200

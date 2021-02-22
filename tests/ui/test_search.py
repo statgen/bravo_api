@@ -1,4 +1,5 @@
 # Search redirects to appropriate endpoint
 def test_search(client, config):
-    response = client.get('/search?value=20%3A250000-250100')
+    data = {'value': 'chr77:50000-50100'}
+    response = client.get('/search', query_string=data)
     assert response.status_code == 302

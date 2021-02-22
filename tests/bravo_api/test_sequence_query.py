@@ -3,6 +3,7 @@ import os
 import re
 
 
+@pytest.mark.integration
 def test_noargs_query(client, config):
     response = client.get('/sequence')
     assert response.status_code == 422
@@ -15,6 +16,7 @@ def test_noargs_query(client, config):
     assert payload['error'] is not None and len(payload['error']) > 0
 
 
+@pytest.mark.integration
 def test_cram_full_hom_query(client, config):
     variant = '22-23971765-A-G'
     cached_cram = os.path.join(config['SEQUENCES_CACHE_DIR'], f'chr{variant}-01.bam')
@@ -37,6 +39,7 @@ def test_cram_full_hom_query(client, config):
     assert int(m.group(3)) == os.path.getsize(cached_cram)
 
 
+@pytest.mark.integration
 def test_cram_full_het_query(client, config):
     variant = '22-23971765-A-G'
     cached_cram = os.path.join(config['SEQUENCES_CACHE_DIR'], f'chr{variant}-1.bam')
@@ -59,6 +62,7 @@ def test_cram_full_het_query(client, config):
     assert int(m.group(3)) == os.path.getsize(cached_cram)
 
 
+@pytest.mark.integration
 def test_cram_partial1_query(client, config):
     variant = '22-23971765-A-G'
     query_range_start = 0
@@ -83,6 +87,7 @@ def test_cram_partial1_query(client, config):
     assert int(m.group(3)) == os.path.getsize(cached_cram)
 
 
+@pytest.mark.integration
 def test_cram_partial2_query(client, config):
     variant = '22-23971765-A-G'
     query_range_start = 95000
@@ -106,6 +111,7 @@ def test_cram_partial2_query(client, config):
     assert int(m.group(3)) == os.path.getsize(cached_cram)
 
 
+@pytest.mark.integration
 def test_crai_query(client, config):
     variant = '22-23971765-A-G'
     cached_crai = os.path.join(config['SEQUENCES_CACHE_DIR'], f'chr{variant}-01.bam.bai')
@@ -122,6 +128,7 @@ def test_crai_query(client, config):
     assert received_crai_size == os.path.getsize(cached_crai)
 
 
+@pytest.mark.integration
 def test_unavailable_sample_max_no_bad_query(client, config):
     variant = '22-23971765-A-G'
     cached_cram = os.path.join(config['SEQUENCES_CACHE_DIR'], f'chr{variant}-20.bam')
@@ -132,6 +139,7 @@ def test_unavailable_sample_max_no_bad_query(client, config):
     assert os.path.exists(cached_crai) is False
 
 
+@pytest.mark.integration
 def test_unavailable_sample_max_no_ok_query(client, config):
     variant = '22-23971765-A-G' # has 123 hets and 4 homs
     cached_cram = os.path.join(config['SEQUENCES_CACHE_DIR'], f'chr{variant}-05.bam')
