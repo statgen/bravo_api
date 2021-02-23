@@ -1,0 +1,32 @@
+[
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef00000005"
+    },
+    "variant_id": "DEL00100SUR",
+    "chrom": "77",
+    "pos": 1,
+    "xpos": {
+      "$numberLong": "77000000001"
+    },
+    "filter": [
+      "PASS"
+    ],
+    "qual": null,
+    "type": "Deletion",
+    "support": 1,
+    "stop": 7013000,
+    "xstop": {
+      "$numberLong": "77007013000"
+    },
+    "cipos": [
+      0,
+      0
+    ],
+    "ciend": [
+      0,
+      0
+    ],
+    "avglen": 7
+  }
+]

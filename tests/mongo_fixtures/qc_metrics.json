@@ -1,0 +1,82 @@
+[
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef00000003"
+    },
+    "name": "ABE",
+    "description": "Expected allele Balance towards Reference Allele on Heterozygous Sites",
+    "type": "percentiles",
+    "n": 549423785,
+    "n_pass": 463073637,
+    "min": 0,
+    "max": 0.987372,
+    "percentiles": [
+      {
+        "probability": 0,
+        "value": 0,
+        "n": 1,
+        "n_pass": 1
+      },
+      {
+        "probability": 0.1,
+        "value": 0.43026,
+        "n": 54942379,
+        "n_pass": 53023708
+      },
+      {
+        "probability": 0.2,
+        "value": 0.46674,
+        "n": 109884757,
+        "n_pass": 106986421
+      },
+      {
+        "probability": 0.3,
+        "value": 0.487834,
+        "n": 164827136,
+        "n_pass": 160976185
+      },
+      {
+        "probability": 0.4,
+        "value": 0.50109,
+        "n": 219769514,
+        "n_pass": 214831454
+      },
+      {
+        "probability": 0.5,
+        "value": 0.512844,
+        "n": 274711893,
+        "n_pass": 268382013
+      },
+      {
+        "probability": 0.6,
+        "value": 0.528844,
+        "n": 329654271,
+        "n_pass": 320981976
+      },
+      {
+        "probability": 0.7,
+        "value": 0.550277,
+        "n": 384596649,
+        "n_pass": 372086781
+      },
+      {
+        "probability": 0.8,
+        "value": 0.583102,
+        "n": 439539028,
+        "n_pass": 419776244
+      },
+      {
+        "probability": 0.9,
+        "value": 0.649626,
+        "n": 494481406,
+        "n_pass": 456534739
+      },
+      {
+        "probability": 1,
+        "value": 0.987372,
+        "n": 549423785,
+        "n_pass": 463073637
+      }
+    ]
+  }
+]

@@ -1,0 +1,20 @@
+[
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef00000002"
+    },
+    "chrom": "77",
+    "start": 10736171,
+    "stop": 10736283,
+    "strand": "-",
+    "xstart": {
+      "$numberLong": "77010736171"
+    },
+    "xstop": {
+      "$numberLong": "77010736283"
+    },
+    "gene_id": "DEMOG0000000200",
+    "gene_name": "U2",
+    "gene_type": "snRNA"
+  }
+]

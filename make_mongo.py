@@ -2,10 +2,7 @@
 
 import pymongo
 import bson.json_util
-
-# Pry like behavior
-# import code  # Use like pry
-# import inspect  # Also needed for prying
+import os
 
 
 def main():
@@ -14,26 +11,26 @@ def main():
     db_name = "bravo-demo"
 
     m_client = pymongo.MongoClient("mongodb://localhost:27017")
-    m_db = m_client[db_name]
+    m_database = m_client[db_name]
     db_list = m_client.list_database_names()
 
-    if "demo" in db_list:
-        print("database exists already")
+    # Drop database if already present
+    if db_name in db_list:
+        print(f"{db_name} database exists already")
         m_client.drop_database(db_name)
-        print("db dropped")
+        print(f"{db_name} dropped")
 
-    with open('demo_mongo_samples.json') as infile:
-        in_string = infile.read()
-        data = bson.json_util.loads(in_string)
+    # Enumerate files in mongo fixtures directory as collections
+    fixtures_dir = os.path.join('tests', 'mongo_fixtures')
+    for entry in os.scandir(fixtures_dir):
+        collection_name = os.path.splitext(entry.name)[0]
+        print(collection_name)
 
-    # code.interact(local=dict(globals(), **locals()))  # binding.pry
+        collection = m_database[collection_name]
+        with open(entry.path) as infile:
+            data = bson.json_util.loads(infile.read())
+            collection.insert_many(data)
 
-    # create collections & records
-    for key in data.keys():
-        print(key)
-        coll = m_db[key]
-        if data[key] is not None:
-            coll.insert_one(data[key])
     print("--- done")
 
 
