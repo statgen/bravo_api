@@ -1,12 +1,17 @@
 from flask import Flask
+from os import getenv
 
-def create_app(test_config = None):
-    app = Flask(__name__, instance_relative_config = True)
+
+def create_app(test_config=None):
+    instance_path = getenv('BRAVO_API_INSTANCE_DIR', 'instance')
+    app = Flask(__name__,
+                instance_relative_config=True,
+                instance_path=instance_path)
 
     if test_config is None:
         app.config.from_object('config.api_default')
-        app.config.from_pyfile('api_config.py', silent = True)
-        app.config.from_envvar('BRAVO_API_CONFIG_FILE', silent = True)
+        app.config.from_pyfile('api_config.py', silent=True)
+        app.config.from_envvar('BRAVO_API_CONFIG_FILE', silent=True)
     else:
         app.config.from_mapping(test_config)
 
