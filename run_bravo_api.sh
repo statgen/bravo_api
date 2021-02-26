@@ -1,8 +1,12 @@
-#!/bin/bash
-#source venv/bin/activate
+#!/bin/sh
+
+# Activate venv if present.
+[ -d 'venv' ] && source 'venv/bin/activate'
+
 export FLASK_ENV=development
 export FLASK_APP=bravo_api
-export BRAVO_API_CONFIG_FILE='config/api_local.py'
+export BRAVO_API_CONFIG_FILE='config.py'
+export BRAVO_API_INSTANCE_DIR='./instance'
 
 flask run --port 9099
 

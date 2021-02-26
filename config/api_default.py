@@ -16,5 +16,5 @@ SEQUENCES_DIR = os.path.join(BASE_DIR, 'crams', 'demo')
 # directory for the runtime cached BAM/CRAM files
 SEQUENCES_CACHE_DIR = os.path.join(BASE_DIR, 'cache')
 
-# path to reference sequence for cram files
+# path to reference sequence for cram files.  Assumes corresponding .fai exists next to .fa file
 REFERENCE_SEQUENCE = os.path.join(BASE_DIR, 'reference','demoChr.fa')
