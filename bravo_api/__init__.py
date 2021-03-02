@@ -3,7 +3,7 @@ from os import getenv
 
 
 def create_app(test_config=None):
-    instance_path = getenv('BRAVO_API_INSTANCE_DIR', 'instance')
+    instance_path = getenv('BRAVO_API_INSTANCE_DIR', None)
     app = Flask(__name__,
                 instance_relative_config=True,
                 instance_path=instance_path)
@@ -27,7 +27,9 @@ def create_app(test_config=None):
     init_coverage(app.config['COVERAGE_DIR'])
 
     from bravo_api.models.sequences import init_sequences
-    init_sequences(app.config['SEQUENCES_DIR'], app.config['REFERENCE_SEQUENCE'], app.config['SEQUENCES_CACHE_DIR'])
+    init_sequences(app.config['SEQUENCES_DIR'],
+                   app.config['REFERENCE_SEQUENCE'],
+                   app.config['SEQUENCES_CACHE_DIR'])
 
     from bravo_api import api
     app.register_blueprint(api.bp)
