@@ -1,10 +1,8 @@
 from flask import current_app, Blueprint, request, jsonify, make_response, abort, send_file
 from flask_cors import CORS
 from flask_compress import Compress
-from marshmallow import Schema
-from webargs.flaskparser import parser
+from webargs.flaskparser import parser, use_args
 from webargs import fields, ValidationError
-from functools import partial
 from bravo_api.models import variants, coverage, sequences, qc_metrics
 import string
 import re
@@ -20,12 +18,14 @@ compress = Compress()
 
 class UserError(Exception):
     status_code = 400
+
     def __init__(self, message):
         Exception.__init__(self)
         self.message = message
 
 
-allowed_sv_sort_keys = { 'pos': int, 'stop': int, 'support': int, 'avglen': int, 'filter': str, 'qual': float, 'type': str, 'variant_id': str }
+allowed_sv_sort_keys = {'pos': int, 'stop': int, 'support': int, 'avglen': int, 'filter': str,
+                        'qual': float, 'type': str, 'variant_id': str}
 allowed_snv_sort_keys = {
    'pos': int,
    'filter': str,
@@ -47,7 +47,7 @@ allowed_snv_sort_keys = {
 @parser.error_handler
 def handle_http_request_parsing_error(error, request, schema, error_status_code, error_headers):
     for field, message in error.messages.items():
-        user_message = 'Error while parsing \'{}\' query parameter: {}'.format(field, message[0])
+        user_message = f"Error while parsing {field} query parameter: {message}"
     response = make_response(jsonify({ 'data': None, 'total': None, 'limit': None, 'next': None, 'error': user_message }), 422)
     abort(response)
 
@@ -58,10 +58,7 @@ def handle_user_error(error):
     return response
 
 
-def validate_http_request_args(parsed_args, all_args):
-    for key, value in request.args.items():
-        if key not in all_args:
-            raise ValidationError({key: ['Unknown parameter.']})
+def validate_paging_args(parsed_args):
     if 'start' in parsed_args and 'stop' in parsed_args:
         if parsed_args['start'] >= parsed_args['stop']:
             raise ValidationError({'start': ['Start position must be greater than stop position.']})
@@ -71,24 +68,8 @@ def validate_http_request_args(parsed_args, all_args):
     return True
 
 
-def validate_coverage_http_request_args(parsed_args, all_args):
-    validate_http_request_args(parsed_args, all_args)
-    return True
-
-
-def validate_region_http_request_args(parsed_args, all_args):
-    validate_http_request_args(parsed_args, all_args)
-    #if 'last' in parsed_args:
-        #if 'sort' not in parsed_args or len(parsed_args['last']) - 1 != len(parsed_args['sort']):
-        #   raise ValidationError({'last': ['Argument "sort" doesn\'t agree with argument "last".']})
-        #for key, direction in parsed_args['sort']:
-        #   if key not in parsed_args['last']:
-        #      raise ValidationError({'last': ['Error while decoding.']})
-    return True
-
-
-def validate_variant_http_request_args(parsed_args, all_args):
-    validate_http_request_args(parsed_args, all_args)
+def validate_variant_http_request_args(parsed_args):
+    validate_paging_args(parsed_args)
     if 'variant_id' in parsed_args:
         try:
             chrom, pos, ref, alt = parsed_args['variant_id'].split('-')
@@ -185,16 +166,19 @@ def deserialize_query_last(value, allowed_sort_keys):
     return fields
 
 
-@bp.route('/coverage', methods = ['GET'])
-def get_coverage():
-    arguments = {
-       'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
-       'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'limit': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}, missing = current_app.config['BRAVO_API_PAGE_LIMIT']),
-       'last': fields.Int(required = False, validate = lambda x: x >= 0, error_messages = {'vlidator_failed': 'Value must be greater than or equal to 0.'})
-    }
-    args = parser.parse(arguments, validate = partial(validate_coverage_http_request_args, all_args = ['chrom', 'start', 'stop', 'limit', 'last']))
+cov_argmap = {
+    'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
+    'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'limit': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'last': fields.Int(required = False, validate = lambda x: x >= 0, error_messages = {'vlidator_failed': 'Value must be greater than or equal to 0.'})
+}
+
+
+@bp.route('/coverage', methods=['GET'])
+@use_args(cov_argmap, location='query', validate=validate_paging_args)
+def get_coverage(args):
+    args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     result = coverage.get_coverage(args['chrom'], args['start'], args['stop'], args['limit'], args.get('last', 0))
     url = None
     if result['last'] is not None:
@@ -205,15 +189,17 @@ def get_coverage():
     return response
 
 
-@bp.route('/snv', methods = ['GET'])
-def get_variant():
-    arguments = {
-       'variant_id': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'pos': fields.Int(regquired = False, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'full': fields.Bool(required = False, missing = False)
-    }
-    args = parser.parse(arguments, validate = partial(validate_variant_http_request_args, all_args = arguments.keys()))
+snv_argmap = {
+    'variant_id': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'pos': fields.Int(regquired = False, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'full': fields.Bool(required = False, missing = False)
+}
+
+
+@bp.route('/snv', methods=['GET'])
+@use_args(snv_argmap, location='query', validate=validate_variant_http_request_args)
+def get_variant(args):
     data = []
     if 'variant_id' in args:
         for variant in variants.get_snv(args['variant_id'], None, None, args['full']):
@@ -228,19 +214,22 @@ def get_variant():
     return response
 
 
-@bp.route('/region/sv', methods = ['GET'])
-def get_region():
-    arguments = {
-       'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
-       'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'type': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'sort': fields.Function(deserialize = lambda x: deserialize_query_sort(x, allowed_sv_sort_keys)),
-       'limit': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}, missing = current_app.config['BRAVO_API_PAGE_LIMIT']),
-       'last': fields.Function(deserialize = lambda x: deserialize_query_last(x, allowed_sv_sort_keys))
-    }
-    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
+region_sv_argmap = {
+    'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
+    'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'type': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'sort': fields.Function(deserialize = lambda x: deserialize_query_sort(x, allowed_sv_sort_keys)),
+    'limit': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'last': fields.Function(deserialize = lambda x: deserialize_query_last(x, allowed_sv_sort_keys))
+}
+
+
+@bp.route('/region/sv', methods=['GET'])
+@use_args(region_sv_argmap, location='query', validate=validate_paging_args)
+def get_region(args):
+    args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     filter = { key: args[key] for  key in ['type', 'filter'] if key in args }
     result = variants.get_region(args['chrom'], args['start'], args['stop'], filter, args.get('sort', []), args.get('last', {}), args['limit'])
     url = None
@@ -253,23 +242,26 @@ def get_region():
     return response
 
 
-@bp.route('/region/snv', methods = ['GET'])
-def get_region_snv():
-    arguments = {
-       'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
-       'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'sort': fields.Function(deserialize = lambda x: deserialize_query_sort(x, allowed_snv_sort_keys)),
-       'limit': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}, missing = current_app.config['BRAVO_API_PAGE_LIMIT']),
-       'last': fields.Function(deserialize = lambda x: deserialize_query_last(x, allowed_snv_sort_keys))
-    }
-    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
+region_snv_argmap = {
+    'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
+    'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'sort': fields.Function(deserialize = lambda x: deserialize_query_sort(x, allowed_snv_sort_keys)),
+    'limit': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'last': fields.Function(deserialize = lambda x: deserialize_query_last(x, allowed_snv_sort_keys))
+}
+
+
+@bp.route('/region/snv', methods=['GET'])
+@use_args(region_snv_argmap, location='query', validate=validate_paging_args)
+def get_region_snv(args):
+    args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     result = variants.get_region_snv(args['chrom'], args['start'], args['stop'], filter, args.get('sort', []), args.get('last', {}), args['limit'])
     url = None
@@ -282,22 +274,25 @@ def get_region_snv():
     return response
 
 
-@bp.route('/gene/snv', methods = ['GET'])
-def get_gene_snv():
-    arguments = {
-       'name': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'sort': fields.Function(deserialize = lambda x: deserialize_query_sort(x, allowed_snv_sort_keys)),
-       'introns': fields.Bool(required = False, missing = True),
-       'limit': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}, missing = current_app.config['BRAVO_API_PAGE_LIMIT']),
-       'last': fields.Function(deserialize = lambda x: deserialize_query_last(x, allowed_snv_sort_keys))
-    }
-    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
+gene_argmap = {
+    'name': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'sort': fields.Function(deserialize = lambda x: deserialize_query_sort(x, allowed_snv_sort_keys)),
+    'introns': fields.Bool(required = False, missing = True),
+    'limit': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'last': fields.Function(deserialize = lambda x: deserialize_query_last(x, allowed_snv_sort_keys))
+}
+
+
+@bp.route('/gene/snv', methods=['GET'])
+@use_args(gene_argmap, location='query', validate=validate_paging_args)
+def get_gene_snv(args):
+    args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     result = variants.get_gene_snv(args['name'], filter, args.get('sort', []), args.get('last', {}), args['limit'], args['introns'])
     url = None
@@ -310,7 +305,7 @@ def get_gene_snv():
     return response
 
 
-@bp.route('/snv/filters', methods = ['GET'])
+@bp.route('/snv/filters', methods=['GET'])
 def get_snv_filters():
     data = variants.get_snv_filters()
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
@@ -318,21 +313,23 @@ def get_snv_filters():
     return response
 
 
-@bp.route('/region/snv/histogram', methods = ['GET'])
-def get_region_snv_histogram():
-    arguments = {
-       'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
-       'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'windows': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-    }
-    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
+region_hist_argmap = {
+    'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
+    'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'windows': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+}
+
+
+@bp.route('/region/snv/histogram', methods=['GET'])
+@use_args(region_hist_argmap, location='query', validate=validate_paging_args)
+def get_region_snv_histogram(args):
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     data = variants.get_region_snv_histogram(args['chrom'], args['start'], args['stop'], filter, args['windows'])
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
@@ -340,20 +337,22 @@ def get_region_snv_histogram():
     return response
 
 
-@bp.route('/region/snv/summary', methods = ['GET'])
-def get_region_snv_summary():
-    arguments = {
-       'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
-       'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-    }
-    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
+region_summary_argmap = {
+    'chrom': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'start': fields.Int(required = True, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
+    'stop': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'annotation.region.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'annotation.region.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+}
+
+
+@bp.route('/region/snv/summary', methods=['GET'])
+@use_args(region_summary_argmap, location='query', validate=validate_paging_args)
+def get_region_snv_summary(args):
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     data = variants.get_region_snv_summary(args['chrom'], args['start'], args['stop'], filter)
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
@@ -361,20 +360,22 @@ def get_region_snv_summary():
     return response
 
 
-@bp.route('/gene/snv/histogram', methods = ['GET'])
-def get_gene_snv_histogram():
-    arguments = {
-       'name': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'windows': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'introns': fields.Bool(required = False, missing = True)
-    }
-    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
+gene_snv_histogram_argmap = {
+    'name': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'windows': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'introns': fields.Bool(required = False, missing = True)
+}
+
+
+@bp.route('/gene/snv/histogram', methods=['GET'])
+@use_args(gene_snv_histogram_argmap, location='query', validate=validate_paging_args)
+def get_gene_snv_histogram(args):
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     data = variants.get_gene_snv_histogram(args['name'], filter, args['windows'], args['introns'])
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
@@ -382,19 +383,21 @@ def get_gene_snv_histogram():
     return response
 
 
-@bp.route('/gene/snv/summary', methods = ['GET'])
-def get_gene_snv_summary():
-    arguments = {
-       'name': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
-       'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
-       'introns': fields.Bool(required = False, missing = True)
-    }
-    args = parser.parse(arguments, validate = partial(validate_region_http_request_args, all_args = arguments.keys()))
+gene_snv_summary_argmap = {
+    'name': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'filter': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'allele_freq': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'annotation.gene.lof': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'annotation.gene.consequence': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'cadd_phred': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, float))),
+    'rsids': fields.List(fields.Function(deserialize = lambda x: deserialize_query_filter(x, str))),
+    'introns': fields.Bool(required = False, missing = True)
+}
+
+
+@bp.route('/gene/snv/summary', methods=['GET'])
+@use_args(gene_snv_summary_argmap, location='query', validate=validate_paging_args)
+def get_gene_snv_summary(args):
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     data = variants.get_gene_snv_summary(args['name'], filter, args['introns'])
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
@@ -402,16 +405,18 @@ def get_gene_snv_summary():
     return response
 
 
-@bp.route('/genes', methods = ['GET'])
-def get_genes():
-    arguments = {
-       'name': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'start': fields.Int(required = False, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
-       'stop': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'full': fields.Bool(required = False, missing = False)
-    }
-    args = parser.parse(arguments, validate = partial(validate_http_request_args, all_args = ['name', 'chrom', 'start', 'stop', 'full']))
+gene_argmap = {
+    'name': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'start': fields.Int(required = False, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than or equal to 0.'}),
+    'stop': fields.Int(required = False, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'full': fields.Bool(required = False, missing = False)
+}
+
+
+@bp.route('/genes', methods=['GET'])
+@use_args(gene_argmap, location='query', validate=validate_paging_args)
+def get_genes(args):
     data = []
     if 'name' in args:
         for gene in variants.get_genes(args['name'], args['full']):
@@ -426,39 +431,45 @@ def get_genes():
     return response
 
 
-@bp.route('/qc', methods = ['GET'])
-def get_qc():
-    arguments = {
-       'name': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
-    }
-    args = parser.parse(arguments, validate = partial(validate_http_request_args, all_args = ['name']))
+qc_argmap = {
+    'name': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
+}
+
+
+@bp.route('/qc', methods=['GET'])
+@use_args(qc_argmap, location='query', validate=validate_paging_args)
+def get_qc(args):
     data = qc_metrics.get_metrics(args.get('name', None))
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
     response.mimetype = 'application/json'
     return response
 
 
-@bp.route('/sequence/summary', methods = ['GET'])
-def get_sequence_summary():
-    arguments = {
-       'variant_id': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
-    }
-    args = parser.parse(arguments, validate = partial(validate_http_request_args, all_args = arguments.keys()))
+seq_summary_argmap = {
+    'variant_id': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'})
+}
+
+
+@bp.route('/sequence/summary', methods=['GET'])
+@use_args(seq_summary_argmap, location='query', validate=validate_paging_args)
+def get_sequence_summary(args):
     data = sequences.get_info(args['variant_id'])
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
     response.mimetype = 'application/json'
     return response
 
 
-@bp.route('/sequence', methods = ['GET'])
-def get_sequence():
-    arguments = {
-       'variant_id': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-       'sample_no': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
-       'heterozygous': fields.Bool(required = True),
-       'index': fields.Bool(required = False, missing = False)
-    }
-    args = parser.parse(arguments, validate = partial(validate_http_request_args, all_args = arguments.keys()))
+sequence_argmap = {
+    'variant_id': fields.Str(required = True, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
+    'sample_no': fields.Int(required = True, validate = lambda x: x > 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'heterozygous': fields.Bool(required = True),
+    'index': fields.Bool(required = False, missing = False)
+}
+
+
+@bp.route('/sequence', methods=['GET'])
+@use_args(sequence_argmap, location='query', validate=validate_paging_args)
+def get_sequence(args):
     if not args['index']:
         range_header = request.headers.get('Range', None)
         start = None
