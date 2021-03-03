@@ -3,6 +3,7 @@ import glob
 import rapidjson
 import pysam
 import time
+import os.path
 
 
 class CoverageFile(object):
@@ -77,18 +78,29 @@ class CoverageHandler(object):
         return None
 
 
-COVERAGE = []
 coverage_handler = None
+
+def generate_coverage_files_metadata(coverage_dir):
+    cov_files_md = []
+    glob_suffix = '*.json.gz'
+    full_glob = glob.glob( os.path.join(coverage_dir, 'full', glob_suffix))
+    bin25_glob = glob.glob( os.path.join(coverage_dir, 'bin_25e-2', glob_suffix))
+    bin50_glob = glob.glob( os.path.join(coverage_dir, 'bin_50e-2', glob_suffix))
+    bin75_glob = glob.glob( os.path.join(coverage_dir, 'bin_75e-2', glob_suffix))
+    bin1_glob = glob.glob(os.path.join(coverage_dir, 'bin_1', glob_suffix))
+
+    cov_files_md.extend({'bp-min-length':0,                  'path':path} for path in full_glob)
+    cov_files_md.extend({'bp-min-length':300, 'binned':True, 'path':path} for path in bin25_glob)
+    cov_files_md.extend({'bp-min-length':1000, 'binned':True, 'path':path} for path in bin50_glob)
+    cov_files_md.extend({'bp-min-length':3000, 'binned':True, 'path':path} for path in bin75_glob)
+    cov_files_md.extend({'bp-min-length':10000, 'binned':True, 'path':path} for path in bin1_glob)
+    return(cov_files_md)
 
 
 def init_coverage(coverage_dir):
     global coverage_handler
-    COVERAGE.extend({'bp-min-length':0,                  'path':path} for path in glob.glob(coverage_dir + 'full/*.json.gz'))
-    COVERAGE.extend({'bp-min-length':300, 'binned':True, 'path':path} for path in glob.glob(coverage_dir + 'bin_25e-2/*.json.gz'))
-    COVERAGE.extend({'bp-min-length':1000, 'binned':True, 'path':path} for path in glob.glob(coverage_dir + 'bin_50e-2/*.json.gz'))
-    COVERAGE.extend({'bp-min-length':3000, 'binned':True, 'path':path} for path in glob.glob(coverage_dir + 'bin_75e-2/*.json.gz'))
-    COVERAGE.extend({'bp-min-length':10000, 'binned':True, 'path':path} for path in glob.glob(coverage_dir + 'bin_1/*.json.gz'))
-    coverage_handler = CoverageHandler(COVERAGE)
+    coverage_file_metadata = generate_coverage_files_metadata(coverage_dir)
+    coverage_handler = CoverageHandler(coverage_file_metadata)
 
 
 def get_coverage(chrom, start, stop, limit, continue_from = 0):
