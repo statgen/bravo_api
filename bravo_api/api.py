@@ -1,8 +1,9 @@
 from flask import current_app, Blueprint, request, jsonify, make_response, abort, send_file
 from flask_cors import CORS
 from flask_compress import Compress
-from webargs.flaskparser import parser, use_args
+from webargs.flaskparser import parser, FlaskParser, use_args
 from webargs import fields, ValidationError
+from marshmallow import RAISE
 from bravo_api.models import variants, coverage, sequences, qc_metrics
 import string
 import re
@@ -22,6 +23,10 @@ class UserError(Exception):
     def __init__(self, message):
         Exception.__init__(self)
         self.message = message
+
+class Parser(FlaskParser):
+    # Override to raise validation error for unknown args
+    DEFAULT_UNKNOWN_BY_LOCATION = {"query": RAISE}
 
 
 allowed_sv_sort_keys = {'pos': int, 'stop': int, 'support': int, 'avglen': int, 'filter': str,

@@ -1,7 +1,5 @@
 import pytest
 from bravo_api.models.readers import snv_lof2code, snv_consequence2code
-import json
-import sys
 
 
 @pytest.mark.integration
@@ -79,9 +77,9 @@ def test_minargs_nointrons_query(client, config):
 
 
 @pytest.mark.integration
-def test_extraargs_query(client, config):
+def test_unknown_args_raised(client, config):
     gene_name = 'DDT'
-    response = client.get(f'/gene/snv?name={gene_name}&iamextrakey=true')
+    response = client.get(f'/gene/snv?name={gene_name}&unknown-arg-foo=true')
     assert response.status_code == 422
     payload = response.get_json()
     assert all(x in payload for x in ['data', 'total', 'limit', 'next', 'error'])
