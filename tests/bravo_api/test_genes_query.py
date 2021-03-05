@@ -534,7 +534,6 @@ def test_consequence_sort_query(client, config):
     all_data_nosort = response.get_json()['data']
 
     def get_weight(item):
-        #return sorted(set([ snv_consequence2code[x] for x in item['annotation']['genes'][0].get('consequence',[]) ]), reverse = True)
         return sorted(set([ snv_consequence2code[x] for x in item['annotation']['gene'].get('consequence',[]) ]), reverse = True)
 
     response = client.get(f'/gene/snv?name={gene_name}&sort=annotation.gene.consequence:desc')
