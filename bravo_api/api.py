@@ -1,7 +1,7 @@
 from flask import current_app, Blueprint, request, jsonify, make_response, abort, send_file
 from flask_cors import CORS
 from flask_compress import Compress
-from webargs.flaskparser import parser, FlaskParser, use_args
+from webargs.flaskparser import FlaskParser, use_args
 from webargs import fields, ValidationError
 from marshmallow import RAISE
 from bravo_api.models import variants, coverage, sequences, qc_metrics
@@ -24,9 +24,13 @@ class UserError(Exception):
         Exception.__init__(self)
         self.message = message
 
+
 class Parser(FlaskParser):
     # Override to raise validation error for unknown args
     DEFAULT_UNKNOWN_BY_LOCATION = {"query": RAISE}
+
+
+parser = Parser()
 
 
 allowed_sv_sort_keys = {'pos': int, 'stop': int, 'support': int, 'avglen': int, 'filter': str,
@@ -181,7 +185,7 @@ cov_argmap = {
 
 
 @bp.route('/coverage', methods=['GET'])
-@use_args(cov_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(cov_argmap, location='query', validate=validate_paging_args)
 def get_coverage(args):
     args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     result = coverage.get_coverage(args['chrom'], args['start'], args['stop'], args['limit'], args.get('last', 0))
@@ -203,7 +207,7 @@ snv_argmap = {
 
 
 @bp.route('/snv', methods=['GET'])
-@use_args(snv_argmap, location='query', validate=validate_variant_http_request_args)
+@parser.use_args(snv_argmap, location='query', validate=validate_variant_http_request_args)
 def get_variant(args):
     data = []
     if 'variant_id' in args:
@@ -232,7 +236,7 @@ region_sv_argmap = {
 
 
 @bp.route('/region/sv', methods=['GET'])
-@use_args(region_sv_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(region_sv_argmap, location='query', validate=validate_paging_args)
 def get_region(args):
     args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     filter = { key: args[key] for  key in ['type', 'filter'] if key in args }
@@ -264,7 +268,7 @@ region_snv_argmap = {
 
 
 @bp.route('/region/snv', methods=['GET'])
-@use_args(region_snv_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(region_snv_argmap, location='query', validate=validate_paging_args)
 def get_region_snv(args):
     args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
@@ -295,7 +299,7 @@ gene_argmap = {
 
 
 @bp.route('/gene/snv', methods=['GET'])
-@use_args(gene_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(gene_argmap, location='query', validate=validate_paging_args)
 def get_gene_snv(args):
     args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
@@ -333,7 +337,7 @@ region_hist_argmap = {
 
 
 @bp.route('/region/snv/histogram', methods=['GET'])
-@use_args(region_hist_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(region_hist_argmap, location='query', validate=validate_paging_args)
 def get_region_snv_histogram(args):
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     data = variants.get_region_snv_histogram(args['chrom'], args['start'], args['stop'], filter, args['windows'])
@@ -356,7 +360,7 @@ region_summary_argmap = {
 
 
 @bp.route('/region/snv/summary', methods=['GET'])
-@use_args(region_summary_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(region_summary_argmap, location='query', validate=validate_paging_args)
 def get_region_snv_summary(args):
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     data = variants.get_region_snv_summary(args['chrom'], args['start'], args['stop'], filter)
@@ -379,7 +383,7 @@ gene_snv_histogram_argmap = {
 
 
 @bp.route('/gene/snv/histogram', methods=['GET'])
-@use_args(gene_snv_histogram_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(gene_snv_histogram_argmap, location='query', validate=validate_paging_args)
 def get_gene_snv_histogram(args):
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     data = variants.get_gene_snv_histogram(args['name'], filter, args['windows'], args['introns'])
@@ -401,7 +405,7 @@ gene_snv_summary_argmap = {
 
 
 @bp.route('/gene/snv/summary', methods=['GET'])
-@use_args(gene_snv_summary_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(gene_snv_summary_argmap, location='query', validate=validate_paging_args)
 def get_gene_snv_summary(args):
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     data = variants.get_gene_snv_summary(args['name'], filter, args['introns'])
@@ -420,7 +424,7 @@ gene_argmap = {
 
 
 @bp.route('/genes', methods=['GET'])
-@use_args(gene_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(gene_argmap, location='query', validate=validate_paging_args)
 def get_genes(args):
     data = []
     if 'name' in args:
@@ -442,7 +446,7 @@ qc_argmap = {
 
 
 @bp.route('/qc', methods=['GET'])
-@use_args(qc_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(qc_argmap, location='query', validate=validate_paging_args)
 def get_qc(args):
     data = qc_metrics.get_metrics(args.get('name', None))
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
@@ -456,7 +460,7 @@ seq_summary_argmap = {
 
 
 @bp.route('/sequence/summary', methods=['GET'])
-@use_args(seq_summary_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(seq_summary_argmap, location='query', validate=validate_paging_args)
 def get_sequence_summary(args):
     data = sequences.get_info(args['variant_id'])
     response = make_response(jsonify({ 'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None }), 200)
@@ -473,7 +477,7 @@ sequence_argmap = {
 
 
 @bp.route('/sequence', methods=['GET'])
-@use_args(sequence_argmap, location='query', validate=validate_paging_args)
+@parser.use_args(sequence_argmap, location='query', validate=validate_paging_args)
 def get_sequence(args):
     if not args['index']:
         range_header = request.headers.get('Range', None)
