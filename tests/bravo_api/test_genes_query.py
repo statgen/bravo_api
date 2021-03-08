@@ -525,6 +525,10 @@ def test_lof_sort_query(client, config):
     assert sorted(all_data_nosort, key = lambda item: get_weight(item), reverse = True) == all_data_sorted
 
 
+# This appears to be testing the mongo sort functionality matches the weighted sort of this test.
+# 843 variants appear in sorted & nosort.  Set of variant ids are same in both sorted & nosort.
+# A large number of sort weights are identical
+# e.g. first three items all have [16,10] result from get_weight
 @pytest.mark.integration
 def test_consequence_sort_query(client, config):
     gene_name = 'DDT'
@@ -815,6 +819,12 @@ def test_snv_histogram_nointrons_query(client, config):
     assert all_data == sum(entry['count'] for entry in payload['data']['windows'])
 
 
+# Appears to be testing the data structure of the backing database.
+# payload['data'] doesn't have 'passed' or 'failed' keys. Backing data has changed?
+#   {'all': {'3_prime_UTR_variant': 36, '5_prime_UTR_variant': 18, 'LoF (HC)': 2,
+#   'frameshift_variant': 1, 'indels': 98, 'inframe_deletion': 1, 'intron_variant': 759,
+#   'missense_variant': 19, 'snv': 745, 'splice_region_variant': 3, 'stop_gained': 1,
+#   'synonymous_variant': 5, 'total': 843}}
 @pytest.mark.integration
 def test_snv_summary_query(client, config):
     gene_name = 'DDT'
