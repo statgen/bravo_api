@@ -60,4 +60,3 @@ Existing tests are integration tests.
 They depend on a particular data set and are marked with `@pytest.mark.integration` decorator to differentiate from unit tests.
 Test non-integration tests with `python -m pytest -m 'not integration'`
 
-# Bravo UI
