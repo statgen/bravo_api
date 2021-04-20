@@ -7,5 +7,6 @@ flask_pymongo==2.3.0
 intervaltree==3.1.0
 marshmallow==3.10.0
 pysam==0.16.0.1
+python-rapidjson==1.0
 rapidjson==1.0.0
 webargs==7.0.1
