@@ -5,7 +5,7 @@ BRAVO_API_PAGE_LIMIT = 10000
 GZIP_COMPRESSION = True
 
 # base directory for data on disk
-BASE_DIR = os.path.abspath('data')
+BASE_DIR = os.path.join('/', 'data', 'bravo')
 
 # directory with coverage files
 COVERAGE_DIR = os.path.join(BASE_DIR, 'coverage')
@@ -17,4 +17,4 @@ SEQUENCES_DIR = os.path.join(BASE_DIR, 'crams', 'demo')
 SEQUENCES_CACHE_DIR = os.path.join(BASE_DIR, 'cache')
 
 # path to reference sequence for cram files.  Assumes corresponding .fai exists next to .fa file
-REFERENCE_SEQUENCE = os.path.join(BASE_DIR, 'reference','demoChr.fa')
+REFERENCE_SEQUENCE = os.path.join(BASE_DIR, 'reference', 'demoChr.fa')
