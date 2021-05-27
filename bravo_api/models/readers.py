@@ -97,7 +97,10 @@ def annotation_from_effects(allele_effects):
     for effect in allele_effects:
         consequences = sorted(effect['Consequence'].split('&'), key = lambda x: snv_consequence2code[x], reverse = True)
         consequences_coded = [ snv_consequence2code[x] for x in consequences ]
-        lof = effect['LoF'] if effect['LoF'] != '' else None
+        if 'LoF' in effect and effect['LoF'] != '':
+            lof = effect['LoF']
+        else:
+            lof = None
         if lof is not None:
             lof_coded = snv_lof2code[lof]
         region.setdefault('consequence', set()).update(consequences)
