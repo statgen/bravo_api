@@ -15,7 +15,8 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    from bravo_api.models.database import mongo, create_users, load_sv, load_snv, load_genes, load_qc_metrics
+    from bravo_api.models.database import (mongo, create_users, load_sv,
+                                           load_snv, load_genes, load_qc_metrics)
     mongo.init_app(app)
     app.cli.add_command(create_users)
     app.cli.add_command(load_sv)
