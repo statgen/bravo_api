@@ -12,7 +12,7 @@ class CoverageFile(object):
         self._tabixfile = pysam.TabixFile(path)
         self._binned = binned
 
-    def is_binned():
+    def is_binned(self):
         return self._binned
 
     def get_chroms(self):
@@ -84,10 +84,10 @@ def generate_coverage_files_metadata(coverage_dir):
     cov_files_md = []
     glob_suffix = '*.json.gz'
     full_glob = glob.glob( os.path.join(coverage_dir, 'full', glob_suffix))
-    bin25_glob = glob.glob( os.path.join(coverage_dir, 'bin_25e-2', glob_suffix))
-    bin50_glob = glob.glob( os.path.join(coverage_dir, 'bin_50e-2', glob_suffix))
-    bin75_glob = glob.glob( os.path.join(coverage_dir, 'bin_75e-2', glob_suffix))
-    bin1_glob = glob.glob(os.path.join(coverage_dir, 'bin_1', glob_suffix))
+    bin25_glob = glob.glob( os.path.join(coverage_dir, 'bin_0.25', glob_suffix))
+    bin50_glob = glob.glob( os.path.join(coverage_dir, 'bin_0.50', glob_suffix))
+    bin75_glob = glob.glob( os.path.join(coverage_dir, 'bin_0.75', glob_suffix))
+    bin1_glob = glob.glob(os.path.join(coverage_dir, 'bin_1.00', glob_suffix))
 
     cov_files_md.extend({'bp-min-length':0,                  'path':path} for path in full_glob)
     cov_files_md.extend({'bp-min-length':300, 'binned':True, 'path':path} for path in bin25_glob)
