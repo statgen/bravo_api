@@ -43,8 +43,8 @@ setup(
     ],
     keywords='bioinformatics, genomics',  # Optional
 
-    package_dir={'': 'bravo_api'},  # Optional
-    packages=['bravo-api'],
+    # package_dir={'': '.'},  # Optional
+    packages=['bravo_api'],
 
     # Python versions you support. Pip enforces this.
     python_requires='>=3.8, <4',
@@ -63,9 +63,9 @@ setup(
 
     entry_points={
         'flask.commands': [
-            'load-genes=bravo-api.models.database:load_genes',
-            'load-snv=bravo-api.models.database:load_snv',
-            'load-qc-metrics=bravo-api.models.database:load_qc_metrics',
+            'load-genes=bravo_api.models.database:load_genes',
+            'load-snv=bravo_api.models.database:load_snv',
+            'load-qc-metrics=bravo_api.models.database:load_qc_metrics',
         ],
     },
 
