@@ -20,9 +20,9 @@ def create_app(test_config=None):
     mongo.init_app(app)
     app.cli.add_command(create_users)
     app.cli.add_command(load_sv)
-    app.cli.add_command(load_snv)
-    app.cli.add_command(load_genes)
-    app.cli.add_command(load_qc_metrics)
+    # app.cli.add_command(load_snv)
+    # app.cli.add_command(load_genes)
+    # app.cli.add_command(load_qc_metrics)
 
     from bravo_api.models.coverage import init_coverage
     init_coverage(app.config['COVERAGE_DIR'])
