@@ -9,6 +9,7 @@ data/*
 
 # file fragments, examples, etc supporting in progress development
 scratch/*
+scratch*
 
 # Distribution / packaging
 .Python
