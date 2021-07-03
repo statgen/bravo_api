@@ -9,10 +9,10 @@ from pathlib import Path
 @pytest.fixture()
 def mock_coverage_dir():
     with TempDirectory() as dir:
-        for bindir in ['full', 'bin_1.00', 'bin_0.25', 'bin_0.50', 'bin_0.75']:
-            dirpath = dir.makedir(bindir)
-            Path(os.path.join(dirpath, 'chr1.json.gz')).touch()
-            Path(os.path.join(dirpath, 'chr1.json.gz.tbi')).touch()
-            Path(os.path.join(dirpath, 'chr2.json.gz')).touch()
-            Path(os.path.join(dirpath, 'chr2.json.gz.tbi')).touch()
+        for bin_name in ['full', 'bin_1.00', 'bin_0.25', 'bin_0.50', 'bin_0.75']:
+            dirpath = dir.makedir(bin_name)
+            Path(os.path.join(dirpath, f'chr1.{bin_name}.json.gz')).touch()
+            Path(os.path.join(dirpath, f'chr1.{bin_name}.json.gz.tbi')).touch()
+            Path(os.path.join(dirpath, f'chr2.{bin_name}.json.gz')).touch()
+            Path(os.path.join(dirpath, f'chr2.{bin_name}.json.gz.tbi')).touch()
         yield dir
