@@ -8,8 +8,7 @@ import functools
 from intervaltree import Interval, IntervalTree
 from collections import Counter
 
-import pprint # for debugging
-import time # for debugging
+import time  # for debugging
 
 
 new_filter_field_api2mongo = {
@@ -206,8 +205,6 @@ def get_snv(variant_id, chrom, position, full):
        { '$limit': 10 }
     ]
 
-    #pprint.PrettyPrinter(indent=1).pprint(mongo.db.command('aggregate', 'snv', pipeline = pipeline, explain = True))
-
     st = time.time()
     cursor = mongo.db.snv.aggregate(pipeline)
     print('Variant query time:', time.time() - st)
@@ -327,9 +324,6 @@ def get_region_snv(chrom, start, stop, filter, sort, last, limit):
        { '$limit': limit }
     ]
 
-    #print("mongo_filter = ", mongo_filter)
-    #pprint.PrettyPrinter(indent=1).pprint(mongo.db.command('aggregate', 'snv', pipeline = pipeline, explain = True))
-
     st = time.time()
     cursor = mongo.db.snv.aggregate(pipeline, allowDiskUse = True, hint = 'xpos_1_xstop_1')
     print('Query time = ', time.time() - st)
@@ -356,36 +350,61 @@ def get_snv_filters():
     }
 
 
-def get_genes(name, full):
-    #TODO: add other_names (need to use aggregae https://stackoverflow.com/questions/28889240/mongodb-sort-documents-by-array-elements
+GET_GENES_FULL_LOOKUP_ADDON = [
+    {'$lookup': {'from': 'transcripts',
+                 'localField': 'gene_id',
+                 'foreignField': 'gene_id',
+                 'as': 'transcripts'
+                 }
+     },
+    {'$project': {'transcripts._id': 0,
+                  'transcripts.chrom': 0,
+                  'transcripts.xstart': 0,
+                  'transcripts.xstop': 0,
+                  'transcripts.gene_id': 0
+                  }
+     },
+    {'$lookup': {'from': 'exons',
+                 'localField': 'gene_id',
+                 'foreignField': 'gene_id',
+                 'as': 'features'
+                 }
+     },
+    {'$project': {'features._id': 0,
+                  'features.chrom': 0,
+                  'features.xstart': 0,
+                  'features.xstop': 0,
+                  'features.gene_id': 0
+                  }
+     }
+]
+
+
+def basic_genes_pipeline(name):
     pattern = Regex('^' + name, 'i')
     if name.startswith('ENSG'):
-        mongo_filter = { 'gene_id': pattern }
-        mongo_sort = { 'gene_id': pymongo.ASCENDING }
+        mongo_filter = {'gene_id': pattern}
+        mongo_sort = {'gene_id': pymongo.ASCENDING}
     else:
-        mongo_filter = { 'gene_name': pattern }
-        mongo_sort = { 'gene_name': pymongo.ASCENDING }
-    pipeline = [
-       { '$match': mongo_filter },
-       { '$project': {'_id': 0, 'xstart': 0, 'xstop': 0} },
-       { '$sort': mongo_sort },
-       { '$limit': 10 }
-    ]
+        mongo_filter = {'gene_name': pattern}
+        mongo_sort = {'gene_name': pymongo.ASCENDING}
+
+    return([{'$match': mongo_filter},
+            {'$project': {'_id': 0, 'xstart': 0, 'xstop': 0}},
+            {'$sort': mongo_sort},
+            {'$limit': 10}])
+
+
+def full_genes_pipeline(name):
+    basic_genes_pipeline(name).extend(GET_GENES_FULL_LOOKUP_ADDON)
+
+
+def get_genes(name, full):
     if full:
-        pipeline.append({'$lookup': {
-           'from': 'transcripts',
-           'localField': 'gene_id',
-           'foreignField': 'gene_id',
-           'as': 'transcripts'
-        }})
-        pipeline.append({'$project': {'transcripts._id': 0, 'transcripts.chrom': 0, 'transcripts.xstart': 0, 'transcripts.xstop': 0, 'transcripts.gene_id': 0 }})
-        pipeline.append({'$lookup': {
-           'from': 'exons',
-           'localField': 'gene_id',
-           'foreignField': 'gene_id',
-           'as': 'features'
-        }})
-        pipeline.append({'$project': {'features._id': 0, 'features.chrom': 0, 'features.xstart': 0, 'features.xstop': 0, 'features.gene_id': 0 }})
+        pipeline = full_genes_pipeline(name)
+    else:
+        pipeline = basic_genes_pipeline(name)
+
     cursor = mongo.db.genes.aggregate(pipeline)
     for entry in cursor:
         yield entry
@@ -527,8 +546,6 @@ def get_gene_snv(name, filter, sort, last, limit, introns):
        { '$limit': limit }
     ])
 
-    #pprint.PrettyPrinter(indent=1).pprint(mongo.db.command('aggregate', 'snv', pipeline = pipeline, explain = True))
-
     st = time.time()
     cursor = mongo.db.snv.aggregate(pipeline, allowDiskUse = True, hint = 'xpos_1_xstop_1')
     print('Query time = ', time.time() - st)
@@ -569,8 +586,6 @@ def get_region_snv_histogram(chrom, start, stop, filter, windows):
        { '$group' : {  '_id': { '$floor': { '$divide': [ '$pos', window_size ] }}, 'count': { '$sum': 1  }   } },
        { '$project' : { '_id': False, 'start': {'$trunc': { '$multiply': [ '$_id', window_size ] }}, 'count': True  }}
     ]
-
-    #pprint.PrettyPrinter(indent=1).pprint(mongo.db.command('aggregate', 'snv', pipeline = pipeline, explain = True))
 
     data = {
        'chrom': chrom,
