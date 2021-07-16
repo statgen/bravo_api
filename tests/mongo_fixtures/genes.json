@@ -16,5 +16,51 @@
     "gene_id": "DEMOG0000000200",
     "gene_name": "U2",
     "gene_type": "snRNA"
+  },
+  {
+    "_id": {
+      "$oid": "60aff31a5d0547540821bd37"
+    },
+    "chrom": "11",
+    "start": 5225464,
+    "stop": 5229395,
+    "strand": "-",
+    "xstart": {
+      "$numberLong": "11005225464"
+    },
+    "xstop": {
+      "$numberLong": "11005229395"
+    },
+    "gene_id": "ENSG00000244734",
+    "gene_name": "HBB",
+    "gene_type": "protein_coding",
+    "omim_accession": "141900",
+    "omim_description": "HEMOGLOBIN--BETA LOCUS; HBB",
+    "full_gene_name": "hemoglobin subunit beta",
+    "other_names": [
+      "CD113t-C, beta-globin"
+    ]
+  },
+  {
+    "_id": {
+      "$oid": "60aff31a5d0547540821bd39"
+    },
+    "chrom": "11",
+    "start": 5241105,
+    "stop": 5243537,
+    "strand": "-",
+    "xstart": {
+      "$numberLong": "11005241105"
+    },
+    "xstop": {
+      "$numberLong": "11005243537"
+    },
+    "gene_id": "ENSG00000229988",
+    "gene_name": "HBBP1",
+    "gene_type": "transcribed_unprocessed_pseudogene",
+    "full_gene_name": "hemoglobin subunit beta pseudogene 1",
+    "other_names": [
+      "HBH1, HBHP"
+    ]
   }
 ]

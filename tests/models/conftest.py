@@ -2,6 +2,7 @@ import pytest
 import os.path
 from testfixtures import TempDirectory
 from pathlib import Path
+from bravo_api.models import variants
 
 
 # Fixture for testing coverage directory structure
@@ -16,3 +17,8 @@ def mock_coverage_dir():
             Path(os.path.join(dirpath, f'chr2.{bin_name}.json.gz')).touch()
             Path(os.path.join(dirpath, f'chr2.{bin_name}.json.gz.tbi')).touch()
         yield dir
+
+
+@pytest.fixture()
+def patch_variants_mongo(monkeypatch, mongodb):
+    monkeypatch.setattr(variants, 'mongo', mongodb)
