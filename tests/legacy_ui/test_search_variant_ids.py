@@ -1,6 +1,5 @@
-import pytest
 from icecream import ic
-from bravo_api.blueprints.legacy_ui import ui
+from bravo_api.blueprints.legacy_ui import autocomplete
 
 SNV_QUERY = 'rs7'
 SNV_DATA_KEYS = ['feature', 'variant_id',  'type']
@@ -53,22 +52,22 @@ def rs_snv_results(name, chrom, positon, full):
 
 
 def test_empty_result(monkeypatch):
-    monkeypatch.setattr(ui.variants, 'get_snv', empty_snv)
-    result = ui.search_variant_ids('')
+    monkeypatch.setattr(autocomplete.variants, 'get_snv', empty_snv)
+    result = autocomplete.search_variant_ids('')
     assert type(result) is list
     assert len(result) == 0
 
 
 def test_result_length(monkeypatch):
-    monkeypatch.setattr(ui.variants, 'get_snv', rs_snv_results)
-    result = ui.search_variant_ids(SNV_QUERY)
+    monkeypatch.setattr(autocomplete.variants, 'get_snv', rs_snv_results)
+    result = autocomplete.search_variant_ids(SNV_QUERY)
     assert type(result) is list
     assert len(list(result)) == 3
 
 
 def test_result_keys(monkeypatch):
-    monkeypatch.setattr(ui.variants, 'get_snv', rs_snv_results)
-    result = ui.search_variant_ids(SNV_QUERY)
+    monkeypatch.setattr(autocomplete.variants, 'get_snv', rs_snv_results)
+    result = autocomplete.search_variant_ids(SNV_QUERY)
     for item in result:
         data = item['data']
         ic(data.keys())
