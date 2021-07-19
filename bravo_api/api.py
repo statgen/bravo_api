@@ -201,7 +201,7 @@ def get_coverage(args):
 snv_argmap = {
     'variant_id': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
     'chrom': fields.Str(required = False, validate = lambda x: len(x) > 0, error_messages = {'validator_failed': 'Value must be a non-empty string.'}),
-    'pos': fields.Int(regquired = False, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
+    'pos': fields.Int(required = False, validate = lambda x: x >= 0, error_messages = {'validator_failed': 'Value must be greater than 0.'}),
     'full': fields.Bool(required = False, missing = False)
 }
 
