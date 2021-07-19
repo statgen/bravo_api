@@ -1,6 +1,6 @@
 import pytest
 from icecream import ic
-from bravo_api.blueprints.legacy_ui import ui
+from bravo_api.blueprints.legacy_ui import autocomplete
 
 GENE_QUERY = 'HBB'
 GENE_RESULT = [{'chrom': '11', 'full_gene_name': 'hemoglobin subunit beta pseudogene 1',
@@ -27,21 +27,21 @@ def hbb_gene_name_results(name, full):
 
 
 def test_empty_result(monkeypatch):
-    monkeypatch.setattr(ui.variants, 'get_genes', empty_gene_names)
-    result = ui.search_gene_names('')
+    monkeypatch.setattr(autocomplete.variants, 'get_genes', empty_gene_names)
+    result = autocomplete.search_gene_names('')
     assert type(result) is list
 
 
 def test_result_length(monkeypatch):
-    monkeypatch.setattr(ui.variants, 'get_genes', hbb_gene_name_results)
-    result = ui.search_gene_names(GENE_QUERY)
+    monkeypatch.setattr(autocomplete.variants, 'get_genes', hbb_gene_name_results)
+    result = autocomplete.search_gene_names(GENE_QUERY)
     assert type(result) is list
     assert len(list(result)) == 2
 
 
 def test_result_keys(monkeypatch):
-    monkeypatch.setattr(ui.variants, 'get_genes', hbb_gene_name_results)
-    result = ui.search_gene_names(GENE_QUERY)
+    monkeypatch.setattr(autocomplete.variants, 'get_genes', hbb_gene_name_results)
+    result = autocomplete.search_gene_names(GENE_QUERY)
     for item in result:
         data = item['data']
         ic(data.keys())
@@ -52,7 +52,7 @@ def test_result_keys(monkeypatch):
 
 @pytest.mark.skip(reason="Work in progress")
 def test_search_variant_ids_empty_query():
-    result = ui.search_variant_ids('')
+    result = autocomplete.search_variant_ids('')
     assert type(result) is list
     pass
 
