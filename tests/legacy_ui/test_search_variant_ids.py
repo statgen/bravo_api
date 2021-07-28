@@ -1,4 +1,3 @@
-from icecream import ic
 from bravo_api.blueprints.legacy_ui import autocomplete
 
 SNV_QUERY = 'rs7'
@@ -70,7 +69,6 @@ def test_result_keys(monkeypatch):
     result = autocomplete.search_variant_ids(SNV_QUERY)
     for item in result:
         data = item['data']
-        ic(data.keys())
         assert type(data) is dict
         assert len(data.keys()) == len(SNV_DATA_KEYS)
         assert all(key in SNV_DATA_KEYS for key in data.keys())
