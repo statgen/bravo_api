@@ -44,7 +44,6 @@ def test_result_keys(monkeypatch):
     result = autocomplete.search_gene_names(GENE_QUERY)
     for item in result:
         data = item['data']
-        ic(data.keys())
         assert type(data) is dict
         assert len(data.keys()) == len(RESULT_DATA_KEYS)
         assert all(key in RESULT_DATA_KEYS for key in data.keys())
