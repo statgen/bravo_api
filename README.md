@@ -39,4 +39,13 @@ In order to run marked tests in addition to the unmarked, provide a match expres
 pytest -m 'integration'
 ```
 
+#### Autorunning tests
+A low overhead (not constantly polling) method of running `pytest` anytime a .py file is changed
+can be achieved using `fd` and `entr` in a separate terminal.
+Only thing this won't pick up is new files.
+
+```sh
+fd '.*\.py$' | entr -c pytest
+```
+
 See [notes.md](notes.md)
