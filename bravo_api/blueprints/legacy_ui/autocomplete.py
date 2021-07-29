@@ -1,10 +1,7 @@
 from flask import Blueprint, request, jsonify, make_response
-
 from bravo_api.models import variants
-from flask_cors import CORS
 
-bp = Blueprint('browser', __name__)
-CORS(bp)
+bp = Blueprint('autocomplete', __name__)
 
 
 def search_gene_names(query):
