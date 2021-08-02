@@ -175,3 +175,102 @@ def region_variants_histogram(variants_type, chrom, start, stop):
             args['windows'] = params["windows"]
 
     return api.get_region_snv_histogram(args)
+
+
+# Functionally, this is only routes to /region/snv/summary
+#   Possible a stub for subsequent functionality?
+@bp.route('/variants/region/<string:variants_type>/<string:chrom>-<int:start>-<int:stop>/summary',
+          methods=['POST', 'GET'])
+def region_variants_summary(variants_type, chrom, start, stop):
+    args = {'chrom': chrom, 'start': start, 'stop': stop}
+
+    if request.method == 'POST' and request.get_json():
+        params = request.get_json()
+        args.update(parse_filters_to_args(params.get('filters', [])))
+
+    return api.get_region_snv_summary(args)
+
+
+# Functionally, this is only routes to /gene/snv/summary
+#   Possible a stub for subsequent functionality?
+@bp.route('/variants/gene/<string:variants_type>/<string:gene_name>/summary',
+          methods=['POST', 'GET'])
+def gene_variants_summary(variants_type, gene_name):
+    args = {'name': gene_name}
+
+    if request.method == 'POST' and request.get_json():
+        params = request.get_json()
+        args.update(parse_filters_to_args(params.get('filters', [])))
+
+        if 'introns' in params:
+            args['introns'] = params['introns']
+
+    return api.get_gene_snv_summary(args)
+
+
+# Functionally, this is only routes to /gene/snv/histogram
+#   Possible a stub for subsequent functionality?
+@bp.route('/variants/gene/<string:variants_type>/<string:gene_name>/histogram',
+          methods=['POST', 'GET'])
+def gene_variants_histogram(variants_type, gene_name):
+    args = {'name': gene_name}
+
+    if request.method == 'POST' and request.get_json():
+        params = request.get_json()
+        args.update(parse_filters_to_args(params.get('filters', [])))
+
+        if 'introns' in params:
+            args['introns'] = params['introns']
+        if 'windows' in params:
+            args['windows'] = params["windows"]
+
+    return api.get_gene_snv_histogram(args)
+
+
+# Could map to /region/snv or /region/sv
+@bp.route('/variants/region/<string:variants_type>/<string:chrom>-<int:start>-<int:stop>',
+          methods=['POST', 'GET'])
+def variants(variants_type, chrom, start, stop):
+    args = {'chrom': chrom, 'start': start, 'stop': stop}
+
+    if request.method == 'POST' and request.get_json():
+        params = request.get_json()
+        if 'next' in params and params['next'] is not None:
+            # try using redirect, but verify the UI doesn't choke on this.
+            return redirect(params['next'], 303)
+
+        args.update(parse_filters_to_args(params.get('filters', [])))
+
+        for s in params.get('sorters', []):
+            args['sort'] = ','.join(f'{s["field"]}:{s["dir"]}')
+        if 'size' in params:
+            args['limit'] = params['size']
+
+    if variants_type == 'sv':
+        return api.get_region(args)
+    else:
+        return api.get_region_snv(args)
+
+
+# Functionally, this is only routes to /gene/snv
+#   Possible a stub for subsequent functionality?
+@bp.route('/variants/gene/<string:variants_type>/<string:gene_name>', methods=['POST', 'GET'])
+def gene_variants(variants_type, gene_name):
+    args = {'name': gene_name}
+
+    if request.method == 'POST' and request.get_json():
+        params = request.get_json()
+        if 'next' in params and params['next'] is not None:
+            # try using redirect, but verify the UI doesn't choke on this.
+            return redirect(params['next'], 303)
+
+        args.update(parse_filters_to_args(params.get('filters', [])))
+
+        if 'size' in params:
+            args['limit'] = params['size']
+        if 'introns' in params:
+            args['introns'] = params['introns']
+        for s in params.get('sorters', []):
+            args['sort'] = ','.join(f'{s["field"]}:{s["dir"]}')
+
+        return api.get_gene_snv(args)
