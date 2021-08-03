@@ -428,3 +428,16 @@ def test_gene_variants_post_alias(mocker):
     with app.test_client() as client:
         client.post(f'/variants/gene/snv/{name}', json=body)
     mock.assert_called_with(expected_args)
+
+
+def test_gene_variants_get_alias(mocker):
+    mock = mocker.patch('bravo_api.api.get_gene_snv', side_effect=mock_json_response)
+
+    # path args
+    name = 'ENSG00000244734'
+
+    expected_args = {'name': name}
+
+    with app.test_client() as client:
+        client.get(f'/variants/gene/snv/{name}')
+    mock.assert_called_with(expected_args)

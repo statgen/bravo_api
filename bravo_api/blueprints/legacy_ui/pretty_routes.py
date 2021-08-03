@@ -22,14 +22,14 @@ variant_argmap = {
 @use_kwargs(variant_argmap, location='view_args')
 def variant(variant_id):
     args = {'variant_id': variant_id, 'full': 1}
-    api.get_variant(args)
+    return api.get_variant(args)
 
 
 @bp.route('/variant/api/snv/cram/summary/<string:variant_id>')
 @use_kwargs(variant_argmap, location='view_args')
 def variant_cram_info(variant_id):
     args = {'variant_id': variant_id, 'full': 1}
-    api.get_sequence_summary(args)
+    return api.get_sequence_summary(args)
 
 
 variant_cram_argmap = {
@@ -137,7 +137,7 @@ def coverage(chrom, start, stop, size, next):
 #   Possible a stub for subsequent functionality?
 @bp.route('/variants/<string:variants_type>', methods=['POST', 'GET'])
 def variants_meta(variants_type):
-    api.get_snv_filters()
+    return api.get_snv_filters()
 
 
 def parse_filters_to_args(filters):
@@ -273,4 +273,4 @@ def gene_variants(variants_type, gene_name):
         for s in params.get('sorters', []):
             args['sort'] = ','.join(f'{s["field"]}:{s["dir"]}')
 
-        return api.get_gene_snv(args)
+    return api.get_gene_snv(args)
