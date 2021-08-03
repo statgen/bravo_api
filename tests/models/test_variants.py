@@ -32,3 +32,11 @@ def test_basic_genes_pipeline_for_gene_ids():
     assert len(result) == 4
     assert 'gene_id' in result[0]['$match'].keys()
     assert result[-1] == {'$limit': 10}
+
+
+def test_full_genes_pipeline_appended():
+    result = variants.full_genes_pipeline('ENSG00000000001')
+    expected_tail = variants.GET_GENES_FULL_LOOKUP_ADDON
+    # The list constant should be appended.
+    assert isinstance(result, list)
+    assert result[-len(expected_tail):] == expected_tail
