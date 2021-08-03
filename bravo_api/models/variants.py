@@ -396,7 +396,9 @@ def basic_genes_pipeline(name):
 
 
 def full_genes_pipeline(name):
-    basic_genes_pipeline(name).extend(GET_GENES_FULL_LOOKUP_ADDON)
+    pipeline = basic_genes_pipeline(name)
+    pipeline.extend(GET_GENES_FULL_LOOKUP_ADDON)
+    return pipeline
 
 
 def get_genes(name, full):
