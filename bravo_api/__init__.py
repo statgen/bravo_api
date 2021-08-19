@@ -1,5 +1,12 @@
 from flask import Flask
 from os import getenv
+from bravo_api.models.sequences import init_sequences
+from bravo_api.models.database import (mongo, create_users, load_sv,
+                                       load_snv, load_genes, load_qc_metrics)
+from bravo_api.models.coverage import init_coverage
+from bravo_api import api
+from bravo_api.blueprints.legacy_ui import autocomplete, pretty_routes
+from bravo_api.blueprints.health import health
 
 
 def create_app(test_config=None):
@@ -15,8 +22,6 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
-    from bravo_api.models.database import (mongo, create_users, load_sv,
-                                           load_snv, load_genes, load_qc_metrics)
     mongo.init_app(app)
     app.cli.add_command(create_users)
     app.cli.add_command(load_sv)
@@ -24,16 +29,16 @@ def create_app(test_config=None):
     # app.cli.add_command(load_genes)
     # app.cli.add_command(load_qc_metrics)
 
-    from bravo_api.models.coverage import init_coverage
     init_coverage(app.config['COVERAGE_DIR'])
 
-    from bravo_api.models.sequences import init_sequences
     init_sequences(app.config['SEQUENCES_DIR'],
                    app.config['REFERENCE_SEQUENCE'],
                    app.config['SEQUENCES_CACHE_DIR'])
 
-    from bravo_api import api
     app.register_blueprint(api.bp)
+    app.register_blueprint(health.bp)
+    app.register_blueprint(autocomplete.bp, url_prefix='/ui')
+    app.register_blueprint(pretty_routes.bp, url_prefix='/ui')
 
     if app.config['GZIP_COMPRESSION']:
         app.config['COMPRESS_MIMETYPES'] = ['application/json']
