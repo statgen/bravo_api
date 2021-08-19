@@ -301,6 +301,11 @@ gene_argmap = {
 @bp.route('/gene/snv', methods=['GET'])
 @parser.use_args(gene_argmap, location='query', validate=validate_paging_args)
 def get_gene_snv(args):
+    return(get_gene_snv_impl(args))
+
+
+# Implementation decoupled from arg parsing decorators
+def get_gene_snv_impl(args):
     args['limit'] = args.get('limit', current_app.config['BRAVO_API_PAGE_LIMIT'])  # Bad hack
     filter = { key: args[key] for  key in [ 'filter', 'allele_freq', 'annotation', 'cadd_phred', 'rsids' ] if key in args }
     result = variants.get_gene_snv(args['name'], filter, args.get('sort', []), args.get('last', {}), args['limit'], args['introns'])

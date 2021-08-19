@@ -54,7 +54,6 @@ def test_variant_cram_alias(mocker):
         client.get(f'/variant/api/snv/cram/{variant_id}-{sample_het}-{sample_no}')
     mock.assert_called_with(expected_args)
 
-
 def test_variant_crai_alias(mocker):
     mock = mocker.patch('bravo_api.api.get_sequence', side_effect=mock_json_response)
 
@@ -67,6 +66,16 @@ def test_variant_crai_alias(mocker):
 
     with app.test_client() as client:
         client.get(f'/variant/api/snv/crai/{variant_id}-{sample_het}-{sample_no}')
+    mock.assert_called_with(expected_args)
+
+
+def test_variant_crai_wild(mocker):
+    mock = mocker.patch('bravo_api.api.get_sequence', side_effect=mock_json_response)
+    expected_args = {'variant_id': '11-5225469-A-T', 'sample_no': 1,
+                     'heterozygous': True, 'index': 1}
+
+    with app.test_client() as client:
+        resp = client.get(f'/variant/api/snv/crai/11-5225469-A-T-1-1')
     mock.assert_called_with(expected_args)
 
 
@@ -414,7 +423,7 @@ def test_gene_variants_redirect(mocker):
 
 
 def test_gene_variants_post_alias(mocker):
-    mock = mocker.patch('bravo_api.api.get_gene_snv', side_effect=mock_json_response)
+    mock = mocker.patch('bravo_api.api.get_gene_snv_impl', side_effect=mock_json_response)
 
     # path args
     name = 'ENSG00000244734'
@@ -431,7 +440,7 @@ def test_gene_variants_post_alias(mocker):
 
 
 def test_gene_variants_get_alias(mocker):
-    mock = mocker.patch('bravo_api.api.get_gene_snv', side_effect=mock_json_response)
+    mock = mocker.patch('bravo_api.api.get_gene_snv_impl', side_effect=mock_json_response)
 
     # path args
     name = 'ENSG00000244734'

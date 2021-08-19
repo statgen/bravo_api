@@ -273,4 +273,4 @@ def gene_variants(variants_type, gene_name):
         for s in params.get('sorters', []):
             args['sort'] = ','.join(f'{s["field"]}:{s["dir"]}')
 
-    return api.get_gene_snv(args)
+    return api.get_gene_snv_impl(args)
