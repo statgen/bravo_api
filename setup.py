@@ -66,6 +66,7 @@ setup(
             'load-genes=bravo_api.models.database:load_genes',
             'load-snv=bravo_api.models.database:load_snv',
             'load-qc-metrics=bravo_api.models.database:load_qc_metrics',
+            'create-users=bravo_api.models.database.create_users'
         ],
     },
 

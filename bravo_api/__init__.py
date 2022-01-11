@@ -1,10 +1,9 @@
 from flask import Flask
 from os import getenv
 from bravo_api.models.sequences import init_sequences
-from bravo_api.models.database import (mongo, create_users, load_sv,
-                                       load_snv, load_genes, load_qc_metrics)
+from bravo_api.models.database import mongo
 from bravo_api.models.coverage import init_coverage
-from bravo_api import api
+from bravo_api.blueprints.api import api
 from bravo_api.blueprints.legacy_ui import autocomplete, pretty_routes
 from bravo_api.blueprints.health import health
 
@@ -23,11 +22,6 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     mongo.init_app(app)
-    app.cli.add_command(create_users)
-    app.cli.add_command(load_sv)
-    # app.cli.add_command(load_snv)
-    # app.cli.add_command(load_genes)
-    # app.cli.add_command(load_qc_metrics)
 
     init_coverage(app.config['COVERAGE_DIR'])
 
