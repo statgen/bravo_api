@@ -1,7 +1,9 @@
 from flask import Blueprint, request, jsonify, make_response
+from flask_cors import CORS
 from bravo_api.models import variants
 
 bp = Blueprint('autocomplete', __name__)
+CORS(bp)
 
 
 def search_gene_names(query):
@@ -21,6 +23,7 @@ def search_gene_names(query):
 
 
 def search_variant_ids(query):
+    """Given query string, return array of dicts with value & data."""
     result = []
     if query.startswith('rs'):
         for variant in variants.get_snv(query, None, None, False):
@@ -41,10 +44,11 @@ def autocomplete():
 
     gene_results = search_gene_names(query)
 
-    if len(gene_results):
+    if len(gene_results) < 10:
         variant_results = search_variant_ids(query)
     else:
         variant_results = []
 
-    suggestions = gene_results.extend(variant_results)
-    return make_response(jsonify({"suggestions": suggestions}), 200)
+    results = {"suggestions": [*gene_results, *variant_results]}
+
+    return make_response(jsonify(results), 200)
