@@ -8,8 +8,6 @@ import functools
 from intervaltree import Interval, IntervalTree
 from collections import Counter
 
-import time  # for debugging
-
 
 new_filter_field_api2mongo = {
    'annotation.gene.lof': 'annotation.genes.lof',
@@ -117,7 +115,6 @@ def build_mongo_filter(user_filter):
         for field, values in flatten.result:
             if len(values) == 0:
                 continue
-            print('--> ', field, values)
             mongo_filter.append({'$or': [ expand_and_condition(new_filter_field_api2mongo.get(field, field), v) for v in values ]})
     return mongo_filter
 
@@ -205,9 +202,7 @@ def get_snv(variant_id, chrom, position, full):
        { '$limit': 10 }
     ]
 
-    st = time.time()
     cursor = mongo.db.snv.aggregate(pipeline)
-    print('Variant query time:', time.time() - st)
     for entry in cursor:
         if full:
             for annotation_gene in entry['annotation'].get('genes', []):
@@ -275,11 +270,7 @@ def get_region_snv(chrom, start, stop, filter, sort, last, limit):
     mongo_filter = [ {'xpos': {'$gte': xstart - 1000}}, {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}}, {'xstop': {'$lte': xstop + 1000}} ]
     mongo_filter.extend(build_mongo_filter(filter))
 
-    #print('mongo_filter = ', mongo_filter)
-
-    st = time.time()
     n_total_documents = mongo.db.snv.count_documents({ '$and': mongo_filter })
-    print('n_total_documents = ', n_total_documents, time.time() - st)
 
     mongo_sort = []
     for key, direction in sort:
@@ -293,8 +284,6 @@ def get_region_snv(chrom, start, stop, filter, sort, last, limit):
     # mongodb optimizer will take care of overlapping conditions
     if last:
         adjust_mongo_filter(mongo_filter, mongo_sort, last)
-
-    #print('adj mongo_filter = ', mongo_filter)
 
     result = {
        'limit': limit,
@@ -324,9 +313,7 @@ def get_region_snv(chrom, start, stop, filter, sort, last, limit):
        { '$limit': limit }
     ]
 
-    st = time.time()
     cursor = mongo.db.snv.aggregate(pipeline, allowDiskUse = True, hint = 'xpos_1_xstop_1')
-    print('Query time = ', time.time() - st)
     for entry in cursor:
         last_object_id = entry.pop('_id')
         last_variant = entry
@@ -496,9 +483,7 @@ def get_gene_snv(name, filter, sort, last, limit, introns):
                 condition.update(new_expression)
 
 
-    st = time.time()
     result['total'] = mongo.db.snv.count_documents({ '$and': mongo_filter } if introns else { '$and': mongo_filter, '$or': mongo_exons_filter })
-    print('n_total_documents = ', result['total'], time.time() - st)
 
     mongo_sort = []
     for key, direction in sort:
@@ -548,9 +533,7 @@ def get_gene_snv(name, filter, sort, last, limit, introns):
        { '$limit': limit }
     ])
 
-    st = time.time()
     cursor = mongo.db.snv.aggregate(pipeline, allowDiskUse = True, hint = 'xpos_1_xstop_1')
-    print('Query time = ', time.time() - st)
     for i, entry in enumerate(cursor, 1):
         if i == limit:
             result['last'] = {'_id': f'{entry["_id"]}'}
@@ -594,9 +577,7 @@ def get_region_snv_histogram(chrom, start, stop, filter, windows):
        'window-size': window_size,
        'windows': []
     }
-    st = time.time()
     cursor = mongo.db.snv.aggregate(pipeline, hint = 'xpos_1_xstop_1')
-    print('Histogram query time = ', time.time() - st)
     for entry in cursor:
         data['windows'].append(entry)
     return data
@@ -770,9 +751,7 @@ def get_gene_snv_histogram(name, filter, windows, introns):
     result['gene_id'] = gene_id
     result['window-size'] = window_size
 
-    st = time.time()
     cursor = mongo.db.snv.aggregate(pipeline, hint = 'xpos_1_xstop_1')
-    print('Histogram query time = ', time.time() - st)
     for entry in cursor:
         result['windows'].append(entry)
     return result
