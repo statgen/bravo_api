@@ -38,10 +38,7 @@ def search_variant_ids(query):
     return(result)
 
 
-@bp.route('/autocomplete', methods=['GET'])
-def autocomplete():
-    query = request.args.get('query', '')
-
+def aggregate(query):
     gene_results = search_gene_names(query)
 
     if len(gene_results) < 10:
@@ -49,6 +46,10 @@ def autocomplete():
     else:
         variant_results = []
 
-    results = {"suggestions": [*gene_results, *variant_results]}
+    return({"suggestions": [*gene_results, *variant_results]})
 
+
+@bp.route('/autocomplete', methods=['GET'])
+def autocomplete():
+    results = aggregate(request.args.get('query', ''))
     return make_response(jsonify(results), 200)
