@@ -5,6 +5,8 @@ from icecream import ic
 app = Flask('dummy')
 app.register_blueprint(pretty_routes.bp)
 
+def mock_get_genes_by_name(name):
+    return({'data': [1,2,3], 'total': 3, 'limit': None, 'next': None, 'error': None})
 
 def mock_json_response(args):
     response = make_response(jsonify({'data': 'test'}), 200)
@@ -102,15 +104,15 @@ def test_genes_range_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
-def test_genes_name_alias(mocker):
-    mock = mocker.patch('bravo_api.api.get_genes', side_effect=mock_json_response)
-
+def test_genes_by_name(mocker, client):
+    mock = mocker.patch('bravo_api.blueprints.legacy_ui.pretty_api.get_genes_by_name',
+                        side_effect=mock_get_genes_by_name)
     name = 'foo'
-    expected_args = {'name': name, 'full': 1}
-
     with app.test_client() as client:
-        client.get(f'/genes/api/{name}')
-    mock.assert_called_with(expected_args)
+        resp = client.get(f'/genes/api/{name}')
+
+    mock.assert_called_with(name)
+    assert(resp.content_type == 'application/json')
 
 
 def test_coverage_alias(mocker):

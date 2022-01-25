@@ -1,13 +1,18 @@
-from flask import Blueprint, redirect, request
+from flask import current_app, Blueprint, redirect, request, make_response, jsonify
+from flask_cors import CORS
 from webargs.flaskparser import use_kwargs
-from webargs import fields
+from webargs import fields, ValidationError
 from bravo_api import api
+from bravo_api.blueprints.legacy_ui import pretty_api
 from marshmallow import validate
 
-from icecream import ic
+# For debugging
+# from icecream import ic
+# import pdb
 
 # This blueprint should be mounted under a non-root route this duplicates some base api routes.
 bp = Blueprint('pretty_routes', __name__)
+CORS(bp)
 
 ERR_EMPTY_MSG = {'validator_failed': 'Value must be a non-empty string.'}
 ERR_GT_ZERO_MSG = {'validator_failed': 'Value must be greater than 0.'}
@@ -16,6 +21,16 @@ variant_argmap = {
     'variant_id': fields.Str(required=True, validate=validate.Length(min=1),
                              error_messages=ERR_EMPTY_MSG)
 }
+
+
+def validate_paging_args(parsed_args):
+    if 'start' in parsed_args and 'stop' in parsed_args:
+        if parsed_args['start'] >= parsed_args['stop']:
+            raise ValidationError({'start': ['Start position must be greater than stop position.']})
+    if 'limit' in parsed_args:
+        if parsed_args['limit'] > current_app.config['BRAVO_API_PAGE_LIMIT']:
+            raise ValidationError({'limit': [f'Page limit must be less than or equal to {current_app.config["BRAVO_API_PAGE_LIMIT"]}']})
+    return True
 
 
 @bp.route('/variant/api/snv/<string:variant_id>')
@@ -95,8 +110,10 @@ genes_name_argmap = {
 @bp.route('/genes/api/<string:name>')
 @use_kwargs(genes_name_argmap, location='view_args')
 def genes_by_name(name):
-    args = {'name': name, 'full': 1}
-    response = api.get_genes(args)
+    result = pretty_api.get_genes_by_name(name)
+
+    response = make_response(jsonify(result), 200)
+    response.mimetype = 'application/json'
     return response
 
 
@@ -114,22 +131,23 @@ coverage_json_argmap = {
     'size': fields.Int(required=True, validate=validate.Range(min=1),
                        error_messages=ERR_GT_ZERO_MSG),
     'next': fields.Str(required=True, allow_none=True, validate=validate.Length(min=1),
-                       error_messages=ERR_EMPTY_MSG)
+                       error_messages=ERR_EMPTY_MSG),
+    'continue_from': fields.Int(required=False, validate=validate.Range(min=1),
+                       error_messages=ERR_GT_ZERO_MSG),
 }
 
 
 @bp.route('/coverage/<string:chrom>-<int:start>-<int:stop>', methods=['POST'])
 @use_kwargs(coverage_view_argmap, location='view_args')
-@use_kwargs(coverage_json_argmap, location='json')
-def coverage(chrom, start, stop, size, next):
-    # if next, mannually call webargs to parse next args.
-    #  X needs a request to be built manually, and that's a pain.
-    # try using redirect, but verify the UI doesn't choke on this.
-    if next is not None:
-        return redirect(next, 303)
+@use_kwargs(coverage_json_argmap, location='json', validate=validate_paging_args)
+def coverage(chrom, start, stop, size, next, continue_from):
+    if size > current_app.config['BRAVO_API_PAGE_LIMIT']:
+        size = current_app.config['BRAVO_API_PAGE_LIMIT']
 
-    args = {'chrom': chrom, 'start': start, 'stop': stop, 'limit': size}
-    response = api.get_coverage(args)
+    # size passed as limit
+    result = pretty_api.get_coverage(chrom, start, stop, size, continue_from)
+    response = make_response(jsonify(result), 200)
+    response.mimetype = 'application/json'
     return response
 
 

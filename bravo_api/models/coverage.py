@@ -18,17 +18,21 @@ class CoverageFile(object):
     def get_chroms(self):
         return self._tabixfile.contigs
 
-    def get_coverage(self, chrom, start, stop, limit, continue_from = 0):
+    def get_coverage(self, chrom, start, stop, limit, continue_from=0):
         total = 0
         last = 0
         data = []
+        stop_reached = False
         for row in self._tabixfile.fetch(chrom, max(0, start - 1), stop, parser=pysam.asTuple()):
             if int(row[2]) >= start:
                 total += 1
                 if total > continue_from and len(data) < limit:
                     last = total
                     data.append(rapidjson.loads(row[3]))
-        return { 'total': total, 'data': data, 'last': None if last == total else last }
+        if last == total:
+            last = None
+            stop_reached = True
+        return {'total': total, 'data': data, 'last': last, 'stop_reached': stop_reached}
 
     def __str__(self):
         return f"<CoverageFile chroms={','.join(self.get_chroms())} path={self._tabixfile.filename}>"
