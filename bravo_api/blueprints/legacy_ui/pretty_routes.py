@@ -4,6 +4,7 @@ from webargs.flaskparser import use_kwargs
 from webargs import fields, ValidationError
 from bravo_api import api
 from bravo_api.blueprints.legacy_ui import pretty_api
+
 from marshmallow import validate
 
 # For debugging
@@ -133,18 +134,17 @@ coverage_json_argmap = {
     'next': fields.Str(required=True, allow_none=True, validate=validate.Length(min=1),
                        error_messages=ERR_EMPTY_MSG),
     'continue_from': fields.Int(required=False, validate=validate.Range(min=1),
-                       error_messages=ERR_GT_ZERO_MSG),
+                                error_messages=ERR_GT_ZERO_MSG),
 }
 
 
 @bp.route('/coverage/<string:chrom>-<int:start>-<int:stop>', methods=['POST'])
 @use_kwargs(coverage_view_argmap, location='view_args')
 @use_kwargs(coverage_json_argmap, location='json', validate=validate_paging_args)
-def coverage(chrom, start, stop, size, next, continue_from):
+def coverage(chrom, start, stop, size, next, continue_from=0):
     if size > current_app.config['BRAVO_API_PAGE_LIMIT']:
         size = current_app.config['BRAVO_API_PAGE_LIMIT']
 
-    # size passed as limit
     result = pretty_api.get_coverage(chrom, start, stop, size, continue_from)
     response = make_response(jsonify(result), 200)
     response.mimetype = 'application/json'
@@ -209,21 +209,32 @@ def region_variants_summary(variants_type, chrom, start, stop):
     return api.get_region_snv_summary(args)
 
 
-# Functionally, this is only routes to /gene/snv/summary
-#   Possible a stub for subsequent functionality?
-@bp.route('/variants/gene/<string:variants_type>/<string:gene_name>/summary',
-          methods=['POST', 'GET'])
-def gene_variants_summary(variants_type, gene_name):
-    args = {'name': gene_name}
+gene_snv_summary_view_argmap = {
+    'ensemble_id': fields.Str(required=True,
+                              validate=lambda x: len(x) > 0,
+                              error_messages=ERR_EMPTY_MSG)
+}
 
-    if request.method == 'POST' and request.get_json():
-        params = request.get_json()
-        args.update(parse_filters_to_args(params.get('filters', [])))
+gene_snv_summary_json_argmap = {
+    'filters': fields.List(fields.Dict(), required=False, missing=[]),
+    'introns': fields.Bool(required=False, missing=True)
+}
 
-        if 'introns' in params:
-            args['introns'] = params['introns']
 
-    return api.get_gene_snv_summary(args)
+@bp.route('/variants/gene/<string:ensemble_id>/summary', methods=['POST', 'GET'])
+@use_kwargs(gene_snv_summary_view_argmap, location='view_args')
+@use_kwargs(gene_snv_summary_json_argmap, location='json')
+def gene_variants_summary(ensemble_id, introns, **kwargs):
+    filter_arg_names = ['filter', 'allele_freq', 'annotation.gene.lof',
+                        'annotation.gene.consequence', 'cadd_phred', 'rsids']
+    filters = {key: kwargs[key] for key in filter_arg_names if key in kwargs}
+
+    data = variants.get_gene_snv_summary(ensemble_id, filters, introns)
+    response = make_response(jsonify({'data': data, 'total': len(data), 'limit': None,
+                                      'next': None, 'error': None}), 200)
+    response.mimetype = 'application/json'
+    return response
+
 
 
 # Functionally, this is only routes to /gene/snv/histogram
