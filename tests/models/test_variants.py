@@ -1,4 +1,24 @@
+import pytest
+import pdb
+from unittest import TestCase
 from bravo_api.models import variants
+
+
+def test_build_mongo_filter():
+    user_filter = {'annotation': {'gene': {'consequence': [
+        {'$eq': ['start_retained_variant']},
+        {'$eq': ['stop_retained_variant']},
+        {'$eq': ['synonymous_variant']}
+    ]}}}
+
+    expected_result = [{"$or": [
+        {"$and": [{"annotation.genes.consequence": {"$eq": "start_retained_variant"}}]},
+        {"$and": [{"annotation.genes.consequence": {"$eq": "stop_retained_variant"}}]},
+        {"$and": [{"annotation.genes.consequence": {"$eq": "synonymous_variant"}}]}
+    ]}]
+
+    result = variants.build_mongo_filter(user_filter)
+    assert expected_result == result
 
 
 def test_get_snv(patch_variants_mongo):

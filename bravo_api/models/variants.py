@@ -643,7 +643,10 @@ def get_gene_snv_summary(name, filter, introns):
     # prepare user-specified filter conditions in mongo format
     # query optimizer didn't work well on Mongo 3.4 and {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}} filter wasn't performing well
     # since here we work with short variants, to improve performance we add additional limits to xpos and xstop
-    mongo_filter = [ {'xpos': {'$gte': xstart - 1000}}, {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}}, {'xstop': {'$lte': xstop + 1000}} ]
+    mongo_filter = [{'xpos': {'$gte': xstart - 1000}},
+                    {'xpos': { '$lte': xstop }},
+                    {'xstop': {'$gte': xstart}},
+                    {'xstop': {'$lte': xstop + 1000}}]
     mongo_filter.extend(build_mongo_filter(filter))
 
     projection = {
