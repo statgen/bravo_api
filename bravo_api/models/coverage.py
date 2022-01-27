@@ -112,7 +112,8 @@ def get_coverage(chrom, start, stop, limit, continue_from = 0):
        'limit': 0,
        'total': 0,
        'data': [],
-       'last': None
+       'last': None,
+       'stop_reached': False
     }
     coverage_file = coverage_handler.get_coverage_file(chrom, start, stop)
     if coverage_file is None:
@@ -121,4 +122,5 @@ def get_coverage(chrom, start, stop, limit, continue_from = 0):
     result['total'] = coverage['total']
     result['data'] = coverage['data']
     result['last'] = coverage['last']
+    result['stop_reached'] = coverage['stop_reached']
     return result
