@@ -1,12 +1,14 @@
 import pytest
 from flask import Flask
 from bravo_api.blueprints.legacy_ui import autocomplete
+from bravo_api.blueprints.legacy_ui import pretty_routes
 
 
 @pytest.fixture
 def app():
     app = Flask(__name__)
     app.register_blueprint(autocomplete.bp)
+    app.register_blueprint(pretty_routes.bp)
     return(app)
 
 

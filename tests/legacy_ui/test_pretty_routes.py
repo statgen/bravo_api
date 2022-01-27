@@ -1,12 +1,17 @@
+import pytest
 from bravo_api.blueprints.legacy_ui import pretty_routes
 from flask import Flask, make_response, jsonify
 from icecream import ic
+import pdb
 
 app = Flask('dummy')
 app.register_blueprint(pretty_routes.bp)
+app.config['BRAVO_API_PAGE_LIMIT'] = 1000
+
 
 def mock_get_genes_by_name(name):
-    return({'data': [1,2,3], 'total': 3, 'limit': None, 'next': None, 'error': None})
+    return({'data': [1, 2, 3], 'total': 3, 'limit': None, 'next': None, 'error': None})
+
 
 def mock_json_response(args):
     response = make_response(jsonify({'data': 'test'}), 200)
@@ -115,9 +120,9 @@ def test_genes_by_name(mocker, client):
     assert(resp.content_type == 'application/json')
 
 
-def test_coverage_alias(mocker):
-    mock = mocker.patch('bravo_api.api.get_coverage', side_effect=mock_json_response)
-
+def test_coverage_arg_passing(mocker, client):
+    mock = mocker.patch('bravo_api.blueprints.legacy_ui.pretty_api.get_coverage',
+                        side_effect={'foo': 100})
     # path args
     chrom = '11'
     start = 500000
@@ -126,46 +131,9 @@ def test_coverage_alias(mocker):
     size = 100
     next = None
 
-    expected_args = {'chrom': chrom, 'start': start, 'stop': stop, 'limit': size}
-
     with app.test_client() as client:
         client.post(f'/coverage/{chrom}-{start}-{stop}', json={'size': size, 'next': next})
-    mock.assert_called_with(expected_args)
-
-
-def test_coverage_redirect(mocker):
-    # path args
-    chrom = '11'
-    start = 500000
-    stop = 5001000
-    # body args
-    size = 100
-    next = 'https://www.example.com/foo'
-
-    with app.test_client() as client:
-        resp = client.post(f'/coverage/{chrom}-{start}-{stop}',
-                           json={'size': size, 'next': next},
-                           follow_redirects=False)
-    assert resp.status_code == 303
-    assert resp.location == next
-
-
-def test_variants_meta_alias(mocker):
-    mock = mocker.patch('bravo_api.api.get_coverage', side_effect=mock_json_response)
-
-    # path args
-    chrom = '11'
-    start = 500000
-    stop = 5001000
-    # body args
-    size = 100
-    next = None
-
-    expected_args = {'chrom': chrom, 'start': start, 'stop': stop, 'limit': size}
-
-    with app.test_client() as client:
-        client.post(f'/coverage/{chrom}-{start}-{stop}', json={'size': size, 'next': next})
-    mock.assert_called_with(expected_args)
+    mock.assert_called_with(chrom, start, stop, size, 0)
 
 
 def test_region_histogram_arg_parsing():
@@ -277,7 +245,7 @@ def test_region_summary_get_alias(mocker):
 
     mock.assert_called_with(expected_args)
 
-
+@pytest.mark.skip(reason="No longer redirecting")
 def test_gene_summary_post_alias(mocker):
     mock = mocker.patch('bravo_api.api.get_gene_snv_summary', side_effect=mock_json_response)
 
@@ -302,6 +270,7 @@ def test_gene_summary_post_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_gene_summary_get_alias(mocker):
     mock = mocker.patch('bravo_api.api.get_gene_snv_summary', side_effect=mock_json_response)
 
