@@ -434,7 +434,7 @@ def get_gene(name, full):
             return entry
 
 
-def get_gene_snv(name, filter, sort, last, limit, introns):
+def get_gene_snv(name, filter, sort, continue_from, limit, introns):
     gene = None
     result = {
        'limit': limit,
@@ -493,10 +493,10 @@ def get_gene_snv(name, filter, sort, last, limit, introns):
     if len(mongo_sort) == 0: # xpos sorted by default if nothing else is specified
         mongo_sort = [ ('xpos', pymongo.ASCENDING) ]
 
-    # adjust filter if auto-generated 'last' field is present
+    # adjust filter if 'continue_from' field is present
     # mongodb optimizer will take care of overlapping conditions
-    if last:
-        adjust_mongo_filter2(mongo_filter, mongo_sort, last, gene_id)
+    if continue_from:
+        adjust_mongo_filter2(mongo_filter, mongo_sort, continue_from, gene_id)
 
     projection = {
        '_id': True,
@@ -722,7 +722,10 @@ def get_gene_snv_histogram(name, filter, windows, introns):
     # prepare user-specified filter conditions in mongo format
     # query optimizer didn't work well on Mongo 3.4 and {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}} filter wasn't performing well
     # since here we work with short variants, to improve performance we add additional limits to xpos and xstop
-    mongo_filter = [ {'xpos': {'$gte': xstart - 1000}}, {'xpos': { '$lte': xstop }}, {'xstop': {'$gte': xstart}}, {'xstop': {'$lte': xstop + 1000}} ]
+    mongo_filter = [{'xpos': {'$gte': xstart - 1000}},
+                    {'xpos': {'$lte': xstop}},
+                    {'xstop': {'$gte': xstart}},
+                    {'xstop': {'$lte': xstop + 1000}}]
     mongo_filter.extend(build_mongo_filter(filter))
 
     for f in mongo_filter:
