@@ -1,22 +1,34 @@
+"""@package Bravo Pretty Routes
+Primary responsibilities are:
+    - Consuming arguments from UI
+    - Providing routes that use view arguments
+    - Wrapping data in web responses.
+"""
 from flask import current_app, Blueprint, redirect, request, make_response, jsonify
 from flask_cors import CORS
-from webargs.flaskparser import use_kwargs
+from webargs.flaskparser import FlaskParser
 from webargs import fields, ValidationError
+from marshmallow import EXCLUDE, validate
 from bravo_api import api
 from bravo_api.blueprints.legacy_ui import pretty_api
 
-from marshmallow import validate
 
-# For debugging
-# from icecream import ic
-# import pdb
+class Parser(FlaskParser):
+    # Exclude extra parameters passed in json bodies.
+    #   Accomodate extraneous pagination args from BraVue.
+    DEFAULT_UNKNOWN_BY_LOCATION = {"json": EXCLUDE}
+
 
 # This blueprint should be mounted under a non-root route this duplicates some base api routes.
 bp = Blueprint('pretty_routes', __name__)
 CORS(bp)
 
+
+parser = Parser()
+
 ERR_EMPTY_MSG = {'validator_failed': 'Value must be a non-empty string.'}
 ERR_GT_ZERO_MSG = {'validator_failed': 'Value must be greater than 0.'}
+
 
 variant_argmap = {
     'variant_id': fields.Str(required=True, validate=validate.Length(min=1),
@@ -35,14 +47,14 @@ def validate_paging_args(parsed_args):
 
 
 @bp.route('/variant/api/snv/<string:variant_id>')
-@use_kwargs(variant_argmap, location='view_args')
+@parser.use_kwargs(variant_argmap, location='view_args')
 def variant(variant_id):
     args = {'variant_id': variant_id, 'full': 1}
     return api.get_variant(args)
 
 
 @bp.route('/variant/api/snv/cram/summary/<string:variant_id>')
-@use_kwargs(variant_argmap, location='view_args')
+@parser.use_kwargs(variant_argmap, location='view_args')
 def variant_cram_info(variant_id):
     args = {'variant_id': variant_id, 'full': 1}
     return api.get_sequence_summary(args)
@@ -58,7 +70,7 @@ variant_cram_argmap = {
 
 
 @bp.route('/variant/api/snv/cram/<string:variant_id>-<int:sample_het>-<int:sample_no>')
-@use_kwargs(variant_cram_argmap, location='view_args')
+@parser.use_kwargs(variant_cram_argmap, location='view_args')
 def variant_cram(variant_id, sample_het, sample_no):
     args = {'variant_id': variant_id, 'sample_no': sample_no,
             'heterozygous': sample_het, 'index': 0}
@@ -68,7 +80,7 @@ def variant_cram(variant_id, sample_het, sample_no):
 
 
 @bp.route('/variant/api/snv/crai/<string:variant_id>-<int:sample_het>-<int:sample_no>')
-@use_kwargs(variant_cram_argmap, location='view_args')
+@parser.use_kwargs(variant_cram_argmap, location='view_args')
 def variant_crai(variant_id, sample_het, sample_no):
     args = {'variant_id': variant_id, 'sample_no': sample_no,
             'heterozygous': sample_het, 'index': 1}
@@ -95,7 +107,7 @@ genes_argmap = {
 
 
 @bp.route('/genes/<string:chrom>-<int:start>-<int:stop>')
-@use_kwargs(genes_argmap, location='view_args')
+@parser.use_kwargs(genes_argmap, location='view_args')
 def genes(chrom, start, stop):
     args = {'chrom': chrom, 'start': start, 'stop': stop, 'full': 1}
     response = api.get_genes(args)
@@ -109,7 +121,7 @@ genes_name_argmap = {
 
 
 @bp.route('/genes/api/<string:name>')
-@use_kwargs(genes_name_argmap, location='view_args')
+@parser.use_kwargs(genes_name_argmap, location='view_args')
 def genes_by_name(name):
     result = pretty_api.get_genes_by_name(name)
 
@@ -134,14 +146,14 @@ coverage_json_argmap = {
     'next': fields.Str(required=True, allow_none=True, validate=validate.Length(min=1),
                        error_messages=ERR_EMPTY_MSG),
     'continue_from': fields.Int(required=False, validate=validate.Range(min=1),
-                                error_messages=ERR_GT_ZERO_MSG),
+                                error_messages=ERR_GT_ZERO_MSG, missing=0),
 }
 
 
 @bp.route('/coverage/<string:chrom>-<int:start>-<int:stop>', methods=['POST'])
-@use_kwargs(coverage_view_argmap, location='view_args')
-@use_kwargs(coverage_json_argmap, location='json', validate=validate_paging_args)
-def coverage(chrom, start, stop, size, next, continue_from=0):
+@parser.use_kwargs(coverage_view_argmap, location='view_args')
+@parser.use_kwargs(coverage_json_argmap, location='json', validate=validate_paging_args)
+def coverage(chrom, start, stop, size, next, continue_from):
     if size > current_app.config['BRAVO_API_PAGE_LIMIT']:
         size = current_app.config['BRAVO_API_PAGE_LIMIT']
 
@@ -210,9 +222,9 @@ def region_variants_summary(variants_type, chrom, start, stop):
 
 
 gene_snv_summary_view_argmap = {
-    'ensemble_id': fields.Str(required=True,
-                              validate=lambda x: len(x) > 0,
-                              error_messages=ERR_EMPTY_MSG)
+    'ensembl_id': fields.Str(required=True,
+                             validate=lambda x: len(x) > 0,
+                             error_messages=ERR_EMPTY_MSG)
 }
 
 gene_snv_summary_json_argmap = {
@@ -221,39 +233,43 @@ gene_snv_summary_json_argmap = {
 }
 
 
-@bp.route('/variants/gene/<string:ensemble_id>/summary', methods=['POST', 'GET'])
-@use_kwargs(gene_snv_summary_view_argmap, location='view_args')
-@use_kwargs(gene_snv_summary_json_argmap, location='json')
-def gene_variants_summary(ensemble_id, introns, **kwargs):
-    filter_arg_names = ['filter', 'allele_freq', 'annotation.gene.lof',
-                        'annotation.gene.consequence', 'cadd_phred', 'rsids']
-    filters = {key: kwargs[key] for key in filter_arg_names if key in kwargs}
+@bp.route('/variants/gene/snv/<string:ensembl_id>/summary', methods=['POST', 'GET'])
+@parser.use_kwargs(gene_snv_summary_view_argmap, location='view_args')
+@parser.use_kwargs(gene_snv_summary_json_argmap, location='json')
+def gene_variants_summary(ensembl_id, introns, filters):
 
-    data = variants.get_gene_snv_summary(ensemble_id, filters, introns)
+    data = pretty_api.get_gene_snv_summary(ensembl_id, filters, introns)
+    # data = bravo_api.models.variants.get_gene_snv_summary(ensembl_id, {}, introns)
     response = make_response(jsonify({'data': data, 'total': len(data), 'limit': None,
                                       'next': None, 'error': None}), 200)
     response.mimetype = 'application/json'
     return response
 
 
+gene_snv_histogram_view_argmap = {
+    'ensembl_id': fields.Str(required=True,
+                             validate=lambda x: len(x) > 0,
+                             error_messages=ERR_EMPTY_MSG)
+}
 
-# Functionally, this is only routes to /gene/snv/histogram
-#   Possible a stub for subsequent functionality?
-@bp.route('/variants/gene/<string:variants_type>/<string:gene_name>/histogram',
-          methods=['POST', 'GET'])
-def gene_variants_histogram(variants_type, gene_name):
-    args = {'name': gene_name}
+gene_snv_histogram_json_argmap = {
+    'filters': fields.List(fields.Dict(), required=False, missing=[]),
+    'introns': fields.Bool(required=False, missing=True),
+    'windows': fields.Int(required=True, validate=lambda x: x > 0,
+                          error_messages=ERR_GT_ZERO_MSG)
+}
 
-    if request.method == 'POST' and request.get_json():
-        params = request.get_json()
-        args.update(parse_filters_to_args(params.get('filters', [])))
 
-        if 'introns' in params:
-            args['introns'] = params['introns']
-        if 'windows' in params:
-            args['windows'] = params["windows"]
+@bp.route('/variants/gene/snv/<string:ensembl_id>/histogram', methods=['POST', 'GET'])
+@parser.use_kwargs(gene_snv_histogram_view_argmap, location='view_args')
+@parser.use_kwargs(gene_snv_histogram_json_argmap, location='json')
+def gene_variants_histogram(ensembl_id, filters, introns, windows=1000):
+    data = pretty_api.get_gene_snv_histogram(ensembl_id, filters, windows, introns)
 
-    return api.get_gene_snv_histogram(args)
+    response = make_response(jsonify({'data': data, 'total': len(data), 'limit': None,
+                                      'next': None, 'error': None}), 200)
+    response.mimetype = 'application/json'
+    return response
 
 
 # Could map to /region/snv or /region/sv
@@ -281,25 +297,30 @@ def variants(variants_type, chrom, start, stop):
         return api.get_region_snv(args)
 
 
-# Functionally, this is only routes to /gene/snv
-#   Possible a stub for subsequent functionality?
-@bp.route('/variants/gene/<string:variants_type>/<string:gene_name>', methods=['POST', 'GET'])
-def gene_variants(variants_type, gene_name):
-    args = {'name': gene_name}
+gene_snv_view_argmap = {
+    'ensembl_id': fields.Str(required=True,
+                             validate=lambda x: len(x) > 0,
+                             error_messages=ERR_EMPTY_MSG)
+}
 
-    if request.method == 'POST' and request.get_json():
-        params = request.get_json()
-        if 'next' in params and params['next'] is not None:
-            # try using redirect, but verify the UI doesn't choke on this.
-            return redirect(params['next'], 303)
+gene_snv_json_argmap = {
+    'filters': fields.List(fields.Dict(), required=False, missing=[]),
+    'sorters': fields.List(fields.Dict(), required=False, missing=[]),
+    'introns': fields.Bool(required=False, missing=True),
+    'size': fields.Int(required=True, validate=validate.Range(min=1),
+                       error_messages=ERR_GT_ZERO_MSG),
+    'next': fields.Dict(required=True, allow_none=True, error_messages=ERR_EMPTY_MSG)
+}
 
-        args.update(parse_filters_to_args(params.get('filters', [])))
 
-        if 'size' in params:
-            args['limit'] = params['size']
-        if 'introns' in params:
-            args['introns'] = params['introns']
-        for s in params.get('sorters', []):
-            args['sort'] = ','.join(f'{s["field"]}:{s["dir"]}')
+@bp.route('/variants/gene/snv/<string:ensembl_id>', methods=['POST', 'GET'])
+@parser.use_kwargs(gene_snv_view_argmap, location='view_args')
+@parser.use_kwargs(gene_snv_json_argmap, location='json')
+def gene_variants(ensembl_id, filters, sorters, introns, size, next):
+    if size > current_app.config['BRAVO_API_PAGE_LIMIT']:
+        size = current_app.config['BRAVO_API_PAGE_LIMIT']
 
-    return api.get_gene_snv_impl(args)
+    result = pretty_api.get_gene_snv(ensembl_id, filters, sorters, continue_from=next,
+                                     limit=size, introns=introns)
+
+    return make_response(jsonify(result), 200)

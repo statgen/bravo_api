@@ -15,6 +15,47 @@ FILTER_TYPE_MAPPING = {
     '>=': '$gte'
 }
 
+ALLOWED_SNV_SORT_KEYS = [
+   'pos',
+   'filter',
+   'qual',
+   'variant_id',
+   'allele_num',
+   'allele_freq',
+   'hom_count',
+   'het_count',
+   'cadd_phred',
+   'rsids',
+   'annotation.region.lof',
+   'annotation.region.consequence',
+   'annotation.gene.lof',
+   'annotation.gene.consequence'
+]
+
+SORT_DIR_MAP = {"asc": "asc",
+                1: "asc",
+                "": "asc",
+                None: "asc",
+                "desc": "desc",
+                -1: "desc"}
+
+
+def munge_ui_sort(sort_list):
+    """
+    @param sort_list. List of dicts with field and dir keys.
+    @return List of tuples in the form [(field, dir)]
+    """
+    user_sort = []
+
+    for sort in sort_list:
+        sort_field = sort.get('field')
+        direction = sort.get('dir')
+
+        if sort_field in ALLOWED_SNV_SORT_KEYS and direction in SORT_DIR_MAP:
+            user_sort.append((sort_field, SORT_DIR_MAP[direction]))
+
+    return(user_sort)
+
 
 def convert_to_op_val(tipe, value):
     """
@@ -100,4 +141,21 @@ def get_coverage(chrom, start, stop, limit, continue_from=None):
 def get_gene_snv_summary(ensembl_id, filters, introns):
     munged_filters = munge_ui_filters(filters)
     data = variants.get_gene_snv_summary(ensembl_id, munged_filters, introns)
-    return data
+    return(data)
+
+
+def get_gene_snv_histogram(ensembl_id, filters, windows, introns):
+    munged_filters = munge_ui_filters(filters)
+    data = variants.get_gene_snv_histogram(ensembl_id, munged_filters, windows, introns)
+    return(data)
+
+
+def get_gene_snv(ensembl_id, filters, sorts, continue_from, limit, introns):
+    munged_filters = munge_ui_filters(filters)
+    munged_sorters = munge_ui_sort(sorts)
+
+    snv = variants.get_gene_snv(ensembl_id, munged_filters, munged_sorters,
+                                continue_from, limit, introns)
+
+    return({'data': snv['data'], 'total': snv['total'], 'limit': snv['limit'],
+            'next': snv['last'], 'error': None})
