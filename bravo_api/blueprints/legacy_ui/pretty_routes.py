@@ -29,6 +29,16 @@ parser = Parser()
 ERR_EMPTY_MSG = {'validator_failed': 'Value must be a non-empty string.'}
 ERR_GT_ZERO_MSG = {'validator_failed': 'Value must be greater than 0.'}
 
+# Common arguements for chromosome region
+region_argmap = {
+    'chrom': fields.Str(required=True, validate=validate.Length(min=1),
+                        error_messages=ERR_EMPTY_MSG),
+    'start': fields.Int(required=True, validate=validate.Range(min=1),
+                        error_messages=ERR_GT_ZERO_MSG),
+    'stop': fields.Int(required=True, validate=validate.Range(min=1),
+                       error_messages=ERR_GT_ZERO_MSG)
+}
+
 
 variant_argmap = {
     'variant_id': fields.Str(required=True, validate=validate.Length(min=1),
@@ -173,21 +183,24 @@ def parse_filters_to_args(filters):
     return(args)
 
 
-# Functionally, this is only routes to /region/snv/histogram
-#   Possible a stub for subsequent functionality?
-@bp.route(('/variants/region/<string:variants_type>/'
+region_snv_histogram_json_argmap = {
+    'filters': fields.List(fields.Dict(), required=False, missing=[]),
+    'windows': fields.Int(required=True, validate=lambda x: x > 0,
+                          error_messages=ERR_GT_ZERO_MSG)
+}
+
+
+@bp.route(('/variants/region/snv/'
            '<string:chrom>-<int:start>-<int:stop>/histogram'), methods=['POST', 'GET'])
-def region_variants_histogram(variants_type, chrom, start, stop):
-    args = {'chrom': chrom, 'start': start, 'stop': stop}
+@parser.use_kwargs(region_argmap, location='view_args')
+@parser.use_kwargs(region_snv_histogram_json_argmap, location='json')
+def region_variants_histogram(chrom, start, stop, filters, windows):
+    data = pretty_api.get_region_snv_histogram(chrom, start, stop, filters, windows)
 
-    if request.method == 'POST' and request.get_json():
-        params = request.get_json()
-        args.update(parse_filters_to_args(params.get('filters', [])))
-
-        if 'windows' in params:
-            args['windows'] = params["windows"]
-
-    return api.get_region_snv_histogram(args)
+    response = make_response(jsonify({'data': data, 'total': len(data), 'limit': None,
+                                      'next': None, 'error': None}), 200)
+    response.mimetype = 'application/json'
+    return response
 
 
 # Functionally, this is only routes to /region/snv/summary
@@ -204,28 +217,24 @@ def region_variants_summary(variants_type, chrom, start, stop):
     return api.get_region_snv_summary(args)
 
 
+region_snv_json_argmap = {
+    'filters': fields.List(fields.Dict(), required=False, missing=[]),
+    'sorters': fields.List(fields.Dict(), required=False, missing=[]),
+    'size': fields.Int(required=True, validate=validate.Range(min=1),
+                       error_messages=ERR_GT_ZERO_MSG),
+    'next': fields.Dict(required=True, allow_none=True, error_messages=ERR_EMPTY_MSG)
+}
 
 
-# Could map to /region/snv or /region/sv
-@bp.route('/variants/region/<string:variants_type>/<string:chrom>-<int:start>-<int:stop>',
+@bp.route('/variants/region/snv/<string:chrom>-<int:start>-<int:stop>',
           methods=['POST', 'GET'])
-def variants(variants_type, chrom, start, stop):
-    args = {'chrom': chrom, 'start': start, 'stop': stop}
+@parser.use_kwargs(region_argmap, location='view_args')
+@parser.use_kwargs(region_snv_json_argmap, location='json')
+def region_variants(chrom, start, stop, filters, sorters, size, next):
+    if size > current_app.config['BRAVO_API_PAGE_LIMIT']:
+        size = current_app.config['BRAVO_API_PAGE_LIMIT']
 
-    if request.method == 'POST' and request.get_json():
-        params = request.get_json()
-        if 'next' in params and params['next'] is not None:
-            # try using redirect, but verify the UI doesn't choke on this.
-            return redirect(params['next'], 303)
+    result = pretty_api.get_region_snv(chrom, start, stop, filters, sorters, continue_from=next,
+                                     limit=size)
 
-        args.update(parse_filters_to_args(params.get('filters', [])))
-
-        for s in params.get('sorters', []):
-            args['sort'] = ','.join(f'{s["field"]}:{s["dir"]}')
-        if 'size' in params:
-            args['limit'] = params['size']
-
-    if variants_type == 'sv':
-        return api.get_region(args)
-    else:
-        return api.get_region_snv(args)
+    return make_response(jsonify(result), 200)

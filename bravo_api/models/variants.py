@@ -260,7 +260,7 @@ def get_region(chrom, start, stop, filter, sort, last, limit):
     return result
 
 
-def get_region_snv(chrom, start, stop, filter, sort, last, limit):
+def get_region_snv(chrom, start, stop, filter, sort, continue_from, limit):
     xstart = make_xpos(chrom, start)
     xstop = make_xpos(chrom, stop)
 
@@ -280,10 +280,10 @@ def get_region_snv(chrom, start, stop, filter, sort, last, limit):
     if len(mongo_sort) == 0: # xpos sorted by default if nothing else is specified
         mongo_sort = [ ('xpos', pymongo.ASCENDING) ]
 
-    # adjust filter if auto-generated 'last' field is present
+    # adjust filter if continue_from is present
     # mongodb optimizer will take care of overlapping conditions
-    if last:
-        adjust_mongo_filter(mongo_filter, mongo_sort, last)
+    if continue_from:
+        adjust_mongo_filter(mongo_filter, mongo_sort, continue_from)
 
     result = {
        'limit': limit,

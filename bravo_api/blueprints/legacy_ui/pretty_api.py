@@ -159,3 +159,20 @@ def get_gene_snv(ensembl_id, filters, sorts, continue_from, limit, introns):
 
     return({'data': snv['data'], 'total': snv['total'], 'limit': snv['limit'],
             'next': snv['last'], 'error': None})
+
+
+def get_region_snv_histogram(chrom, start, stop, filters, windows):
+    munged_filters = munge_ui_filters(filters)
+    data = variants.get_region_snv_histogram(chrom, start, stop, munged_filters, windows)
+    return(data)
+
+
+def get_region_snv(chrom, start, stop, filters, sorts, continue_from, limit):
+    munged_filters = munge_ui_filters(filters)
+    munged_sorters = munge_ui_sort(sorts)
+
+    snv = variants.get_region_snv(chrom, start, stop, munged_filters, munged_sorters,
+                                continue_from, limit)
+
+    return({'data': snv['data'], 'total': snv['total'], 'limit': snv['limit'],
+            'next': snv['last'], 'error': None})

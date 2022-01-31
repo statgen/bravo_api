@@ -159,6 +159,7 @@ def test_region_histogram_arg_parsing():
     assert pretty_routes.parse_filters_to_args(filters5) == expected_args5
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_region_histogram_post_alias(mocker):
     mock = mocker.patch('bravo_api.api.get_region_snv_histogram', side_effect=mock_json_response)
 
@@ -181,6 +182,7 @@ def test_region_histogram_post_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_region_histogram_get_alias(mocker):
     mock = mocker.patch('bravo_api.api.get_region_snv_histogram', side_effect=mock_json_response)
 
@@ -307,6 +309,7 @@ def test_gene_histogram_get_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_variants_redirect(mocker):
     # path args
     chrom = '11'
@@ -329,6 +332,7 @@ def test_variants_redirect(mocker):
     assert sv_resp.location == next
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_variants_post_alias(mocker):
     mock_sv = mocker.patch('bravo_api.api.get_region', side_effect=mock_json_response)
     mock_snv = mocker.patch('bravo_api.api.get_region_snv', side_effect=mock_json_response)
@@ -353,6 +357,7 @@ def test_variants_post_alias(mocker):
     mock_snv.assert_called_with(expected_args)
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_variants_get_alias(mocker):
     mock_sv = mocker.patch('bravo_api.api.get_region', side_effect=mock_json_response)
     mock_snv = mocker.patch('bravo_api.api.get_region_snv', side_effect=mock_json_response)
