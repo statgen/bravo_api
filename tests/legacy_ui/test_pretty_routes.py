@@ -109,17 +109,6 @@ def test_genes_range_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
-def test_genes_by_name(mocker, client):
-    mock = mocker.patch('bravo_api.blueprints.legacy_ui.pretty_api.get_genes_by_name',
-                        side_effect=mock_get_genes_by_name)
-    name = 'foo'
-    with app.test_client() as client:
-        resp = client.get(f'/genes/api/{name}')
-
-    mock.assert_called_with(name)
-    assert(resp.content_type == 'application/json')
-
-
 def test_coverage_arg_passing(mocker, client):
     mock = mocker.patch('bravo_api.blueprints.legacy_ui.pretty_api.get_coverage',
                         side_effect={'foo': 100})
