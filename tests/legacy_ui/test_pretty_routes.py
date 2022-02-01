@@ -110,22 +110,6 @@ def test_genes_range_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
-def test_coverage_arg_passing(mocker, client):
-    mock = mocker.patch('bravo_api.blueprints.legacy_ui.pretty_api.get_coverage',
-                        side_effect={'foo': 100})
-    # path args
-    chrom = '11'
-    start = 500000
-    stop = 5001000
-    # body args
-    size = 100
-    next = None
-
-    with app.test_client() as client:
-        client.post(f'/coverage/{chrom}-{start}-{stop}', json={'size': size, 'next': next})
-    mock.assert_called_with(chrom, start, stop, size, 0)
-
-
 def test_region_histogram_arg_parsing():
     # Valid filter examples
     filters1 = [{'field': 'filter', 'type': '=', 'value': 'PASS'}]
