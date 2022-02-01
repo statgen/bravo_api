@@ -6,33 +6,20 @@ Primary responsibilities are:
 """
 from flask import Blueprint
 from flask_cors import CORS
-from webargs.flaskparser import FlaskParser
 from webargs import fields
-from marshmallow import EXCLUDE, validate
+from marshmallow import validate
 from bravo_api import api
-from bravo_api.blueprints.legacy_ui import pretty_api
-
-
-class Parser(FlaskParser):
-    # Exclude extra parameters passed in json bodies.
-    #   Accomodate extraneous pagination args from BraVue.
-    DEFAULT_UNKNOWN_BY_LOCATION = {"json": EXCLUDE}
-
+from bravo_api.blueprints.legacy_ui import pretty_api, common
 
 # This blueprint should be mounted under a non-root route this duplicates some base api routes.
 bp = Blueprint('pretty_routes', __name__)
 CORS(bp)
 
-
-parser = Parser()
-
-ERR_EMPTY_MSG = {'invalid_string': 'String must not be empty.'}
-ERR_GT_ZERO_MSG = {'invalid_value': 'Value must be greater than 0.'}
-ERR_START_STOP_MSG = {'invalid_start_stop': 'Start value must be less than stop value.'}
+parser = common.Parser()
 
 variant_argmap = {
     'variant_id': fields.Str(required=True, validate=validate.Length(min=1),
-                             error_messages=ERR_EMPTY_MSG)
+                             error_messages=common.ERR_EMPTY_MSG)
 }
 
 
@@ -52,10 +39,10 @@ def variant_cram_info(variant_id):
 
 variant_cram_argmap = {
     'variant_id': fields.Str(required=True, validate=validate.Length(min=1),
-                             error_messages=ERR_EMPTY_MSG),
+                             error_messages=common.ERR_EMPTY_MSG),
     'sample_het': fields.Bool(required=True),
     'sample_no': fields.Int(required=True, validate=validate.Range(min=1),
-                            error_messages=ERR_GT_ZERO_MSG)
+                            error_messages=common.ERR_GT_ZERO_MSG)
 }
 
 
@@ -84,7 +71,6 @@ def qc():
     args = {}
     response = api.get_qc(args)
     return response
-
 
 
 # Functionally, this can only route to /snv/filters.

@@ -7,44 +7,31 @@ Primary responsibilities are:
 """
 from flask import current_app, Blueprint, make_response, jsonify
 from flask_cors import CORS
-from webargs.flaskparser import FlaskParser
 from webargs import fields, ValidationError
-from marshmallow import EXCLUDE, validate
-from bravo_api.blueprints.legacy_ui import pretty_api
-
-
-class Parser(FlaskParser):
-    # Exclude extra parameters passed in json bodies.
-    #   Accomodate extraneous pagination args from BraVue.
-    DEFAULT_UNKNOWN_BY_LOCATION = {"json": EXCLUDE}
-
+from marshmallow import validate
+from bravo_api.blueprints.legacy_ui import pretty_api, common
 
 # This blueprint should be mounted under a non-root route this duplicates some base api routes.
 bp = Blueprint('region_routes', __name__)
 CORS(bp)
 
-
-parser = Parser()
-
-ERR_EMPTY_MSG = {'invalid_string': 'String must not be empty.'}
-ERR_GT_ZERO_MSG = {'invalid_value': 'Value must be greater than 0.'}
-ERR_START_STOP_MSG = {'invalid_start_stop': 'Start value must be less than stop value.'}
+parser = common.Parser()
 
 # Common arguements for chromosome region
 region_argmap = {
     'chrom': fields.Str(required=True, validate=validate.Length(min=1),
-                        error_messages=ERR_EMPTY_MSG),
+                        error_messages=common.ERR_EMPTY_MSG),
     'start': fields.Int(required=True, validate=validate.Range(min=1),
-                        error_messages=ERR_GT_ZERO_MSG),
+                        error_messages=common.ERR_GT_ZERO_MSG),
     'stop': fields.Int(required=True, validate=validate.Range(min=1),
-                       error_messages=ERR_GT_ZERO_MSG)
+                       error_messages=common.ERR_GT_ZERO_MSG)
 }
 
 
 def validate_region_args(parsed_args):
     if 'start' in parsed_args and 'stop' in parsed_args:
         if parsed_args['start'] >= parsed_args['stop']:
-            raise ValidationError(ERR_START_STOP_MSG)
+            raise ValidationError(common.ERR_START_STOP_MSG)
     return True
 
 
@@ -59,11 +46,11 @@ def genes(chrom, start, stop):
 
 coverage_json_argmap = {
     'size': fields.Int(required=True, validate=validate.Range(min=1),
-                       error_messages=ERR_GT_ZERO_MSG),
+                       error_messages=common.ERR_GT_ZERO_MSG),
     'next': fields.Str(required=True, allow_none=True, validate=validate.Length(min=1),
-                       error_messages=ERR_EMPTY_MSG),
+                       error_messages=common.ERR_EMPTY_MSG),
     'continue_from': fields.Int(required=False, validate=validate.Range(min=1),
-                                error_messages=ERR_GT_ZERO_MSG, missing=0),
+                                error_messages=common.ERR_GT_ZERO_MSG, missing=0),
 }
 
 
@@ -83,7 +70,7 @@ def coverage(chrom, start, stop, size, next, continue_from):
 region_snv_histogram_json_argmap = {
     'filters': fields.List(fields.Dict(), required=False, missing=[]),
     'windows': fields.Int(required=True, validate=lambda x: x > 0,
-                          error_messages=ERR_GT_ZERO_MSG)
+                          error_messages=common.ERR_GT_ZERO_MSG)
 }
 
 
@@ -121,8 +108,8 @@ region_snv_json_argmap = {
     'filters': fields.List(fields.Dict(), required=False, missing=[]),
     'sorters': fields.List(fields.Dict(), required=False, missing=[]),
     'size': fields.Int(required=True, validate=validate.Range(min=1),
-                       error_messages=ERR_GT_ZERO_MSG),
-    'next': fields.Dict(required=True, allow_none=True, error_messages=ERR_EMPTY_MSG)
+                       error_messages=common.ERR_GT_ZERO_MSG),
+    'next': fields.Dict(required=True, allow_none=True, error_messages=common.ERR_EMPTY_MSG)
 }
 
 

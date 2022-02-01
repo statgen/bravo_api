@@ -8,31 +8,18 @@ Primary responsibilities are:
 
 from flask import current_app, Blueprint, make_response, jsonify
 from flask_cors import CORS
-from webargs.flaskparser import FlaskParser
 from webargs import fields
-from marshmallow import EXCLUDE, validate
-from bravo_api.blueprints.legacy_ui import pretty_api
+from marshmallow import validate
+from bravo_api.blueprints.legacy_ui import pretty_api, common
 
-
-class Parser(FlaskParser):
-    # Exclude extra parameters passed in json bodies.
-    #   Accomodate extraneous pagination args from BraVue.
-    DEFAULT_UNKNOWN_BY_LOCATION = {"json": EXCLUDE}
-
-
-# This blueprint should be mounted under a non-root route this duplicates some base api routes.
 bp = Blueprint('gene_routes', __name__)
 CORS(bp)
 
-
-parser = Parser()
-
-ERR_EMPTY_MSG = {'validator_failed': 'Value must be a non-empty string.'}
-ERR_GT_ZERO_MSG = {'validator_failed': 'Value must be greater than 0.'}
+parser = common.Parser()
 
 genes_name_argmap = {
     'name': fields.Str(required=True, validate=validate.Length(min=1),
-                       error_messages=ERR_EMPTY_MSG)
+                       error_messages=common.ERR_EMPTY_MSG)
 }
 
 
@@ -49,7 +36,7 @@ def genes_by_name(name):
 gene_snv_summary_view_argmap = {
     'ensembl_id': fields.Str(required=True,
                              validate=lambda x: len(x) > 0,
-                             error_messages=ERR_EMPTY_MSG)
+                             error_messages=common.ERR_EMPTY_MSG)
 }
 
 gene_snv_summary_json_argmap = {
@@ -73,14 +60,14 @@ def gene_variants_summary(ensembl_id, introns, filters):
 gene_snv_histogram_view_argmap = {
     'ensembl_id': fields.Str(required=True,
                              validate=lambda x: len(x) > 0,
-                             error_messages=ERR_EMPTY_MSG)
+                             error_messages=common.ERR_EMPTY_MSG)
 }
 
 gene_snv_histogram_json_argmap = {
     'filters': fields.List(fields.Dict(), required=False, missing=[]),
     'introns': fields.Bool(required=False, missing=True),
     'windows': fields.Int(required=True, validate=lambda x: x > 0,
-                          error_messages=ERR_GT_ZERO_MSG)
+                          error_messages=common.ERR_GT_ZERO_MSG)
 }
 
 
@@ -99,7 +86,7 @@ def gene_variants_histogram(ensembl_id, filters, introns, windows=1000):
 gene_snv_view_argmap = {
     'ensembl_id': fields.Str(required=True,
                              validate=lambda x: len(x) > 0,
-                             error_messages=ERR_EMPTY_MSG)
+                             error_messages=common.ERR_EMPTY_MSG)
 }
 
 gene_snv_json_argmap = {
@@ -107,8 +94,8 @@ gene_snv_json_argmap = {
     'sorters': fields.List(fields.Dict(), required=False, missing=[]),
     'introns': fields.Bool(required=False, missing=True),
     'size': fields.Int(required=True, validate=validate.Range(min=1),
-                       error_messages=ERR_GT_ZERO_MSG),
-    'next': fields.Dict(required=True, allow_none=True, error_messages=ERR_EMPTY_MSG)
+                       error_messages=common.ERR_GT_ZERO_MSG),
+    'next': fields.Dict(required=True, allow_none=True, error_messages=common.ERR_EMPTY_MSG)
 }
 
 
