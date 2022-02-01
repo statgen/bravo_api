@@ -106,22 +106,14 @@ def qc():
     return response
 
 
-genes_argmap = {
-    'chrom': fields.Str(required=True, validate=validate.Length(min=1),
-                        error_messages=ERR_EMPTY_MSG),
-    'start': fields.Int(required=True, validate=validate.Range(min=1),
-                        error_messages=ERR_GT_ZERO_MSG),
-    'stop': fields.Int(required=True, validate=validate.Range(min=1),
-                       error_messages=ERR_GT_ZERO_MSG)
-}
-
-
 @bp.route('/genes/<string:chrom>-<int:start>-<int:stop>')
-@parser.use_kwargs(genes_argmap, location='view_args')
+@parser.use_kwargs(region_argmap, location='view_args')
 def genes(chrom, start, stop):
-    args = {'chrom': chrom, 'start': start, 'stop': stop, 'full': 1}
-    response = api.get_genes(args)
+    result = pretty_api.get_genes_in_region(chrom, start, stop)
+    response = make_response(jsonify(result), 200)
+    response.mimetype = 'application/json'
     return response
+
 
 coverage_view_argmap = {
     'chrom': fields.Str(required=True, validate=validate.Length(min=1),
@@ -203,18 +195,21 @@ def region_variants_histogram(chrom, start, stop, filters, windows):
     return response
 
 
-# Functionally, this is only routes to /region/snv/summary
-#   Possible a stub for subsequent functionality?
-@bp.route('/variants/region/<string:variants_type>/<string:chrom>-<int:start>-<int:stop>/summary',
+region_snv_summary_json_argmap = {
+    'filters': fields.List(fields.Dict(), required=False, missing=[]),
+}
+
+
+@bp.route('/variants/region/snv/<string:chrom>-<int:start>-<int:stop>/summary',
           methods=['POST', 'GET'])
-def region_variants_summary(variants_type, chrom, start, stop):
-    args = {'chrom': chrom, 'start': start, 'stop': stop}
-
-    if request.method == 'POST' and request.get_json():
-        params = request.get_json()
-        args.update(parse_filters_to_args(params.get('filters', [])))
-
-    return api.get_region_snv_summary(args)
+@parser.use_kwargs(region_argmap, location='view_args')
+@parser.use_kwargs(region_snv_summary_json_argmap, location='json')
+def region_variants_summary(chrom, start, stop, filters):
+    data = pretty_api.get_region_snv_summary(chrom, start, stop, filters)
+    response = make_response(jsonify({'data': data, 'total': len(data), 'limit': None,
+                                      'next': None, 'error': None}), 200)
+    response.mimetype = 'application/json'
+    return response
 
 
 region_snv_json_argmap = {

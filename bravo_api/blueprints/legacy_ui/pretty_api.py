@@ -172,7 +172,13 @@ def get_region_snv(chrom, start, stop, filters, sorts, continue_from, limit):
     munged_sorters = munge_ui_sort(sorts)
 
     snv = variants.get_region_snv(chrom, start, stop, munged_filters, munged_sorters,
-                                continue_from, limit)
+                                  continue_from, limit)
 
     return({'data': snv['data'], 'total': snv['total'], 'limit': snv['limit'],
             'next': snv['last'], 'error': None})
+
+
+def get_region_snv_summary(chrom, start, stop, filters):
+    munged_filters = munge_ui_filters(filters)
+    data = variants.get_region_snv_summary(chrom, start, stop, munged_filters)
+    return(data)

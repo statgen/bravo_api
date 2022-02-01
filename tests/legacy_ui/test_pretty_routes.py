@@ -95,6 +95,7 @@ def test_qc_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_genes_range_alias(mocker):
     mock = mocker.patch('bravo_api.api.get_genes', side_effect=mock_json_response)
 
@@ -199,6 +200,7 @@ def test_region_histogram_get_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_region_summary_post_alias(mocker):
     mock = mocker.patch('bravo_api.api.get_region_snv_summary', side_effect=mock_json_response)
 
@@ -221,6 +223,7 @@ def test_region_summary_post_alias(mocker):
     mock.assert_called_with(expected_args)
 
 
+@pytest.mark.skip(reason="No longer redirecting")
 def test_region_summary_get_alias(mocker):
     mock = mocker.patch('bravo_api.api.get_region_snv_summary', side_effect=mock_json_response)
 
