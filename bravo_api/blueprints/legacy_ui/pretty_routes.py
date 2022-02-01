@@ -26,8 +26,9 @@ CORS(bp)
 
 parser = Parser()
 
-ERR_EMPTY_MSG = {'validator_failed': 'Value must be a non-empty string.'}
-ERR_GT_ZERO_MSG = {'validator_failed': 'Value must be greater than 0.'}
+ERR_EMPTY_MSG = {'invalid_string': 'String must not be empty.'}
+ERR_GT_ZERO_MSG = {'invalid_value': 'Value must be greater than 0.'}
+ERR_START_STOP_MSG = {'invalid_start_stop': 'Start value must be less than stop value.'}
 
 # Common arguements for chromosome region
 region_argmap = {
@@ -39,20 +40,16 @@ region_argmap = {
                        error_messages=ERR_GT_ZERO_MSG)
 }
 
-
 variant_argmap = {
     'variant_id': fields.Str(required=True, validate=validate.Length(min=1),
                              error_messages=ERR_EMPTY_MSG)
 }
 
 
-def validate_paging_args(parsed_args):
+def validate_region_args(parsed_args):
     if 'start' in parsed_args and 'stop' in parsed_args:
         if parsed_args['start'] >= parsed_args['stop']:
-            raise ValidationError({'start': ['Start position must be greater than stop position.']})
-    if 'limit' in parsed_args:
-        if parsed_args['limit'] > current_app.config['BRAVO_API_PAGE_LIMIT']:
-            raise ValidationError({'limit': [f'Page limit must be less than or equal to {current_app.config["BRAVO_API_PAGE_LIMIT"]}']})
+            raise ValidationError(ERR_START_STOP_MSG)
     return True
 
 
@@ -107,22 +104,12 @@ def qc():
 
 
 @bp.route('/genes/<string:chrom>-<int:start>-<int:stop>')
-@parser.use_kwargs(region_argmap, location='view_args')
+@parser.use_kwargs(region_argmap, location='view_args', validate=validate_region_args)
 def genes(chrom, start, stop):
     result = pretty_api.get_genes_in_region(chrom, start, stop)
     response = make_response(jsonify(result), 200)
     response.mimetype = 'application/json'
     return response
-
-
-coverage_view_argmap = {
-    'chrom': fields.Str(required=True, validate=validate.Length(min=1),
-                        error_messages=ERR_EMPTY_MSG),
-    'start': fields.Int(required=True, validate=validate.Range(min=1),
-                        error_messages=ERR_GT_ZERO_MSG),
-    'stop': fields.Int(required=True, validate=validate.Range(min=1),
-                       error_messages=ERR_GT_ZERO_MSG)
-}
 
 
 coverage_json_argmap = {
@@ -136,8 +123,8 @@ coverage_json_argmap = {
 
 
 @bp.route('/coverage/<string:chrom>-<int:start>-<int:stop>', methods=['POST'])
-@parser.use_kwargs(coverage_view_argmap, location='view_args')
-@parser.use_kwargs(coverage_json_argmap, location='json', validate=validate_paging_args)
+@parser.use_kwargs(region_argmap, location='view_args', validate=validate_region_args)
+@parser.use_kwargs(coverage_json_argmap, location='json')
 def coverage(chrom, start, stop, size, next, continue_from):
     if size > current_app.config['BRAVO_API_PAGE_LIMIT']:
         size = current_app.config['BRAVO_API_PAGE_LIMIT']
@@ -184,7 +171,7 @@ region_snv_histogram_json_argmap = {
 
 @bp.route(('/variants/region/snv/'
            '<string:chrom>-<int:start>-<int:stop>/histogram'), methods=['POST', 'GET'])
-@parser.use_kwargs(region_argmap, location='view_args')
+@parser.use_kwargs(region_argmap, location='view_args', validate=validate_region_args)
 @parser.use_kwargs(region_snv_histogram_json_argmap, location='json')
 def region_variants_histogram(chrom, start, stop, filters, windows):
     data = pretty_api.get_region_snv_histogram(chrom, start, stop, filters, windows)
@@ -202,7 +189,7 @@ region_snv_summary_json_argmap = {
 
 @bp.route('/variants/region/snv/<string:chrom>-<int:start>-<int:stop>/summary',
           methods=['POST', 'GET'])
-@parser.use_kwargs(region_argmap, location='view_args')
+@parser.use_kwargs(region_argmap, location='view_args', validate=validate_region_args)
 @parser.use_kwargs(region_snv_summary_json_argmap, location='json')
 def region_variants_summary(chrom, start, stop, filters):
     data = pretty_api.get_region_snv_summary(chrom, start, stop, filters)
@@ -223,7 +210,7 @@ region_snv_json_argmap = {
 
 @bp.route('/variants/region/snv/<string:chrom>-<int:start>-<int:stop>',
           methods=['POST', 'GET'])
-@parser.use_kwargs(region_argmap, location='view_args')
+@parser.use_kwargs(region_argmap, location='view_args', validate=validate_region_args)
 @parser.use_kwargs(region_snv_json_argmap, location='json')
 def region_variants(chrom, start, stop, filters, sorters, size, next):
     if size > current_app.config['BRAVO_API_PAGE_LIMIT']:
