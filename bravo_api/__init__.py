@@ -29,7 +29,6 @@ def create_app(test_config=None):
                    app.config['REFERENCE_SEQUENCE'],
                    app.config['SEQUENCES_CACHE_DIR'])
 
-    app.register_blueprint(api.bp)
     app.register_blueprint(health.bp)
     app.register_blueprint(autocomplete.bp, url_prefix='/ui')
     app.register_blueprint(variant_routes.bp, url_prefix='/ui')
