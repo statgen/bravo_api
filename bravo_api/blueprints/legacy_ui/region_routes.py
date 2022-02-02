@@ -29,9 +29,8 @@ region_argmap = {
 
 
 def validate_region_args(parsed_args):
-    if 'start' in parsed_args and 'stop' in parsed_args:
-        if parsed_args['start'] >= parsed_args['stop']:
-            raise ValidationError(common.ERR_START_STOP_MSG)
+    if parsed_args['start'] >= parsed_args['stop']:
+        raise ValidationError(common.ERR_START_STOP_MSG)
     return True
 
 

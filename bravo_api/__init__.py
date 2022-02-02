@@ -4,7 +4,7 @@ from bravo_api.models.sequences import init_sequences
 from bravo_api.models.database import mongo
 from bravo_api.models.coverage import init_coverage
 from bravo_api.blueprints.api import api
-from bravo_api.blueprints.legacy_ui import autocomplete, pretty_routes, gene_routes
+from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
 from bravo_api.blueprints.health import health
 
 
@@ -32,7 +32,8 @@ def create_app(test_config=None):
     app.register_blueprint(api.bp)
     app.register_blueprint(health.bp)
     app.register_blueprint(autocomplete.bp, url_prefix='/ui')
-    app.register_blueprint(pretty_routes.bp, url_prefix='/ui')
+    app.register_blueprint(variant_routes.bp, url_prefix='/ui')
+    app.register_blueprint(region_routes.bp, url_prefix='/ui')
     app.register_blueprint(gene_routes.bp, url_prefix='/ui')
 
     if app.config['GZIP_COMPRESSION']:

@@ -1,13 +1,11 @@
 from bravo_api.models.database import mongo
-from flask import current_app
-import pymongo
 
 
-def get_metrics(name):
-    if name is not None:
-        mongo_filter = {'name': name}
-    else:
+def get_metrics(name=None):
+    if name is None:
         mongo_filter = {}
+    else:
+        mongo_filter = {'name': name}
 
     cursor = mongo.db.qc_metrics.find(mongo_filter)
     data = []

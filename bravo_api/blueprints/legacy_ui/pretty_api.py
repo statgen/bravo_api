@@ -3,7 +3,7 @@ Two main responsibilities are:
     - Converting user facing args to underlying model calls.
     - Aggregate results to data structure expected by web serving layer.
 """
-from bravo_api.models import variants, coverage
+from bravo_api.models import variants, coverage, qc_metrics, sequences
 
 
 FILTER_TYPE_MAPPING = {
@@ -182,3 +182,35 @@ def get_region_snv_summary(chrom, start, stop, filters):
     munged_filters = munge_ui_filters(filters)
     data = variants.get_region_snv_summary(chrom, start, stop, munged_filters)
     return(data)
+
+
+def get_qc():
+    data = qc_metrics.get_metrics()
+    return({'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None})
+
+
+def get_snv_filters():
+    data = variants.get_snv_filters()
+    return({'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None})
+
+
+def get_variant(variant_id):
+    data = []
+    for variant in variants.get_snv(variant_id, None, None, 1):
+        data.append(variant)
+    return({'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None})
+
+
+def get_variant_cram_info(variant_id):
+    data = sequences.get_info(variant_id)
+    return({'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None})
+
+
+def get_variant_crai(variant_id, sample_no, heterozygous):
+    result = sequences.get_crai(variant_id, sample_no, heterozygous)
+    return(result)
+
+
+def get_variant_cram(variant_id, heterozygous, sample_no, start, stop):
+    result = sequences.get_cram(variant_id, sample_no, heterozygous, start, stop)
+    return(result)

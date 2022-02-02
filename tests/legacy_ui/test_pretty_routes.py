@@ -1,5 +1,5 @@
 import pytest
-from bravo_api.blueprints.legacy_ui import pretty_routes
+from bravo_api.blueprints.legacy_ui import variant_routes
 from flask import Flask, make_response, jsonify
 from icecream import ic
 import pdb
@@ -108,40 +108,6 @@ def test_genes_range_alias(mocker):
     with app.test_client() as client:
         client.get(f'/genes/{chrom}-{start}-{stop}')
     mock.assert_called_with(expected_args)
-
-
-def test_region_histogram_arg_parsing():
-    # Valid filter examples
-    filters1 = [{'field': 'filter', 'type': '=', 'value': 'PASS'}]
-    filters2 = [{'field': 'filter', 'type': '=', 'value': 'PASS'},
-                {'field': 'annotation.gene.consequence',
-                'type': '=', 'value': 'frameshift_variant'}]
-    filters3 = [{'field': 'filter', 'type': '=', 'value': 'PASS'},
-                {'field': 'annotation.gene.consequence',
-                 'type': '=', 'value': 'frameshift_variant'},
-                {'field': 'annotation.gene.consequence',
-                 'type': '=', 'value': 'synonymous_variant'},
-                {'field': 'annotation.gene.lof', 'type': '=', 'value': 'HC'},
-                {'field': 'annotation.gene.lof', 'type': '=', 'value': 'LC'}]
-    # Allele frequency is the list of lists case.
-    filters4 = [[{"field": "allele_freq", "type": ">", "value": 0.01},
-                 {"field": "allele_freq", "type": "<", "value": 0.99}]]
-    filters5 = [{"field": "filter", "type": "=", "value": "PASS"},
-                [{"field": "allele_freq", "type": ">", "value": 0.01},
-                 {"field": "allele_freq", "type": "<", "value": 0.99}]]
-
-    expected_args1 = {'filter': 'eq:PASS'}
-    expected_args2 = {'annotation.gene.consequence': 'eq:frameshift_variant', 'filter': 'eq:PASS'}
-    expected_args3 = {'annotation.gene.consequence': 'eq:synonymous_variant',
-                      'annotation.gene.lof': 'eq:LC', 'filter': 'eq:PASS'}
-    expected_args4 = {'allele_freq': 'gt:0.01,lt:0.99'}
-    expected_args5 = {'allele_freq': 'gt:0.01,lt:0.99', 'filter': 'eq:PASS'}
-
-    assert pretty_routes.parse_filters_to_args(filters1) == expected_args1
-    assert pretty_routes.parse_filters_to_args(filters2) == expected_args2
-    assert pretty_routes.parse_filters_to_args(filters3) == expected_args3
-    assert pretty_routes.parse_filters_to_args(filters4) == expected_args4
-    assert pretty_routes.parse_filters_to_args(filters5) == expected_args5
 
 
 @pytest.mark.skip(reason="No longer redirecting")
