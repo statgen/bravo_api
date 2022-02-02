@@ -1,5 +1,10 @@
-from unittest.mock import patch
+from flask import Flask
 from bravo_api.blueprints.legacy_ui import autocomplete
+from unittest.mock import patch
+
+app = Flask('dummy')
+app.register_blueprint(autocomplete.bp)
+app.config['BRAVO_API_PAGE_LIMIT'] = 1000
 
 
 # Mock empty snv or gene results
@@ -77,8 +82,9 @@ def test_autocomplete_combination(search_gene_patch, search_variant_patch):
 
 
 @patch('bravo_api.blueprints.legacy_ui.autocomplete.aggregate')
-def test_autocomplete(aggregate_patch, client):
+def test_autocomplete(aggregate_patch):
     aggregate_patch.return_value = {'suggestions': [{}, {}, {}]}
-    resp = client.get('/autocomplete?query=example')
+    with app.test_client() as client:
+        resp = client.get('/autocomplete?query=example')
     assert(resp.status_code == 200)
     assert(resp.content_type == 'application/json')

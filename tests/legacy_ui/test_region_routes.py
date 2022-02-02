@@ -6,7 +6,7 @@ app.register_blueprint(region_routes.bp)
 app.config['BRAVO_API_PAGE_LIMIT'] = 1000
 
 
-def test_coverage_arg_passing(mocker, client):
+def test_coverage_arg_passing(mocker):
     mock = mocker.patch('bravo_api.blueprints.legacy_ui.pretty_api.get_coverage',
                         side_effect={'foo': 100})
     # path args
