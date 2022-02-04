@@ -1,5 +1,4 @@
 import pytest
-from icecream import ic
 from bravo_api.blueprints.legacy_ui import autocomplete
 
 GENE_QUERY = 'HBB'
