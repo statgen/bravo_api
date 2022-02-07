@@ -15,7 +15,6 @@ def create_app(test_config=None):
                 instance_path=instance_path)
 
     if test_config is None:
-        app.config.from_object('config.api_default')
         app.config.from_pyfile('api_config.py', silent=True)
         app.config.from_envvar('BRAVO_API_CONFIG_FILE', silent=True)
     else:
