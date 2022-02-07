@@ -3,16 +3,16 @@
 """
 
 # Always prefer setuptools over distutils
-from setuptools import setup
+import setuptools
 import pathlib
 
 # Get the long description from the README file
 here = pathlib.Path(__file__).parent.resolve()
 long_description = (here/'README.md').read_text(encoding='utf-8')
 
-setup(
+setuptools.setup(
     name='bravo-api',
-    version='2.1.0',
+    version='2.1.5',
     description='Browse all variants online data API',
 
     # Read from README.md
@@ -41,10 +41,11 @@ setup(
         'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3 :: Only',
     ],
-    keywords='bioinformatics, genomics',  # Optional
+    keywords='bioinformatics, genomics',
 
-    # package_dir={'': '.'},  # Optional
-    packages=['bravo_api'],
+    package_dir={'': '.'},
+    packages=setuptools.find_packages(),
+
 
     # Python versions you support. Pip enforces this.
     python_requires='>=3.8, <4',
@@ -66,7 +67,7 @@ setup(
             'load-genes=bravo_api.models.database:load_genes',
             'load-snv=bravo_api.models.database:load_snv',
             'load-qc-metrics=bravo_api.models.database:load_qc_metrics',
-            'create-users=bravo_api.models.database.create_users'
+            'create-users=bravo_api.models.database:create_users'
         ],
     },
 

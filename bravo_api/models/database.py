@@ -74,24 +74,6 @@ def load_genes(canonical_transcripts_file, omim_file, genenames_file, gencode_fi
     sys.stdout.write(f"Created 'exons' collection and inserted {mongo.db.exons.count_documents({})} exon(s).\n")
 
 
-@click.command('load-sv')
-@click.argument('variants_file', type = click.Path(exists = True))
-@with_appcontext
-def load_sv(variants_file):
-    """
-    Creates and populates 'sv' collection of structural variants.
-
-    ARGUMENTS:
-
-    variants_file -- VCF/BCF file with structural variants.\n
-    """
-    mongo.db.sv.drop()
-    for variant in read_sv(variants_file):
-        mongo.db.sv.insert(variant)
-    mongo.db.sv.create_indexes([pymongo.operations.IndexModel(key) for key in [ 'xpos', 'xstop' ]])
-    sys.stdout.write(f"Created 'sv' collection and inserted {mongo.db.sv.count_documents({})} structural variant(s).\n")
-
-
 def _load_snv(variants_file):
     _mongo = PyMongo(current_app) # for multiprocessing each thread needs its own client
     variants = read_snv(variants_file)
@@ -124,6 +106,7 @@ def load_snv(threads, variants_files):
 
 @click.command('load-qc-metrics')
 @click.argument('metrics_file', type = click.Path(exists = True))
+@with_appcontext
 def load_qc_metrics(metrics_file):
     """
     Creates and populates 'qc_metrics' collection of QC metrics caclulated across all variants.
@@ -133,7 +116,8 @@ def load_qc_metrics(metrics_file):
     metrics_file -- file with metrics. One metric per line in JSON format.
     """
     mongo.db.qc_metrics.drop()
+
     for metric in read_qc_metrics(metrics_file):
-        mongo.db.qc_metrics.insert(metric)
+        mongo.db.qc_metrics.insert_one(metric)
     mongo.db.qc_metrics.create_index([('metric', pymongo.ASCENDING)])
     sys.stdout.write(f"Created 'qc_metrics' collection and inserted {mongo.db.qc_metrics.count_documents({})} QC metric(s).\n")
