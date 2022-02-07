@@ -12,7 +12,7 @@ long_description = (here/'README.md').read_text(encoding='utf-8')
 
 setuptools.setup(
     name='bravo-api',
-    version='2.1.5',
+    version='2.1.6',
     description='Browse all variants online data API',
 
     # Read from README.md
