@@ -1,5 +1,4 @@
 """BRAVO Data API.
-
 """
 
 # Always prefer setuptools over distutils
@@ -12,7 +11,7 @@ long_description = (here/'README.md').read_text(encoding='utf-8')
 
 setuptools.setup(
     name='bravo-api',
-    version='2.1.6',
+    version='2.2.0',
     description='Browse all variants online data API',
 
     # Read from README.md
@@ -53,7 +52,8 @@ setuptools.setup(
     install_requires=[
         'pymongo>=3.11.2', 'click>=7.1.2', 'Flask>=1.1.2', 'flask_compress>=1.9.0',
         'flask_cors>=3.0.10', 'flask_pymongo>=2.3.0', 'intervaltree>=3.1.0', 'marshmallow>=3.10.0',
-        'pysam>=0.16.0.1', 'python-rapidjson>=1.0', 'rapidjson>=1.0.0', 'webargs>=7.0.1'
+        'pysam>=0.16.0.1', 'python-rapidjson>=1.0', 'rapidjson>=1.0.0', 'webargs>=7.0.1',
+        'oauth2client==4.1.3', 'google_auth_oauthlib>=0.4.6'
     ],
 
     extras_require={
