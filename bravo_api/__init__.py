@@ -5,7 +5,7 @@ from bravo_api.models.database import mongo
 from bravo_api.models.coverage import init_coverage
 from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
 from bravo_api.blueprints.health import health
-from bravo_api.blueprints.bailiff import routes
+from bravo_api.blueprints.bailiff import auth_routes
 from flask_cors import CORS
 import secrets
 
@@ -42,9 +42,9 @@ def create_app(test_config=None):
     app.register_blueprint(variant_routes.bp, url_prefix='/ui')
     app.register_blueprint(region_routes.bp, url_prefix='/ui')
     app.register_blueprint(gene_routes.bp, url_prefix='/ui')
-    app.register_blueprint(routes.bp, url_prefix='/auth')
+    app.register_blueprint(auth_routes.bp, url_prefix='/auth')
 
     # Initialize login manager
-    routes.init_user_management(app)
+    auth_routes.init_user_management(app)
 
     return app

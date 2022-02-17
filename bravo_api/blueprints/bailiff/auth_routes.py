@@ -30,11 +30,13 @@ def auth_status():
     if current_user.is_anonymous:
         data = {'user': current_user.get_id(),
                 'authenticated': current_user.is_authenticated,
-                'active': current_user.is_active}
+                'active': current_user.is_active,
+                'login_disabled': current_app.config.get('LOGIN_DISABLED')}
     else:
         data = {'user': current_user.get_id(),
                 'authenticated': current_user.is_authenticated,
-                'active': current_user.is_active}
+                'active': current_user.is_active,
+                'login_disabled': current_app.config.get('LOGIN_DISABLED')}
     return jsonify(data)
 
 
