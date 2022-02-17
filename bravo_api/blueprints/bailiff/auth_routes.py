@@ -4,12 +4,12 @@ Provide login_manager.
 """
 from flask import Blueprint, current_app, jsonify, url_for, request, redirect, session, abort
 from flask_login import LoginManager, current_user, login_user, logout_user
-from bravo_api.blueprints.bailiff import DummyUserMgmt
 import google_auth_oauthlib.flow
 from oauth2client import client
 from datetime import timedelta
 import requests
 import json
+from .dummy_user_mgmt import DummyUserMgmt
 
 login_manager = LoginManager()
 bp = Blueprint('auth_routes', __name__)
