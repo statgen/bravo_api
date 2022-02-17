@@ -33,7 +33,7 @@ def create_app(test_config=None):
                    app.config['SEQUENCES_CACHE_DIR'])
 
     # Initialize CORS and Sessions
-    CORS(app, origins=app.config['UI_ORIGINS'], supports_credentials=True)
+    CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
     app.secret_key = app.config['SESSION_SECRET'] or secrets.token_bytes()
 
     # Initialize routes
