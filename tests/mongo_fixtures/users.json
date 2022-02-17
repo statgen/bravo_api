@@ -15,4 +15,12 @@
     "picture": "https://via.placeholder.com/96",
     "agreed_to_terms": true
   }
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef00001003"
+    },
+    "user_id": "notAgreed@example.com",
+    "picture": "https://via.placeholder.com/96",
+    "agreed_to_terms": false
+  }
 ]
