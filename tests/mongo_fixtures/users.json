@@ -14,7 +14,7 @@
     "user_id": "johndoe@example.com",
     "picture": "https://via.placeholder.com/96",
     "agreed_to_terms": true
-  }
+  },
   {
     "_id": {
       "$oid": "deadbeefdeadbeef00001003"
