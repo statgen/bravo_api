@@ -7,13 +7,11 @@ Primary responsibilities are:
 """
 
 from flask import current_app, Blueprint, make_response, jsonify
-from flask_cors import CORS
 from webargs import fields
 from marshmallow import validate
 from bravo_api.blueprints.legacy_ui import pretty_api, common
 
 bp = Blueprint('gene_routes', __name__)
-CORS(bp)
 
 parser = common.Parser()
 
