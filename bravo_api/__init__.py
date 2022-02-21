@@ -42,7 +42,7 @@ def create_app(test_config=None):
     app.register_blueprint(variant_routes.bp, url_prefix='/ui')
     app.register_blueprint(region_routes.bp, url_prefix='/ui')
     app.register_blueprint(gene_routes.bp, url_prefix='/ui')
-    app.register_blueprint(auth_routes.bp, url_prefix='/auth')
+    app.register_blueprint(auth_routes.bp, url_prefix='/ui')
 
     # Initialize login manager
     auth_routes.init_user_management(app)
