@@ -29,7 +29,8 @@ class MongoUserMgmt(UserMgmt):
         return user
 
     def create_by_id(self, user_id):
-        self.save(User(user_id))
+        user = self.save(User(user_id))
+        return(user)
 
     def update_agreed_to_terms(self, user):
         user.agreed_to_terms = True
