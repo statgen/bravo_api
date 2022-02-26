@@ -4,15 +4,62 @@ Provide login_manager.
 """
 from flask import Blueprint, current_app, jsonify, url_for, request, redirect, session, abort
 from flask_login import LoginManager, current_user, login_user, logout_user
-import google_auth_oauthlib.flow
-from oauth2client import client
+from webargs.flaskparser import FlaskParser
+from webargs import fields
+from marshmallow import EXCLUDE
 from datetime import timedelta
 import requests
 import json
 from .dummy_user_mgmt import DummyUserMgmt
 
+from authlib.integrations.flask_client import OAuth
+from authlib.common.security import generate_token
+
+
+class Parser(FlaskParser):
+    DEFAULT_UNKNOWN_BY_LOCATION = {"json": EXCLUDE}
+
 login_manager = LoginManager()
 bp = Blueprint('auth_routes', __name__)
+parser = Parser()
+oauth = OAuth()
+
+def init_auth(app):
+    oauth.init_app(app)
+    oauth.register(
+        name='google',
+        server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
+        client_kwargs={'scope': 'email'})
+
+
+login_argmap = { 'dest': fields.Str(required=False, missing='/') }
+
+@bp.route('/login')
+@parser.use_kwargs(login_argmap, location='query')
+def login(dest):
+    redirect_uri = url_for('.acf', _external=True)
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
+# Debugging & Testing Auth Code Flow
+@bp.route('/acf', methods=['GET'])
+def acf():
+    token = oauth.google.authorize_access_token()
+    # Automatic parsing token not behaving as expected.
+    #   https://github.com/authlib/demo-oauth-client/issues/20
+    userinfo = oauth.google.parse_id_token(token, None)
+
+    email = userinfo['email']
+
+    # Lookup or store user in user persistence.
+    user = current_app.user_mgmt.load(email) or \
+        current_app.user_mgmt.create_by_id(email)
+
+    # Use flask-login to persist login via session
+    login_user(user, remember=True, duration=timedelta(hours=1))
+
+    return redirect('http://localhost:8080/login.html')
+
 
 def init_user_management(app, user_management=None):
     if user_management is None:
@@ -22,6 +69,7 @@ def init_user_management(app, user_management=None):
 
     login_manager.user_loader(app.user_mgmt.load)
     login_manager.init_app(app)
+
 
 def user_auth_status():
     return({'user': current_user.get_id(),
@@ -45,31 +93,4 @@ def access_denied():
 @bp.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
-    return jsonify(user_auth_status())
-
-
-# End point for completing Authorization Code Flow w/ PKCE.
-@bp.route('/auth_code', methods=['POST'])
-def auth_code():
-    # Get code from post data
-    auth_code = request.json.get('code')
-
-    if not request.headers.get('X-Requested-With'):
-        abort(403)
-
-    # Exchange auth code for access token, refresh token, and ID token
-    credentials = client.credentials_from_clientsecrets_and_code(
-        current_app.config['GOOGLE_OAUTH_SECRETS_FILE'], ['email'], auth_code)
-
-    email = credentials.id_token['email']
-
-    # Lookup or store user in user persistence.
-    user = current_app.user_mgmt.load(email) or \
-        current_app.user_mgmt.create_by_id(email)
-
-    # Use flask-login to persist login via session
-    login_user(user, remember=True, duration=timedelta(hours=1))
-
-    # Store refresh token in session to allow revoking token programatically.
-    session['refresh_token'] = credentials.refresh_token
     return jsonify(user_auth_status())

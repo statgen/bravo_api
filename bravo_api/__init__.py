@@ -46,5 +46,6 @@ def create_app(test_config=None):
 
     # Initialize login manager
     auth_routes.init_user_management(app)
+    auth_routes.init_auth(app)
 
     return app
