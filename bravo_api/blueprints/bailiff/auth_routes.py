@@ -2,27 +2,26 @@
 Provide authorization endpoints.
 Provide login_manager.
 """
-from flask import Blueprint, current_app, jsonify, url_for, request, redirect, session, abort
+from flask import (Blueprint, current_app, jsonify, make_response, request,
+                   redirect, url_for, session)
 from flask_login import LoginManager, current_user, login_user, logout_user
 from webargs.flaskparser import FlaskParser
 from webargs import fields
 from marshmallow import EXCLUDE
 from datetime import timedelta
-import requests
-import json
 from .dummy_user_mgmt import DummyUserMgmt
-
 from authlib.integrations.flask_client import OAuth
-from authlib.common.security import generate_token
 
 
 class Parser(FlaskParser):
     DEFAULT_UNKNOWN_BY_LOCATION = {"json": EXCLUDE}
 
+
 login_manager = LoginManager()
 bp = Blueprint('auth_routes', __name__)
 parser = Parser()
 oauth = OAuth()
+
 
 def init_auth(app):
     oauth.init_app(app)
@@ -30,35 +29,6 @@ def init_auth(app):
         name='google',
         server_metadata_url='https://accounts.google.com/.well-known/openid-configuration',
         client_kwargs={'scope': 'email'})
-
-
-login_argmap = { 'dest': fields.Str(required=False, missing='/') }
-
-@bp.route('/login')
-@parser.use_kwargs(login_argmap, location='query')
-def login(dest):
-    redirect_uri = url_for('.acf', _external=True)
-    return oauth.google.authorize_redirect(redirect_uri)
-
-
-# Debugging & Testing Auth Code Flow
-@bp.route('/acf', methods=['GET'])
-def acf():
-    token = oauth.google.authorize_access_token()
-    # Automatic parsing token not behaving as expected.
-    #   https://github.com/authlib/demo-oauth-client/issues/20
-    userinfo = oauth.google.parse_id_token(token, None)
-
-    email = userinfo['email']
-
-    # Lookup or store user in user persistence.
-    user = current_app.user_mgmt.load(email) or \
-        current_app.user_mgmt.create_by_id(email)
-
-    # Use flask-login to persist login via session
-    login_user(user, remember=True, duration=timedelta(hours=1))
-
-    return redirect('http://localhost:8080/login.html')
 
 
 def init_user_management(app, user_management=None):
@@ -77,6 +47,55 @@ def user_auth_status():
             'active': current_user.is_active,
             'login_disabled': current_app.config.get('LOGIN_DISABLED')}
            )
+
+
+def authentication_required():
+    if request.method == 'OPTIONS':
+        return None
+    elif current_app.config.get('LOGIN_DISABLED'):
+        return None
+    elif current_user.is_authenticated:
+        return None
+    else:
+        resp = {'message': 'Authentication required.'}
+        return(make_response(jsonify(resp), 403))
+
+
+login_argmap = {'dest': fields.Str(required=False, missing=None)}
+
+
+@bp.route('/login')
+@parser.use_kwargs(login_argmap, location='query')
+def login(dest):
+    redirect_uri = url_for('.acf', _external=True)
+    # store destination in session
+    session['dest'] = dest
+    return oauth.google.authorize_redirect(redirect_uri)
+
+
+# Auth Code Flow endpoint
+@bp.route('/acf', methods=['GET'])
+def acf():
+    token = oauth.google.authorize_access_token()
+    # Automatic parsing token not behaving as expected.
+    #   https://github.com/authlib/demo-oauth-client/issues/20
+    userinfo = oauth.google.parse_id_token(token, None)
+
+    email = userinfo['email']
+
+    # Lookup or store user in user persistence.
+    user = current_app.user_mgmt.load(email) or \
+        current_app.user_mgmt.create_by_id(email)
+
+    # Use flask-login to persist login via session
+    login_user(user, remember=True, duration=timedelta(hours=1))
+
+    # if session has a destination, redirect there
+    destination = session.get('dest')
+    if destination is not None:
+        return redirect(destination)
+    else:
+        return make_response(jsonify(user_auth_status()))
 
 
 @bp.route('/auth_status', methods=['GET', 'POST'])

@@ -36,6 +36,11 @@ def create_app(test_config=None):
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
     app.secret_key = app.config['SESSION_SECRET'] or secrets.token_bytes()
 
+    # Protect data endpoint blueprints
+    variant_routes.bp.before_request(auth_routes.authentication_required)
+    region_routes.bp.before_request(auth_routes.authentication_required)
+    gene_routes.bp.before_request(auth_routes.authentication_required)
+
     # Initialize routes
     app.register_blueprint(health.bp)
     app.register_blueprint(autocomplete.bp, url_prefix='/ui')
