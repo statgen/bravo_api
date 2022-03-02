@@ -6,15 +6,12 @@ Primary responsibilities are:
     - Wrapping data in web responses.
 """
 from flask import Blueprint, make_response, jsonify, send_file, abort, request
-from flask_cors import CORS
 from webargs import fields
 from marshmallow import validate
 from bravo_api.blueprints.legacy_ui import pretty_api, common
 import re
 
-# This blueprint should be mounted under a non-root route this duplicates some base api routes.
 bp = Blueprint('variant_routes', __name__)
-CORS(bp)
 
 parser = common.Parser()
 

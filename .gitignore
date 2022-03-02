@@ -11,6 +11,9 @@ data/*
 scratch/*
 scratch*
 
+# secrets files
+client_secret*
+
 # Distribution / packaging
 .Python
 build/
