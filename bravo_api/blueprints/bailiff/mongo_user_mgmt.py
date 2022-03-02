@@ -11,7 +11,7 @@ class MongoUserMgmt(UserMgmt):
     def mongo_doc_to_user(self, mongodoc):
         if mongodoc is None:
             return None
-        return User(mongodoc.user_id, mongodoc.agreed_to_terms)
+        return User(mongodoc['user_id'], mongodoc['agreed_to_terms'])
 
     def user_to_mongodoc(self, user):
         return {'user_id': user.get_id(), 'agreed_to_terms': user.agreed_to_terms}

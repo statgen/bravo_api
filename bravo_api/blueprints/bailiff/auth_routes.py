@@ -9,7 +9,7 @@ from webargs.flaskparser import FlaskParser
 from webargs import fields
 from marshmallow import EXCLUDE
 from datetime import timedelta
-from .dummy_user_mgmt import DummyUserMgmt
+from .mongo_user_mgmt import MongoUserMgmt
 from authlib.integrations.flask_client import OAuth
 
 
@@ -33,8 +33,7 @@ def init_auth(app):
 
 def init_user_management(app, user_management=None):
     if user_management is None:
-        user_management = DummyUserMgmt
-    # Set user managment strategy on application
+        user_management = MongoUserMgmt
     app.user_mgmt = user_management()
 
     login_manager.user_loader(app.user_mgmt.load)
