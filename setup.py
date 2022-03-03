@@ -11,7 +11,7 @@ long_description = (here/'README.md').read_text(encoding='utf-8')
 
 setuptools.setup(
     name='bravo-api',
-    version='2.3.0',
+    version='2.3.1',
     description='Browse all variants online data API',
 
     # Read from README.md
@@ -53,7 +53,7 @@ setuptools.setup(
         'pymongo>=3.11.2', 'click>=7.1.2', 'Flask>=1.1.2', 'flask_compress>=1.9.0',
         'flask_cors>=3.0.10', 'flask_pymongo>=2.3.0', 'intervaltree>=3.1.0', 'marshmallow>=3.10.0',
         'pysam>=0.16.0.1', 'python-rapidjson>=1.0', 'rapidjson>=1.0.0', 'webargs>=7.0.1',
-        'authlib==1.0.0rc1'
+        'authlib==1.0.0rc1', 'flask-login>=0.5.5'
     ],
 
     extras_require={
