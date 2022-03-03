@@ -12,6 +12,10 @@ REFERENCE_SEQUENCE = os.path.join(BASE_DIR, 'reference', 'chr11_hs38DH.fa')
 
 # Optional configuration
 LOGIN_DISABLED = True
-GOOGLE_OAUTH_SECRETS_FILE = "client_secret.json"
 SESSION_SECRET = b'deadbeef0123456789'
-CORS_ORIGINS = ['http://localhost:8080', 'http://127.0.0.1:8080']
+CORS_ORIGINS = ['http://localhost:8080']
+
+# Config for using Google OAuth
+GOOGLE_CLIENT_ID = "your google oauth client id"
+GOOGLE_CLIENT_SECRET = "your google oauth client secret"
+GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
