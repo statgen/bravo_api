@@ -18,7 +18,6 @@ def create_app(test_config=None):
 
     if test_config is None:
         app.config.from_object('bravo_api.default_config')
-        app.config.from_pyfile('api_config.py', silent=True)
         app.config.from_envvar('BRAVO_API_CONFIG_FILE', silent=True)
     else:
         app.config.from_mapping(test_config)
