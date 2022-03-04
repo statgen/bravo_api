@@ -66,8 +66,14 @@ login_argmap = {'dest': fields.Str(required=False, missing=None)}
 @bp.route('/login')
 @parser.use_kwargs(login_argmap, location='query')
 def login(dest):
-    redirect_uri = url_for('.acf', _external=True)
-    # store destination in session
+    if(request.host.split(':')[0] == 'localhost'):
+        scheme = 'http'
+    else:
+        scheme = 'https'
+
+    redirect_uri = url_for('.acf', _external=True, _scheme=scheme)
+    print(request.host)
+    print(request.host.split(':')[0])
     session['dest'] = dest
     return oauth.google.authorize_redirect(redirect_uri)
 
