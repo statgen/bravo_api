@@ -1,3 +1,10 @@
+# Session and login remember_me cookie flags
+SESSION_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = True
+
+REMEMBER_COOKIE_HTTPONLY = True
+REMEMBER_COOKIE_SECURE = True
+
 # Default Optional configuration
 LOGIN_DISABLED = True
 SESSION_SECRET = b'deadbeef0123456789'
