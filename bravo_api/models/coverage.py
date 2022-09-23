@@ -86,7 +86,7 @@ coverage_handler = None
 
 def generate_coverage_files_metadata(coverage_dir):
     cov_files_md = []
-    glob_suffix = '*.json.gz'
+    glob_suffix = '*.tsv.gz'
     full_glob = glob.glob( os.path.join(coverage_dir, 'full', glob_suffix))
     bin25_glob = glob.glob( os.path.join(coverage_dir, 'bin_0.25', glob_suffix))
     bin50_glob = glob.glob( os.path.join(coverage_dir, 'bin_0.50', glob_suffix))
