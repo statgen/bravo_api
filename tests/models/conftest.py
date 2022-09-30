@@ -12,10 +12,10 @@ def mock_coverage_dir():
     with TempDirectory() as dir:
         for bin_name in ['full', 'bin_1.00', 'bin_0.25', 'bin_0.50', 'bin_0.75']:
             dirpath = dir.makedir(bin_name)
-            Path(os.path.join(dirpath, f'chr1.{bin_name}.json.gz')).touch()
-            Path(os.path.join(dirpath, f'chr1.{bin_name}.json.gz.tbi')).touch()
-            Path(os.path.join(dirpath, f'chr2.{bin_name}.json.gz')).touch()
-            Path(os.path.join(dirpath, f'chr2.{bin_name}.json.gz.tbi')).touch()
+            Path(os.path.join(dirpath, f'chr1.{bin_name}.tsv.gz')).touch()
+            Path(os.path.join(dirpath, f'chr1.{bin_name}.tsv.gz.tbi')).touch()
+            Path(os.path.join(dirpath, f'chr2.{bin_name}.tsv.gz')).touch()
+            Path(os.path.join(dirpath, f'chr2.{bin_name}.tsv.gz.tbi')).touch()
         yield dir
 
 
