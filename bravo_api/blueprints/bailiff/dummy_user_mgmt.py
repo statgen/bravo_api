@@ -6,7 +6,7 @@ from .user import User
 
 
 class DummyUserMgmt(UserMgmt):
-    DUMMY_USERS = []
+    DUMMY_USERS = set()
 
     def load(self, user_id):
         for u in DummyUserMgmt.DUMMY_USERS:
@@ -15,7 +15,8 @@ class DummyUserMgmt(UserMgmt):
         return None
 
     def save(self, user):
-        DummyUserMgmt.DUMMY_USERS.append(user)
+        DummyUserMgmt.DUMMY_USERS.discard(user)
+        DummyUserMgmt.DUMMY_USERS.add(user)
         return(user)
 
     def create_by_id(self, user_id):
@@ -24,3 +25,4 @@ class DummyUserMgmt(UserMgmt):
 
     def update_agreed_to_terms(self, user):
         user.agreed_to_terms = True
+        return(self.save(user))

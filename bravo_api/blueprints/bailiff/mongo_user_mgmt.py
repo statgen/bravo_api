@@ -34,4 +34,4 @@ class MongoUserMgmt(UserMgmt):
 
     def update_agreed_to_terms(self, user):
         user.agreed_to_terms = True
-        self.save(user)
+        return(self.save(user))
