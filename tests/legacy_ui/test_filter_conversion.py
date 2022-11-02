@@ -1,4 +1,3 @@
-import pytest
 from bravo_api.blueprints.legacy_ui import pretty_api
 
 
