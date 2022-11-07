@@ -7,4 +7,4 @@ from flask_login import UserMixin
 class User(UserMixin):
     def __init__(self, email, agreed_to_terms=False):
         self.id = email
-        self.agreed_to_terms = False
+        self.agreed_to_terms = agreed_to_terms
