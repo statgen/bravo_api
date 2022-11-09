@@ -36,11 +36,11 @@ def create_app(test_config=None):
     app.secret_key = app.config['SESSION_SECRET'] or secrets.token_bytes()
 
     # Protect data endpoint blueprints
-    variant_routes.bp.before_request(auth_routes.authentication_required)
-    region_routes.bp.before_request(auth_routes.authentication_required)
-    gene_routes.bp.before_request(auth_routes.authentication_required)
+    variant_routes.bp.before_request(auth_routes.agreement_required)
+    region_routes.bp.before_request(auth_routes.agreement_required)
+    gene_routes.bp.before_request(auth_routes.agreement_required)
 
-    # Initialize routes
+    # Initialize routes. Prefix "ui" indicates routes to support the Vue user interface.
     app.register_blueprint(health.bp)
     app.register_blueprint(autocomplete.bp, url_prefix='/ui')
     app.register_blueprint(variant_routes.bp, url_prefix='/ui')

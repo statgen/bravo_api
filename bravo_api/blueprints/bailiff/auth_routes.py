@@ -1,15 +1,15 @@
 """@package Bailiff Routes
-Provide authorization endpoints.
-Provide login_manager.
+Authorization endpoints and login manager config.
 """
 from flask import (Blueprint, current_app, jsonify, make_response, request,
                    redirect, url_for, session)
-from flask_login import LoginManager, current_user, login_user, logout_user
+from flask_login import LoginManager, current_user, login_user, logout_user, login_required
 from webargs.flaskparser import FlaskParser
 from webargs import fields
 from marshmallow import EXCLUDE
 from datetime import timedelta
 from .mongo_user_mgmt import MongoUserMgmt
+from .anon_user import BravoAnonUser
 from authlib.integrations.flask_client import OAuth
 
 
@@ -36,6 +36,7 @@ def init_user_management(app, user_management=None):
         user_management = MongoUserMgmt
     app.user_mgmt = user_management()
 
+    login_manager.anonymous_user = BravoAnonUser
     login_manager.user_loader(app.user_mgmt.load)
     login_manager.init_app(app)
 
@@ -43,12 +44,15 @@ def init_user_management(app, user_management=None):
 def user_auth_status():
     return({'user': current_user.get_id(),
             'authenticated': current_user.is_authenticated,
+            'agreed_to_terms': current_user.agreed_to_terms,
             'active': current_user.is_active,
-            'login_disabled': current_app.config.get('LOGIN_DISABLED')}
-           )
+            'login_disabled': current_app.config.get('LOGIN_DISABLED')})
 
 
 def authentication_required():
+    """
+    Before request hook to be registered when all routes in blueprint should require auth.
+    """
     if request.method == 'OPTIONS':
         return None
     elif current_app.config.get('LOGIN_DISABLED'):
@@ -57,7 +61,26 @@ def authentication_required():
         return None
     else:
         resp = {'message': 'Authentication required.'}
+        return(make_response(jsonify(resp), 401))
+
+
+def agreement_required():
+    """
+    Before request hook to be registered when all routes in blueprint should require auth
+      and agreement to the terms
+    """
+    if request.method == 'OPTIONS':
+        return None
+    elif current_app.config.get('LOGIN_DISABLED'):
+        return None
+    elif current_user.is_authenticated and current_user.agreed_to_terms:
+        return None
+    elif current_user.is_authenticated and not current_user.agreed_to_terms:
+        resp = {'message': 'Agree to terms required.'}
         return(make_response(jsonify(resp), 403))
+    else:
+        resp = {'message': 'Authentication required.'}
+        return(make_response(jsonify(resp), 401))
 
 
 login_argmap = {'dest': fields.Str(required=False, missing=None)}
@@ -111,10 +134,30 @@ def auth_status():
 @bp.route('/accessdenied')
 @login_manager.unauthorized_handler
 def access_denied():
-    return "Access Denied"
+    return make_response("Unauthorized: Must be logged in.", 401)
 
 
 @bp.route('/logout', methods=['GET', 'POST'])
 def logout():
     logout_user()
     return jsonify(user_auth_status())
+
+
+@bp.route('/agree_to_terms', methods=['POST'])
+@login_required
+def agree_to_terms():
+    current_app.user_mgmt.update_agreed_to_terms(current_user)
+    return jsonify(user_auth_status())
+
+
+@bp.route('/terms', methods=['GET'])
+def terms():
+    terms = ["You will not attempt to download any dataset in bulk from this website.",
+             "You will not attempt to re-identify or contact research participants.",
+             "You will protect data confidentiality.",
+             ("You will report any inadvertent data release, security breach or other "
+              "data management incident of which you become aware."),
+             "You will abide by all applicable laws and regulations for handling genomic data.",
+             ("You will not share data from this site with others.  Instead, please direct them "
+              " to this site, dbGaP, or elsewhere to view this data.")]
+    return jsonify(terms)
