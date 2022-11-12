@@ -36,7 +36,15 @@ def search_variant_ids(query):
     return(result)
 
 
-def aggregate(query):
+def aggregate(raw_query):
+    """
+    Query both gene and variant collections and combine the results
+    """
+    query = raw_query.lstrip()
+
+    if(query == ""):
+        return({"suggestions": []})
+
     gene_results = search_gene_names(query)
 
     if len(gene_results) < 10:

@@ -32,6 +32,22 @@ def test_empty_gene_results(monkeypatch):
 
 
 # Aggregation suggestions are combination of gene and variant results.
+def test_aggregate_empty_query_has_no_suggestions():
+    result = autocomplete.aggregate('')
+    suggestions = result['suggestions']
+
+    assert(len(suggestions) == 0)
+
+
+# Aggregation suggestions are combination of gene and variant results.
+def test_aggregate_whitespace_query_has_no_suggestions():
+    result = autocomplete.aggregate('     ')
+    suggestions = result['suggestions']
+
+    assert(len(suggestions) == 0)
+
+
+# Aggregation suggestions are combination of gene and variant results.
 @patch('bravo_api.blueprints.legacy_ui.autocomplete.search_variant_ids')
 @patch('bravo_api.blueprints.legacy_ui.autocomplete.search_gene_names')
 def test_aggregate_combined_results(search_gene_patch, search_variant_patch):
@@ -52,7 +68,7 @@ def test_aggregate_combined_results(search_gene_patch, search_variant_patch):
     assert(all(mock_variants_in_suggestions))
 
 
-# Aggregation only calls gene query when 10 or more results.
+# Aggregation no variant query call when 10 gene results.
 @patch('bravo_api.blueprints.legacy_ui.autocomplete.search_variant_ids')
 @patch('bravo_api.blueprints.legacy_ui.autocomplete.search_gene_names')
 def test_autocomplete_preclude(search_gene_patch, search_variant_patch):
@@ -82,7 +98,7 @@ def test_autocomplete_combination(search_gene_patch, search_variant_patch):
 
 
 @patch('bravo_api.blueprints.legacy_ui.autocomplete.aggregate')
-def test_autocomplete(aggregate_patch):
+def test_autocomplete_returns_json(aggregate_patch):
     aggregate_patch.return_value = {'suggestions': [{}, {}, {}]}
     with app.test_client() as client:
         resp = client.get('/autocomplete?query=example')
