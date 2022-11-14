@@ -8,10 +8,12 @@ import pathlib
 # Get the long description from the README file
 here = pathlib.Path(__file__).parent.resolve()
 long_description = (here/'README.md').read_text(encoding='utf-8')
+# Single source of pacakge version from VERSION file
+version_text = (here/'bravo_api'/'VERSION').read_text(encoding='utf-8').strip()
 
 setuptools.setup(
     name='bravo-api',
-    version='2.5.0',
+    version=version_text,
     description='Browse all variants online data API',
 
     # Read from README.md
@@ -45,6 +47,8 @@ setuptools.setup(
     package_dir={'': '.'},
     packages=setuptools.find_packages(),
 
+    # Keep package data via MANIFEST.in
+    include_package_data=True,
 
     # Python versions you support. Pip enforces this.
     python_requires='>=3.8, <4',

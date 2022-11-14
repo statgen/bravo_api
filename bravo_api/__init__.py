@@ -1,5 +1,6 @@
 from flask import Flask
 from os import getenv
+import importlib.resources as pkg_resources
 from bravo_api.models.sequences import init_sequences
 from bravo_api.models.database import mongo
 from bravo_api.models.coverage import init_coverage
@@ -15,6 +16,8 @@ def create_app(test_config=None):
     app = Flask(__name__,
                 instance_relative_config=True,
                 instance_path=instance_path)
+
+    app.version = pkg_resources.read_text(__package__, 'VERSION').strip()
 
     if test_config is None:
         app.config.from_object('bravo_api.default_config')
@@ -41,7 +44,7 @@ def create_app(test_config=None):
     gene_routes.bp.before_request(auth_routes.agreement_required)
 
     # Initialize routes. Prefix "ui" indicates routes to support the Vue user interface.
-    app.register_blueprint(health.bp)
+    app.register_blueprint(health.bp, url_prefix='/')
     app.register_blueprint(autocomplete.bp, url_prefix='/ui')
     app.register_blueprint(variant_routes.bp, url_prefix='/ui')
     app.register_blueprint(region_routes.bp, url_prefix='/ui')
