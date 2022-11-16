@@ -46,9 +46,7 @@ setuptools.setup(
 
     package_dir={'': '.'},
     packages=setuptools.find_packages(),
-
-    # Keep package data via MANIFEST.in
-    include_package_data=True,
+    package_data={"bravo_api": ["VERSION"]},
 
     # Python versions you support. Pip enforces this.
     python_requires='>=3.8, <4',
