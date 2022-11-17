@@ -45,7 +45,7 @@ def create_app(test_config=None):
 
     # Initialize routes. Prefix "ui" are routes for the Vue user interface.
     app.register_blueprint(health.bp, url_prefix='/')
-    app.register_blueprint(health.bp, url_prefix='/ui')
+    app.register_blueprint(health.bp, name="healthui", url_prefix='/ui')
     app.register_blueprint(autocomplete.bp, url_prefix='/ui')
     app.register_blueprint(variant_routes.bp, url_prefix='/ui')
     app.register_blueprint(region_routes.bp, url_prefix='/ui')
