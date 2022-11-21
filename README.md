@@ -9,11 +9,84 @@ python -m pip install git+https://github.com/statgen/bravo_api.git@main
 ```
 See [Development](#Development) section for developer installation.
 
+## Running
+
+```sh
+#!/bin/sh
+
+# Example run script for local development
+
+# Activate venv if present.
+[ -d 'venv' ] && source 'venv/bin/activate'
+
+export FLASK_ENV=development
+export FLASK_APP=bravo_api
+
+# Confige file is relative to the instance directory.
+export BRAVO_API_INSTANCE_DIR='/var/local/bravo/instance'
+export BRAVO_API_CONFIG_FILE='config.py'
+
+flask run --port 9090
+```
+Or use gunicorn in production instead of `flask run`
+```sh
+gunicorn -b 127.0.0.1:9090 -w 5 -k gevent "bravo_api:create_app()"
+```
+
 ## Dependencies
 
-### Data
+### Runtime Data
+The runtime data on disk needs to be present before running.
 
-### Document Store (Mongo)
+```
+/var/local/bravo/data
+└── runtime
+    ├── cache
+    ├── coverage
+    ├── crams
+    └── reference
+```
+
+The paths to the runtime data needs to be specified in the config.py
+```py
+BASE_DIR = os.path.join(os.sep, 'var', 'local', 'bravo', 'data', 'runtime')
+
+COVERAGE_DIR = os.path.join(BASE_DIR, 'coverage')
+SEQUENCES_DIR = os.path.join(BASE_DIR, 'crams')
+SEQUENCES_CACHE_DIR = os.path.join(BASE_DIR, 'cache')
+REFERENCE_SEQUENCE = os.path.join(BASE_DIR, 'reference', 'chr11_hs38DH.fa')
+```
+
+### MongoDB
+MongoDB needs to be pupulated with the basis data prior to running the api.
+
+```
+/var/local/bravo/data/basis/
+├── qc_metrics
+│   └── metrics.json.gz
+├── reference
+│   ├── canonical_transcripts.tsv.gz
+│   ├── gencode.v38.annotation.gtf.gz
+│   ├── hgcn_genenames.tsv.gz
+│   └── omim_ensembl_refs.tsv.gz
+└── vcfs
+    ├── chr11.bravo.vcf.gz
+    └── chr11.bravo.vcf.gz.tbi
+```
+
+The package provides commands to load the basis data.
+```sh
+venv/bin/flask load-genes \
+  data/basis/reference/canonical_transcripts.tsv.gz \
+  data/basis/reference/omim_ensembl_refs.tsv.gz \
+  data/basis/reference/hgcn_genenames.tsv.gz \
+  data/basis/reference/gencode.v38.annotation.gtf.gz
+
+venv/bin/flask load-snv 2 data/basis/vcfs/*.vcf.gz
+
+venv/bin/flask load-qc-metrics
+	data/basis/qc_metrics/metrics.json.gz
+```
 
 ## Development
 Checkout and install as editable package with development and testing extras.
