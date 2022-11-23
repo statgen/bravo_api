@@ -85,9 +85,14 @@ snv_consequence2code = { name: i for i, name in enumerate(reversed([
    'intergenic_variant'
 ]), 1)}
 
-snv_lof2code = { name: i for i, name in enumerate(reversed(['HC', 'LC']), 1)}
+snv_lof2code = {name: i for i, name in enumerate(reversed(['HC', 'LC']), 1)}
 
-hist_bins = [2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5, 62.5, 67.5, 72.5, 77.5, 82.5, 87.5, 92.5, 97.5] # we require the same bins for all histograms. Rationale: if all bins are the same, then we don't need to store their boundaries for each variant and we save several hundreds GB of storage + reduce document size (which may allow to keep in RAM more documents).
+# we require the same bins for all histograms. Rationale: if all bins are the same, then we don't
+# need to store their boundaries for each variant and we save several hundreds GB of storage +
+# reduce document size (which may allow to keep in RAM more documents).
+hist_bins = [2.5, 7.5, 12.5, 17.5, 22.5, 27.5, 32.5, 37.5, 42.5, 47.5, 52.5, 57.5, 62.5, 67.5,
+             72.5, 77.5, 82.5, 87.5, 92.5, 97.5]
+
 
 def annotation_from_effects(allele_effects):
     region = {}
