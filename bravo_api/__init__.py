@@ -11,6 +11,10 @@ from flask_cors import CORS
 import secrets
 
 
+def version():
+    return(pkg_resources.read_text(__package__, 'VERSION').strip())
+
+
 def create_app(test_config=None):
     instance_path = getenv('BRAVO_API_INSTANCE_DIR', None)
     app = Flask(__name__,

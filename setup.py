@@ -76,5 +76,5 @@ setuptools.setup(
     project_urls={
         'Bug Reports': 'https://github.com/statgen/bravo_api/issues',
         'Source': 'https://github.com/statgen/bravo_api',
-    },
+    }
 )
