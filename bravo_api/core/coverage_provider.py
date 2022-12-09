@@ -3,33 +3,47 @@ Coverage bins are:
     Continugous positions with difference in mean and median read depth less than the bin value
     are consolidate together.
 """
-from abc import ABC, abstractmethod, abstractproperty
+from abc import ABC, abstractmethod
+from pathlib import Path
+
+
+class CoverageSourceInaccessibleError(Exception):
+    """
+    Exception class indicating the source of a CoverageProvider could not be read
+    """
+    pass
 
 
 class CoverageProvider(ABC):
     """
-    Provide coverage data
+    Provide coverage data per binned resolution and chromosome
     """
 
+    # Bins from coursest resolution to finest
+    _bins = ['bin_0.25', 'bin_0.50', 'bin_0.75', 'bin_1.00', 'full']
+    _chroms = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12',
+               '13', '14', '15', '16', '17', '18', '19', '20', '21', '22', 'X']
+
     def __init__(self, src):
-        self.source = src
-        self.catalog = self.discover_files(src)
+        self.source = Path(src)
+        self.validate_source()
+        self.catalog = self.discover_files()
 
-    @abstractproperty
+    @property
     def bins(self):
+        return(self._bins)
+
+    @abstractmethod
+    def validate_source(self):
+        """
+        Coverage source must be reachable and readable.
+        """
         pass
 
     @abstractmethod
-    def validate(self):
+    def evaluate_catalog(self):
         """
-        At least one coverage file must be reachable.
-        """
-        pass
-
-    @abstractmethod
-    def evaluate_source(self):
-        """
-        Compile list of issues with source.
+        Compile list of warnings about issues with catalog.
         """
         pass
 
@@ -46,23 +60,3 @@ class CoverageProvider(ABC):
         Lookup coverage for range at given resolution
         """
         pass
-
-
-class FSCoverageProvider(CoverageProvider):
-    GLOB_SUFFIX = '*.tsv.gz'
-    # Bins from coursest resolution to finest
-    BINS = ['bin_0.25', 'bin_0.50', 'bin_0.75', 'bin_1.00', 'full']
-    # Query lengths corresponding to resolution temp put here.
-    QSIZE = [10_000, 3000, 1000, 300, 0]
-
-    def validate(self):
-        return(True)
-
-    def evaluate_source(self):
-        return([])
-
-    def discover_files(self, src):
-        return({})
-
-    def coverage(self, chr, start, stop, bin):
-        return([])
