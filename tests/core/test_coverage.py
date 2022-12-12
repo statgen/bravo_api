@@ -3,9 +3,18 @@ from bravo_api.core.coverage_provider import CoverageProvider, CoverageSourceIna
 from bravo_api.core.fs_coverage_provider import FSCoverageProvider
 
 
+# Make native python class that can be mocked to replace C TabixFile
+class FakeTabix():
+    def __init__(*args):
+        pass
+
+    def fetch(self, *args):
+        pass
+
+
 def test_smokes(sham_cov_dir):
     cp = FSCoverageProvider(sham_cov_dir)
-    assert isinstance(cp, CoverageProvider)
+    assert(isinstance(cp, CoverageProvider))
 
 
 def test_catalog_discovery(sham_cov_dir, expected_bins, expected_chroms):
@@ -90,3 +99,53 @@ def test_evaluate_chrom_readability_unreadable(tmp_path_factory, expected_bins, 
     warnings = cp.evaluate_chrom_readability()
 
     assert(len(warnings) == number_unreadable)
+
+
+def test_good_coverage_file_lookup(sham_cov_dir, expected_bins, expected_chroms):
+    cp = FSCoverageProvider(sham_cov_dir)
+    for cbin in expected_bins:
+        for chrom in expected_chroms:
+            assert(cp.lookup_coverage_path(cbin, chrom) is not None)
+
+
+def test_bad_coverage_file_lookup(sham_cov_dir, expected_bins, expected_chroms):
+    cp = FSCoverageProvider(sham_cov_dir)
+    for bad_bin in ['bin_foo', 'bin_bar']:
+        for chrom in expected_chroms:
+            assert(cp.lookup_coverage_path(bad_bin, chrom) is None)
+
+    for cbin in expected_bins:
+        for bad_chrom in ['foo', 'bar', 'baz', 'duq']:
+            assert(cp.lookup_coverage_path(cbin, bad_chrom) is None)
+
+
+def test_nonexistant_coverage(sham_cov_dir, expected_bins):
+    cp = FSCoverageProvider(sham_cov_dir)
+
+    bad_bin_result = cp.coverage('bad_bin', '11', 100, 2000)
+    bad_chr_result = cp.coverage(expected_bins[0], 'bad_chrom', 100, 2000)
+
+    assert(isinstance(bad_bin_result, list))
+    assert(len(bad_bin_result) == 0)
+    assert(isinstance(bad_chr_result, list))
+    assert(len(bad_chr_result) == 0)
+
+
+def test_coverage(mocker, sham_cov_dir, expected_bins, expected_chroms):
+    # Patch underlying call to TabixFile.fetch
+    sham_coverage = [('11', 1, 10, '{"mean": 10}'),
+                     ('11', 11, 20, '{"mean": 9.9}'),
+                     ('11', 21, 100, '{"mean": 20.1}')]
+
+    mocker.patch('bravo_api.core.fs_coverage_provider.pysam.TabixFile', FakeTabix)
+    mocker.patch('bravo_api.core.fs_coverage_provider.pysam.TabixFile.fetch',
+                 return_value=sham_coverage)
+
+    cp = FSCoverageProvider(sham_cov_dir)
+
+    result = cp.coverage(expected_bins[0], expected_chroms[0], 1, 100)
+    assert(isinstance(result, list))
+    assert(len(result) == len(sham_coverage))
+
+    for item in result:
+        assert(isinstance(item, dict))

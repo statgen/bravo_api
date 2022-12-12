@@ -3,8 +3,9 @@ Coverage bins are:
     Continugous positions with difference in mean and median read depth less than the bin value
     are consolidate together.
 """
-
 from bravo_api.core.coverage_provider import CoverageProvider, CoverageSourceInaccessibleError
+import rapidjson
+import pysam
 import os
 
 
@@ -72,5 +73,28 @@ class FSCoverageProvider(CoverageProvider):
             result[bin_name] = bin_by_chr
         return(result)
 
-    def coverage(self, chr, start, stop, bin):
-        return([])
+    def lookup_coverage_path(self, cov_bin, chrom):
+        """
+        Return path to a coverage file or None
+        """
+        return(self.catalog.get(cov_bin, {}).get(chrom))
+
+    def coverage(self, cov_bin, chrom, start, stop):
+        """
+        Provide list of dicts of from the json data of appropriate coverate file
+        """
+        result = []
+
+        # Get path from catalog
+        cov_path = self.lookup_coverage_path(cov_bin, chrom)
+
+        # Handle no path by returning no data.
+        if(not cov_path):
+            return(result)
+
+        tabixfile = pysam.TabixFile(cov_path)
+
+        for row in tabixfile.fetch(chrom, max(1, start - 1), stop, parser=pysam.asTuple()):
+            result.append(rapidjson.loads(row[3]))
+
+        return(result)
