@@ -101,6 +101,20 @@ def test_evaluate_chrom_readability_unreadable(tmp_path_factory, expected_bins, 
     assert(len(warnings) == number_unreadable)
 
 
+def test_evaluate_catalog_consolidates_warnings(mocker, sham_cov_dir):
+    # Patch underlying evaluations
+    repesentation_warns = ['foo', 'bar']
+    readability_warns = ['baz', 'duq']
+
+    module_name = 'bravo_api.core.fs_coverage_provider.FSCoverageProvider'
+    mocker.patch(f'{module_name}.evaluate_chrom_representation', return_value=repesentation_warns)
+    mocker.patch(f'{module_name}.evaluate_chrom_readability', return_value=readability_warns)
+
+    # Verify top level evaluation returns aggregate of underlying eval results
+    cp = FSCoverageProvider(sham_cov_dir)
+    assert(set(cp.evaluate_catalog()) == set().union(repesentation_warns, readability_warns))
+
+
 def test_good_coverage_file_lookup(sham_cov_dir, expected_bins, expected_chroms):
     cp = FSCoverageProvider(sham_cov_dir)
     for cbin in expected_bins:
@@ -149,3 +163,17 @@ def test_coverage(mocker, sham_cov_dir, expected_bins, expected_chroms):
 
     for item in result:
         assert(isinstance(item, dict))
+
+
+def test_coverage_trailing_slash(sham_cov_dir):
+    sham_dir_trailing_slash = sham_cov_dir.as_posix() + '/'
+    sham_dir_without_trailing_slash = sham_cov_dir.as_posix()
+
+    cp_no_slash = FSCoverageProvider(sham_dir_without_trailing_slash)
+    cp_from_slash = FSCoverageProvider(sham_dir_trailing_slash)
+
+    warnings_no_slash = cp_no_slash.evaluate_catalog()
+    warnings_from_slash = cp_from_slash.evaluate_catalog()
+
+    assert(len(warnings_no_slash) == 0)
+    assert(len(warnings_from_slash) == 0)
