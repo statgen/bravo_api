@@ -3,8 +3,8 @@ Two main responsibilities are:
     - Converting user facing args to underlying model calls.
     - Aggregate results to data structure expected by web serving layer.
 """
-from bravo_api.models import variants, coverage, qc_metrics, sequences
-
+from bravo_api.models import variants, qc_metrics, sequences
+from flask import current_app
 
 FILTER_TYPE_MAPPING = {
     '=':  '$eq',
@@ -125,16 +125,29 @@ def get_genes_in_region(chrom, start, stop, full=1):
     return(result)
 
 
-def get_coverage(chrom, start, stop, limit, continue_from=None):
-    cov = coverage.get_coverage(chrom, start, stop, limit, continue_from)
+def chunked_coverage(chrom, start, stop, continue_from=0):
+    """
+    Chunked coverage. Heuristically break up request into chunks.
+    """
+    # TODO: determine bin and chunk size based on request length.
+    act_bin = 'bin_0.50'
+    act_chunk = 15_000
 
-    if cov['stop_reached']:
-        continue_from = None
+    act_start = max(start, continue_from)
+    act_stop = min(stop, act_start + act_chunk)
+
+    cov_data = current_app.coverage_provider.coverage(act_bin, chrom, act_start, act_stop)
+
+    # Next request should continue beyond the last position in the returned data or act_stop
+    if cov_data:
+        last_data = cov_data[-1]
+        last_data_pos = last_data.get('stop', 0)
     else:
-        continue_from = cov["last"]
+        last_data_pos = 0
 
-    result = {'data': cov['data'], 'total': cov['total'], 'limit': limit,
-              'next': continue_from, 'error': None}
+    next_pos = max(last_data_pos, act_stop) + 1
+
+    result = {'coverage': cov_data, 'continue_from': next_pos}
     return result
 
 
