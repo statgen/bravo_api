@@ -3,7 +3,6 @@ from os import getenv
 import importlib.resources as pkg_resources
 from bravo_api.models.sequences import init_sequences
 from bravo_api.models.database import mongo
-from bravo_api.models.coverage import init_coverage
 from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
 from bravo_api.blueprints.health import health
 from bravo_api.blueprints.bailiff import auth_routes
@@ -34,7 +33,6 @@ def create_app(test_config=None):
     mongo.init_app(app)
 
     # Determine which CoverageProvider to use
-    init_coverage(app.config['COVERAGE_DIR'])
     app.coverage_provider = FSCoverageProvider(app.config['COVERAGE_DIR'])
 
     # TODO: Issue #20. Log warnings from coverage provider.
