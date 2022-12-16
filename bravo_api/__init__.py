@@ -32,7 +32,8 @@ def create_app(test_config=None):
     # Initialize persistence layer depenencies
     mongo.init_app(app)
 
-    # Determine which CoverageProvider to use
+    # TODO: Determine which CoverageProvider to use (FS or S3)
+    # In interrim use file system coverage provider
     app.coverage_provider = FSCoverageProvider(app.config['COVERAGE_DIR'])
 
     # TODO: Issue #20. Log warnings from coverage provider.

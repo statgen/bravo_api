@@ -125,16 +125,38 @@ def get_genes_in_region(chrom, start, stop, full=1):
     return(result)
 
 
+def determine_coverage_bin(query_length):
+    # Coverage query sizes in bp and associated bin threshold. From coarsest to finest.
+    if query_length > 10_000:
+        bin_name = 'bin_1.00'
+    elif query_length > 3000:
+        bin_name = 'bin_0.75'
+    elif query_length > 1000:
+        bin_name = 'bin_0.50'
+    elif query_length > 300:
+        bin_name = 'bin_0.25'
+    else:
+        bin_name = 'full'
+
+    return(bin_name)
+
+
 def chunked_coverage(chrom, start, stop, continue_from=0):
     """
     Chunked coverage. Heuristically break up request into chunks.
     """
-    # TODO: determine bin and chunk size based on request length.
-    act_bin = 'bin_0.50'
-    act_chunk = 15_000
+    # Determine coverage bin based on request length.
+    act_length = stop - start
+    act_bin = determine_coverage_bin(act_length)
+
+    # Determine chunk_size bin based on request length.
+    if act_length < 250_000:
+        act_chunk_size = act_length
+    else:
+        act_chunk_size = 250_000
 
     act_start = max(start, continue_from)
-    act_stop = min(stop, act_start + act_chunk)
+    act_stop = min(stop, act_start + act_chunk_size)
 
     cov_data = current_app.coverage_provider.coverage(act_bin, chrom, act_start, act_stop)
 
