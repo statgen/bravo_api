@@ -31,6 +31,14 @@ def validate_region_args(parsed_args):
     return True
 
 
+def validate_coverage_args(parsed_args):
+    if parsed_args['start'] >= parsed_args['stop']:
+        raise ValidationError(common.ERR_START_STOP_MSG)
+    if parsed_args['continue_from'] >= parsed_args['stop']:
+        raise ValidationError(common.ERR_CONTINUE_STOP_MSG)
+    return True
+
+
 @bp.route('/genes/<string:chrom>-<int:start>-<int:stop>')
 @parser.use_kwargs(region_argmap, location='view_args', validate=validate_region_args)
 def genes(chrom, start, stop):
@@ -58,6 +66,28 @@ def coverage(chrom, start, stop, size, next, continue_from):
         size = current_app.config['BRAVO_API_PAGE_LIMIT']
 
     result = pretty_api.get_coverage(chrom, start, stop, size, continue_from)
+    response = make_response(jsonify(result), 200)
+    response.mimetype = 'application/json'
+    return response
+
+
+chunked_coverage_json_argmap = {
+    'chrom': fields.Str(required=True, validate=validate.Length(min=1),
+                        error_messages=common.ERR_EMPTY_MSG),
+    'start': fields.Int(required=True, validate=validate.Range(min=1),
+                        error_messages=common.ERR_GT_ZERO_MSG),
+    'stop': fields.Int(required=True, validate=validate.Range(min=1),
+                       error_messages=common.ERR_GT_ZERO_MSG),
+    'continue_from': fields.Int(required=False, validate=validate.Range(min=0),
+                                error_messages=common.ERR_GT_ZERO_MSG, missing=0),
+}
+
+
+@bp.route('/chunked-coverage', methods=['POST'])
+@parser.use_kwargs(chunked_coverage_json_argmap, location='json', validate=validate_coverage_args)
+def chunked_coverage(chrom, start, stop, continue_from):
+    current_app.logger.info('DEBUGGING')
+    result = pretty_api.chunked_coverage(chrom, start, stop, continue_from)
     response = make_response(jsonify(result), 200)
     response.mimetype = 'application/json'
     return response

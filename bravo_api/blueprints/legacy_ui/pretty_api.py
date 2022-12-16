@@ -3,8 +3,8 @@ Two main responsibilities are:
     - Converting user facing args to underlying model calls.
     - Aggregate results to data structure expected by web serving layer.
 """
-from bravo_api.models import variants, coverage, qc_metrics, sequences
-
+from bravo_api.models import variants, qc_metrics, sequences
+from flask import current_app
 
 FILTER_TYPE_MAPPING = {
     '=':  '$eq',
@@ -125,16 +125,51 @@ def get_genes_in_region(chrom, start, stop, full=1):
     return(result)
 
 
-def get_coverage(chrom, start, stop, limit, continue_from=None):
-    cov = coverage.get_coverage(chrom, start, stop, limit, continue_from)
-
-    if cov['stop_reached']:
-        continue_from = None
+def determine_coverage_bin(query_length):
+    # Coverage query sizes in bp and associated bin threshold. From coarsest to finest.
+    if query_length > 10_000:
+        bin_name = 'bin_1.00'
+    elif query_length > 3000:
+        bin_name = 'bin_0.75'
+    elif query_length > 1000:
+        bin_name = 'bin_0.50'
+    elif query_length > 300:
+        bin_name = 'bin_0.25'
     else:
-        continue_from = cov["last"]
+        bin_name = 'full'
 
-    result = {'data': cov['data'], 'total': cov['total'], 'limit': limit,
-              'next': continue_from, 'error': None}
+    return(bin_name)
+
+
+def chunked_coverage(chrom, start, stop, continue_from=0):
+    """
+    Chunked coverage. Heuristically break up request into chunks.
+    """
+    # Determine coverage bin based on request length.
+    act_length = stop - start
+    act_bin = determine_coverage_bin(act_length)
+
+    # Determine chunk_size bin based on request length.
+    if act_length < 250_000:
+        act_chunk_size = act_length
+    else:
+        act_chunk_size = 250_000
+
+    act_start = max(start, continue_from)
+    act_stop = min(stop, act_start + act_chunk_size)
+
+    cov_data = current_app.coverage_provider.coverage(act_bin, chrom, act_start, act_stop)
+
+    # Next request should continue beyond the last position in the returned data or act_stop
+    if cov_data:
+        last_data = cov_data[-1]
+        last_data_pos = last_data.get('stop', 0)
+    else:
+        last_data_pos = 0
+
+    next_pos = max(last_data_pos, act_stop) + 1
+
+    result = {'coverage': cov_data, 'continue_from': next_pos}
     return result
 
 

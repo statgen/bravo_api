@@ -88,6 +88,15 @@ venv/bin/flask load-qc-metrics
 	data/basis/qc_metrics/metrics.json.gz
 ```
 
+### Pysam S3 Support
+The pysam wheel provided from pypi does not include S3 support.
+Pysam needs to be build with the "--enable-s3" option.
+
+```sh
+HTSLIB_CONFIGURE_OPTIONS="--enable-s3"
+pip install pysam --force-reinstall --no-binary :all:
+```
+
 ## Development
 Checkout and install as editable package with development and testing extras.
 ```
