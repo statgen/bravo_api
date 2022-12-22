@@ -86,7 +86,6 @@ chunked_coverage_json_argmap = {
 @bp.route('/chunked-coverage', methods=['POST'])
 @parser.use_kwargs(chunked_coverage_json_argmap, location='json', validate=validate_coverage_args)
 def chunked_coverage(chrom, start, stop, continue_from):
-    current_app.logger.info('DEBUGGING')
     result = pretty_api.chunked_coverage(chrom, start, stop, continue_from)
     response = make_response(jsonify(result), 200)
     response.mimetype = 'application/json'
