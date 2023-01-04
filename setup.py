@@ -52,10 +52,10 @@ setuptools.setup(
     python_requires='>=3.8, <4',
 
     install_requires=[
-        'pymongo>=3.11.2', 'click>=7.1.2', 'Flask>=1.1.2', 'flask_compress>=1.9.0',
+        'pymongo>=3.11.2', 'click>=7.1.2', 'Flask>=1.1.2',
         'flask_cors>=3.0.10', 'flask_pymongo>=2.3.0', 'intervaltree>=3.1.0', 'marshmallow>=3.10.0',
         'pysam>=0.16.0.1', 'python-rapidjson>=1.0', 'rapidjson>=1.0.0', 'webargs>=7.0.1',
-        'authlib==1.0.0rc1', 'flask-login>=0.5.0', 'requests>=2.25.1'
+        'authlib>=1.0.0', 'flask-login>=0.5.0', 'requests>=2.25.1'
     ],
 
     extras_require={
