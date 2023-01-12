@@ -61,7 +61,7 @@ setuptools.setup(
     extras_require={
         'dev': ['check-manifest', 'icecream'],
         'test': ['mongomock>=3.22.1', 'pytest>=6.2.2', 'pytest-mock==3.5.1',
-                 'pytest-mongodb>=2.2.0', 'testfixtures>=6.17.1'],
+                 'pytest-mongodb>=2.2.0', 'testfixtures>=6.17.1', 'moto>=4.0.0'],
     },
 
     entry_points={

@@ -4,14 +4,18 @@ Coverage bins are:
     are consolidate together.
 """
 from bravo_api.core.coverage_provider import CoverageProvider, CoverageSourceInaccessibleError
+from pathlib import Path
 import rapidjson
 import pysam
 import os
 
 
 class FSCoverageProvider(CoverageProvider):
-    # Query lengths corresponding to resolution. Temporarily here for reference.
-    # QSIZE = [10_000, 3000, 1000, 300, 0]
+
+    def __init__(self, src):
+        self.source = Path(src)
+        self.validate_source()
+        self.catalog = self.discover_files()
 
     def validate_source(self):
         extant = self.source.exists()

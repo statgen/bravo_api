@@ -4,7 +4,6 @@ Coverage bins are:
     are consolidate together.
 """
 from abc import ABC, abstractmethod
-from pathlib import Path
 
 
 class CoverageSourceInaccessibleError(Exception):
