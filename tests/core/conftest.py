@@ -37,6 +37,10 @@ from moto import mock_s3
 def expected_bins():
     return(['bin_0.25', 'bin_0.50', 'bin_0.75', 'bin_1.00', 'full'])
 
+@pytest.fixture(scope="session")
+def incomplete_bins(expected_bins):
+    return(expected_bins[1:])
+
 
 @pytest.fixture(scope="session")
 def expected_chroms():
@@ -75,18 +79,46 @@ def s3(aws_credentials):
 
 
 @pytest.fixture(scope="session")
-def sham_cov_bucket(s3, expected_bins, expected_chroms):
+def sham_cov_url(s3, expected_bins, expected_chroms):
+    """
+    Create sham bucket with all bins and chroms stubbed out.
+    Return url to of coverage prefix containing bins.
+    """
     bucket_name = 'test-'.join([random.choice(string.ascii_lowercase) for i in range(8)])
+    prefix = 'coverage'
     s3.create_bucket(Bucket=bucket_name,
                      CreateBucketConfiguration={'LocationConstraint': 'atlantis'})
 
     for cbin in expected_bins:
         for chrom in expected_chroms:
             s3.put_object(Bucket=bucket_name,
-                          Key=f'coverage/{cbin}/chr{chrom}.{cbin}.tsv.gz',
+                          Key=f'{prefix}/{cbin}/chr{chrom}.{cbin}.tsv.gz',
                           Body='sham coverage content')
             s3.put_object(Bucket=bucket_name,
-                          Key=f'coverage/{cbin}/chr{chrom}.{cbin}.tsv.gz.tbi',
+                          Key=f'{prefix}/{cbin}/chr{chrom}.{cbin}.tsv.gz.tbi',
                           Body='sham index content')
 
-    return(bucket_name)
+    return(f's3://{bucket_name}/{prefix}')
+
+
+@pytest.fixture(scope="session")
+def sham_incomplete_cov_url(s3, incomplete_bins, expected_chroms):
+    """
+    Create sham bucket missing an entire bin of chroms stubs.
+    Return url to of coverage prefix containing bins.
+    """
+    bucket_name = 'test-'.join([random.choice(string.ascii_lowercase) for i in range(8)])
+    prefix = 'coverage'
+    s3.create_bucket(Bucket=bucket_name,
+                     CreateBucketConfiguration={'LocationConstraint': 'atlantis'})
+
+    for cbin in incomplete_bins:
+        for chrom in expected_chroms:
+            s3.put_object(Bucket=bucket_name,
+                          Key=f'{prefix}/{cbin}/chr{chrom}.{cbin}.tsv.gz',
+                          Body='sham coverage content')
+            s3.put_object(Bucket=bucket_name,
+                          Key=f'{prefix}/{cbin}/chr{chrom}.{cbin}.tsv.gz.tbi',
+                          Body='sham index content')
+
+    return(f's3://{bucket_name}/{prefix}')
