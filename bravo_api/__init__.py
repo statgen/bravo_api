@@ -6,7 +6,7 @@ from bravo_api.models.database import mongo
 from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
 from bravo_api.blueprints.health import health
 from bravo_api.blueprints.bailiff import auth_routes
-from bravo_api.core.fs_coverage_provider import FSCoverageProvider
+from bravo_api.core import CoverageProviderFactory
 from flask_cors import CORS
 import secrets
 
@@ -32,9 +32,7 @@ def create_app(test_config=None):
     # Initialize persistence layer depenencies
     mongo.init_app(app)
 
-    # TODO: Determine which CoverageProvider to use (FS or S3)
-    # In interrim use file system coverage provider
-    app.coverage_provider = FSCoverageProvider(app.config['COVERAGE_DIR'])
+    app.coverage_provider = CoverageProviderFactory.build(app.config['COVERAGE_DIR'])
 
     # TODO: Issue #20. Log warnings from coverage provider.
     # coverage_warnings = app.coverage_provicer.evaluate_coverage()
