@@ -166,8 +166,8 @@ def test_coverage(mocker, sham_cov_dir, expected_bins, expected_chroms):
 
 
 def test_coverage_trailing_slash(sham_cov_dir):
-    sham_dir_trailing_slash = sham_cov_dir.as_posix() + '/'
-    sham_dir_without_trailing_slash = sham_cov_dir.as_posix()
+    sham_dir_trailing_slash = sham_cov_dir + '/'
+    sham_dir_without_trailing_slash = sham_cov_dir
 
     cp_no_slash = FSCoverageProvider(sham_dir_without_trailing_slash)
     cp_from_slash = FSCoverageProvider(sham_dir_trailing_slash)

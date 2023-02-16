@@ -12,7 +12,7 @@ import os
 
 class FSCoverageProvider(CoverageProvider):
 
-    def __init__(self, src):
+    def __init__(self, src: str):
         self.source = Path(src)
         self.validate_source()
         self.catalog = self.discover_files()

@@ -58,7 +58,7 @@ def sham_cov_dir(tmp_path_factory, expected_bins, expected_chroms):
             cov_dir.joinpath(cbin, f'chr{chrom}.{cbin}.tsv.gz').touch()
             cov_dir.joinpath(cbin, f'chr{chrom}.{cbin}.tsv.gz.tbi').touch()
 
-    return(cov_dir)
+    return(str(cov_dir))
 
 
 @pytest.fixture(scope="session")
