@@ -19,6 +19,9 @@ def test_smokes(sham_cov_dir):
 
 def test_catalog_discovery(sham_cov_dir, expected_bins, expected_chroms):
     cp = FSCoverageProvider(sham_cov_dir)
+    all_paths = [pth
+                 for cov_bin in cp.catalog.values()
+                 for pth in cov_bin.values()]
 
     # All bins are represented
     assert(set(cp.catalog.keys()) == set(expected_bins))
@@ -26,6 +29,10 @@ def test_catalog_discovery(sham_cov_dir, expected_bins, expected_chroms):
     # All chroms are represented in each bin
     for catalog_bin in cp.catalog.values():
         assert(set(catalog_bin.keys()) == set(expected_chroms))
+
+    # Catalog is not using the index .tbi or .csi files.
+    for path in all_paths:
+        assert(path.suffix == '.gz')
 
 
 def test_missing_source_error():

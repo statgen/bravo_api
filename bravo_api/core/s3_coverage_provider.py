@@ -113,12 +113,13 @@ class S3CoverageProvider(CoverageProvider):
 
         obj_resp = self.client.list_objects_v2(Bucket=bucket, Prefix=prefix)
         all_keys = [item['Key'] for item in obj_resp['Contents']]
+        tsv_gz_keys = [obj_key for obj_key in all_keys if obj_key.endswith('.tsv.gz')]
 
         chr_patt = re.compile(r'.*chr([0-9X]{1,2})')
         result = {}
         for bin_name in self._bins:
             result[bin_name] = {}
-            bin_keys = [item for item in all_keys if item.startswith(f'{prefix}/{bin_name}')]
+            bin_keys = [item for item in tsv_gz_keys if item.startswith(f'{prefix}/{bin_name}')]
 
             for key in bin_keys:
                 chr = chr_patt.match(key).group(1)
@@ -133,7 +134,7 @@ class S3CoverageProvider(CoverageProvider):
 
     def coverage(self, cov_bin, chrom, start, stop):
         """
-        Provide list of dicts of from the json data of appropriate coverate file
+        Provide list of dicts of from the json data of appropriate coverage file
         """
         result = []
 
@@ -144,7 +145,8 @@ class S3CoverageProvider(CoverageProvider):
         if(not cov_path):
             return(result)
 
-        tabixfile = pysam.TabixFile(cov_path)
+        s3_cov_path = f's3://{self.bucket}/{cov_path}'
+        tabixfile = pysam.TabixFile(s3_cov_path)
 
         for row in tabixfile.fetch(chrom, max(1, start - 1), stop, parser=pysam.asTuple()):
             result.append(rapidjson.loads(row[3]))

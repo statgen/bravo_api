@@ -35,6 +35,9 @@ def test_missing_source_error(mocker):
 
 def test_catalog_discovery_full(s3, sham_cov_url, expected_bins, expected_chroms):
     cp = S3CoverageProvider(sham_cov_url)
+    all_paths = [pth
+                 for cov_bin in cp.catalog.values()
+                 for pth in cov_bin.values()]
 
     # All bins are represented
     assert(set(cp.catalog.keys()) == set(expected_bins))
@@ -42,6 +45,10 @@ def test_catalog_discovery_full(s3, sham_cov_url, expected_bins, expected_chroms
     # All chroms are represented in each bin
     for catalog_bin in cp.catalog.values():
         assert(set(catalog_bin.keys()) == set(expected_chroms))
+
+    # All paths are to .tsv.gz files.
+    for path in all_paths:
+        assert(path.endswith('.tsv.gz'))
 
 
 def test_catalog_readability(sham_cov_url):
