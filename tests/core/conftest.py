@@ -5,6 +5,7 @@ import os
 import boto3
 from moto import mock_s3
 
+
 # Mock coverage file structure
 # coverage/
 # ├── bin_0.25
@@ -36,6 +37,7 @@ from moto import mock_s3
 @pytest.fixture(scope="session")
 def expected_bins():
     return(['bin_0.25', 'bin_0.50', 'bin_0.75', 'bin_1.00', 'full'])
+
 
 @pytest.fixture(scope="session")
 def incomplete_bins(expected_bins):
@@ -122,3 +124,56 @@ def sham_incomplete_cov_url(s3, incomplete_bins, expected_chroms):
                           Body='sham index content')
 
     return(f's3://{bucket_name}/{prefix}')
+
+
+# Mock crams file structure
+# crams
+# ├── variant_map.tsv.gz
+# ├── variant_map.tsv.gz.tbi
+# ├── sequences
+# │   ├── 02
+# │   │   ├── HGDP01075.cram
+# │   │   └── HGDP01075.cram.crai
+# │   ├── 11
+# │   │   ├── HGDP00153.cram
+# │   │   └── HGDP00153.cram.crai
+
+@pytest.fixture(scope="session")
+def mock_variant_map(mocker):
+    mock_data = ["#RANDOM_SEED=8123", "#MAX_RANDOM_HOM_HETS=2", "#CHROM\tPOS\tREF\tALT\tHOM\tHET",
+                 "chr11\t5220052\tG\tC\tHGDP00158,HGDP00645\tHGDP00557,HGDP00741",
+                 "chr11\t5220161\tT\tA\t\tHGDP01077"]
+    the_mock = mocker.mock_open(read_data=mock_data)
+    return(the_mock)
+
+
+@pytest.fixture(scope="session")
+def sham_crams_dir(tmp_path_factory):
+    crams_dir = tmp_path_factory.mktemp('crams')
+
+    crams_dir.joinpath('variant_map.tsv.gz').touch()
+    crams_dir.joinpath('variant_map.tsv.gz.tbi').touch()
+
+    seq_dir = crams_dir.joinpath("sequences")
+    seq_dir.mkdir()
+
+    seq_dir.joinpath('02').mkdir()
+    seq_dir.joinpath('02', 'HGDP01075.cram').touch()
+    seq_dir.joinpath('02', 'HGDP01075.cram.crai').touch()
+
+    seq_dir.joinpath('11').mkdir()
+    seq_dir.joinpath('11', 'HGDP00153.cram').touch()
+    seq_dir.joinpath('11', 'HGDP00153.cram.crai').touch()
+
+    return(str(crams_dir))
+
+
+@pytest.fixture(scope="session")
+def sham_ref(tmp_path_factory):
+    ref_dir = tmp_path_factory.mktemp('reference')
+    ref_path = ref_dir.joinpath('hs38DH.fa')
+
+    ref_path.touch()
+    ref_dir.joinpath('hs38DH.fa.fai').touch()
+
+    return(str(ref_path))

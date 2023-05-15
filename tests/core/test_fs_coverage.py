@@ -4,15 +4,6 @@ from bravo_api.core.coverage_provider import CoverageProvider, CoverageSourceIna
 from bravo_api.core.fs_coverage_provider import FSCoverageProvider
 
 
-# Make native python class that can be mocked to replace C TabixFile
-class FakeTabix():
-    def __init__(*args):
-        pass
-
-    def fetch(self, *args):
-        pass
-
-
 def test_smokes(sham_cov_dir):
     cp = FSCoverageProvider(sham_cov_dir)
     assert(isinstance(cp, CoverageProvider))
