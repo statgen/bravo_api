@@ -1,15 +1,7 @@
 import pytest
+from pysam import TabixFile
 from bravo_api.core.coverage_provider import CoverageProvider, CoverageSourceInaccessibleError
 from bravo_api.core.fs_coverage_provider import FSCoverageProvider
-
-
-# Make native python class that can be mocked to replace C TabixFile
-class FakeTabix():
-    def __init__(*args):
-        pass
-
-    def fetch(self, *args):
-        pass
 
 
 def test_smokes(sham_cov_dir):
@@ -151,20 +143,16 @@ def test_nonexistant_coverage(sham_cov_dir, expected_bins):
     assert(isinstance(bad_chr_result, list))
     assert(len(bad_chr_result) == 0)
 
-
-def test_coverage(mocker, sham_cov_dir, expected_bins, expected_chroms):
-    # Patch underlying call to TabixFile.fetch
+def test_load_coverage(mocker, sham_cov_dir, expected_bins, expected_chroms):
+    # Mock TabixFile.fetch
     sham_coverage = [('11', 1, 10, '{"mean": 10}'),
                      ('11', 11, 20, '{"mean": 9.9}'),
                      ('11', 21, 100, '{"mean": 20.1}')]
 
-    mocker.patch('bravo_api.core.fs_coverage_provider.pysam.TabixFile', FakeTabix)
-    mocker.patch('bravo_api.core.fs_coverage_provider.pysam.TabixFile.fetch',
-                 return_value=sham_coverage)
+    attrs = {'fetch.return_value': sham_coverage}
+    tabix_mock = mocker.Mock(TabixFile, **attrs)
 
-    cp = FSCoverageProvider(sham_cov_dir)
-
-    result = cp.coverage(expected_bins[0], expected_chroms[0], 1, 100)
+    result = FSCoverageProvider.load_coverage_dicts(tabix_mock, '11', 1, 100)
     assert(isinstance(result, list))
     assert(len(result) == len(sham_coverage))
 

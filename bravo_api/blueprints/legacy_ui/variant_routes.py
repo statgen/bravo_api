@@ -78,7 +78,8 @@ def variant_cram(variant_id, sample_het, sample_no):
         abort(404)
 
     response = make_response(result['file_bytes'], 206)
-    response.headers['Content-Range'] = f'bytes {result["start_byte"]}-{result["stop_byte"]}/{result["file_size"]}'
+    response.headers['Content-Range'] = \
+        f'bytes {result["start_byte"]}-{result["stop_byte"]}/{result["file_size"]}'
     response.mimetype = 'application/octet-stream'
     response.direct_passthrough = True
 
@@ -91,5 +92,6 @@ def variant_crai(variant_id, sample_no, sample_het):
     result = pretty_api.get_variant_crai(variant_id, sample_no, sample_het)
     if result is None:
         abort(404)
-    response = make_response(send_file(result, as_attachment=False))
+    response = make_response(send_file(result, as_attachment=False,
+                                       mimetype='application/octet-stream'))
     return response

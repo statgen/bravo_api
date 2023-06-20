@@ -1,4 +1,5 @@
 from flask import Flask
+from flask_caching import Cache
 from os import getenv
 import importlib.resources as pkg_resources
 from bravo_api.models.sequences import init_sequences
@@ -7,6 +8,7 @@ from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_ro
 from bravo_api.blueprints.health import health
 from bravo_api.blueprints.bailiff import auth_routes
 from bravo_api.core import CoverageProviderFactory
+from bravo_api.core import FSCramSource
 from flask_cors import CORS
 import secrets
 
@@ -38,9 +40,15 @@ def create_app(test_config=None):
     # coverage_warnings = app.coverage_provicer.evaluate_coverage()
     # app.logger.info(f'{len(coverage_warnings)} coverage warnings.')
 
-    init_sequences(app.config['SEQUENCES_DIR'],
-                   app.config['REFERENCE_SEQUENCE'],
-                   app.config['SEQUENCES_CACHE_DIR'])
+    # Configure cache and file system cram source
+    cache_config = {"CACHE_TYPE": "FileSystemCache",
+                    "CACHE_THRESHOLD": 1000,
+                    "CACHE_DIR": app.config['SEQUENCES_CACHE_DIR']}
+    cache = Cache(config=cache_config)
+    cache.init_app(app)
+    app.cram_source = FSCramSource(app.config['SEQUENCES_DIR'],
+                                   app.config['REFERENCE_SEQUENCE'],
+                                   cache)
 
     # Initialize CORS and Sessions
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)

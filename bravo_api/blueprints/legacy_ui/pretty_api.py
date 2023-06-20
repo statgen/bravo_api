@@ -3,7 +3,7 @@ Two main responsibilities are:
     - Converting user facing args to underlying model calls.
     - Aggregate results to data structure expected by web serving layer.
 """
-from bravo_api.models import variants, qc_metrics, sequences
+from bravo_api.models import variants, qc_metrics
 from flask import current_app
 
 FILTER_TYPE_MAPPING = {
@@ -237,15 +237,15 @@ def get_variant(variant_id):
 
 
 def get_variant_cram_info(variant_id):
-    data = sequences.get_info(variant_id)
+    data = current_app.cram_source.get_info(variant_id)
     return({'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None})
 
 
 def get_variant_crai(variant_id, sample_no, heterozygous):
-    result = sequences.get_crai(variant_id, sample_no, heterozygous)
+    result = current_app.cram_source.get_crai(variant_id, sample_no, heterozygous)
     return(result)
 
 
 def get_variant_cram(variant_id, heterozygous, sample_no, start, stop):
-    result = sequences.get_cram(variant_id, sample_no, heterozygous, start, stop)
+    result = current_app.cram_source.get_cram(variant_id, sample_no, heterozygous, start, stop)
     return(result)

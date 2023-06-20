@@ -1,7 +1,7 @@
 """
 Coverage bins are:
-    Continugous positions with difference in mean and median read depth less than the bin value
-    are consolidate together.
+    Coverage data where continugous positions have been consolidated when the difference in
+      mean and median read depth is less than the bin value.
 """
 from bravo_api.core.coverage_provider import CoverageProvider, CoverageSourceInaccessibleError
 from pathlib import Path
@@ -23,7 +23,7 @@ class FSCoverageProvider(CoverageProvider):
         readable = os.access(self.source, os.R_OK)
 
         if(not(extant and directory and readable)):
-            msg = (f'FS Coverage soure must be extant: {extant},'
+            msg = (f'FS Coverage source must be extant: {extant},'
                    f'a directory: {directory}, and readable: {readable}.')
             raise CoverageSourceInaccessibleError(msg)
         return(True)
@@ -87,18 +87,17 @@ class FSCoverageProvider(CoverageProvider):
         """
         Provide list of dicts of from the json data of appropriate coverate file
         """
-        result = []
-
-        # Get path from catalog
         cov_path = self.lookup_coverage_path(cov_bin, chrom)
 
-        # Handle no path by returning no data.
         if(not cov_path):
-            return(result)
+            return([])
 
-        tabixfile = pysam.TabixFile(cov_path.as_posix())
+        with pysam.TabixFile(cov_path.as_posix()) as tabixfile:
+            return FSCoverageProvider.load_coverage_dicts(tabixfile, chrom, start, stop)
 
-        for row in tabixfile.fetch(chrom, max(1, start - 1), stop, parser=pysam.asTuple()):
+    @staticmethod
+    def load_coverage_dicts(itabix, chrom, start, stop):
+        result = []
+        for row in itabix.fetch(chrom, max(1, start - 1), stop, parser=pysam.asTuple()):
             result.append(rapidjson.loads(row[3]))
-
-        return(result)
+        return result
