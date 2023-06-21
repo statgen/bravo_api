@@ -11,8 +11,7 @@ import hashlib
 import tempfile
 import logging
 
-
-log = logging.getLogger(__name__)
+logger = logging.getLogger(__name__)
 
 
 class FSCramSource(CramSource):
@@ -29,6 +28,8 @@ class FSCramSource(CramSource):
 
         self.validate()
         self.configure_from_variant_map()
+
+        logger.debug('FSCramSource initialized Logged')
 
         if(cache is None):
             self.cache = SimpleCache(threshold=10)
@@ -60,6 +61,7 @@ class FSCramSource(CramSource):
         chrom = FSCramSource.normalize_contig_prefix(chrom, self.contigs_chr_prefixed)
 
         sample_id = self.lookup_sample_id(chrom, pos, ref, alt, sample_het, sample_no)
+        logger.debug('sample_id: %s', sample_id)
         cram_path = self.calc_cram_path(sample_id)
 
         bai_data = self.get_bai_data(cram_path, chrom, pos, ref, alt, sample_het, sample_no)
@@ -259,7 +261,8 @@ class FSCramSource(CramSource):
 
     def lookup_sample_id(self, chrom: str, pos: str, ref: str, alt: str,
                          sample_het: bool, sample_no: int) -> str:
-        log.debug('lookup id: %s, %s, %s, %s, %s, %i', chrom, pos, ref, alt, sample_het, sample_no)
+        logger.debug('lookup id: %s, %s, %s, %s, %s, %i',
+                     chrom, pos, ref, alt, sample_het, sample_no)
         sample_id = None
         pos = int(pos)
         with pysam.TabixFile(str(self.variant_map), parser=pysam.asTuple()) as itabix:
@@ -276,6 +279,9 @@ class FSCramSource(CramSource):
         :param sample_het: T/F indicating if sample ids should be taken from het column.
         :param sample_no: 1-based index of the id to select from the het or hom column.
         """
+        logger.debug(f'variant_map row: {type(row)} {row}')
+        logger.debug(f'extract sample: {pos}, {ref}, {alt}, {sample_het}, {sample_no}')
+
         sample_id = None
         if int(row[1]) == pos and row[2] == ref and row[3] == alt:
             samples = row[5] if sample_het else row[4]

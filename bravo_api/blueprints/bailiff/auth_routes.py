@@ -95,8 +95,6 @@ def login(dest):
         scheme = 'https'
 
     redirect_uri = url_for('.acf', _external=True, _scheme=scheme)
-    print(request.host)
-    print(request.host.split(':')[0])
     session['dest'] = dest
     return oauth.google.authorize_redirect(redirect_uri)
 

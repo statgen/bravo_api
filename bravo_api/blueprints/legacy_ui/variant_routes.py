@@ -77,7 +77,7 @@ def variant_cram(variant_id, sample_het, sample_no):
                              variant_id, sample_het, sample_no, start, stop)
     result = pretty_api.get_variant_cram(variant_id, sample_het, sample_no, start, stop)
     if result is None:
-        print(f'start: {start} stop: {stop}')
+        current_app.logger.debug('variant_cram: CRAM NOT FOUND')
         abort(404)
 
     response = make_response(result['file_bytes'], 206)

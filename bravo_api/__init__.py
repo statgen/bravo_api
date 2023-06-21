@@ -1,30 +1,35 @@
+from logging.config import dictConfig
 from flask import Flask
 from flask_caching import Cache
+from flask_cors import CORS
 from os import getenv
-import importlib.resources as pkg_resources
 from bravo_api.models.database import mongo
 from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
 from bravo_api.blueprints.health import health
 from bravo_api.blueprints.bailiff import auth_routes
 from bravo_api.core import CoverageProviderFactory
 from bravo_api.core import FSCramSource
-from flask_cors import CORS
 import secrets
-from logging.config import dictConfig
+import importlib.resources as pkg_resources
 
 dictConfig({
     'version': 1,
-    'formatters': {'default': {
-        'format': '[%(asctime)s] [%(levelname)s in %(module)s] %(message)s',
-    }},
-    'handlers': {'wsgi': {
-        'class': 'logging.StreamHandler',
-        'stream': 'ext://flask.logging.wsgi_errors_stream',
-        'formatter': 'default'
-    }},
-    'root': {
-        'level': 'INFO',
-        'handlers': ['wsgi']
+    'formatters': {
+        'default': {
+            'format': '[%(asctime)s] [%(levelname)s] [%(name)s] %(message)s'},
+    },
+    'handlers': {
+        'wsgi': {
+            'class': 'logging.StreamHandler',
+            'stream': 'ext://flask.logging.wsgi_errors_stream',
+            'formatter': 'default'}
+    },
+    'loggers': {
+        'bravo_api': {
+            'propagate': False,
+            'level': 'DEBUG',
+            'handlers': ['wsgi']
+        }
     }
 })
 
