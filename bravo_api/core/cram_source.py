@@ -47,12 +47,3 @@ class CramSource(ABC):
     @abstractmethod
     def validate(self):
         pass
-
-    @abstractmethod
-    def read_seqs(self, pos, ref, alt, sample_no, sample_het):
-        pass
-
-    @abstractmethod
-    def sample_id_to_location(self, sample_id):
-        pass
-

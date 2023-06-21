@@ -5,7 +5,7 @@ Primary responsibilities are:
     - Providing routes that use view arguments
     - Wrapping data in web responses.
 """
-from flask import Blueprint, make_response, jsonify, send_file, abort, request
+from flask import Blueprint, current_app, make_response, jsonify, send_file, abort, request
 from webargs import fields
 from marshmallow import validate
 from bravo_api.blueprints.legacy_ui import pretty_api, common
@@ -44,6 +44,7 @@ def variant(variant_id):
 @bp.route('/variant/api/snv/cram/summary/<string:variant_id>')
 @parser.use_kwargs(variant_argmap, location='view_args')
 def variant_cram_info(variant_id):
+    current_app.logger.debug('variant_cram_info: %s', variant_id)
     result = pretty_api.get_variant_cram_info(variant_id)
 
     response = make_response(jsonify(result), 200)
@@ -72,6 +73,8 @@ def variant_cram(variant_id, sample_het, sample_no):
             start = int(m.group(1))
             stop = int(m.group(2))
 
+    current_app.logger.debug('variant_cram: %s, %s, %i, %i, %i',
+                             variant_id, sample_het, sample_no, start, stop)
     result = pretty_api.get_variant_cram(variant_id, sample_het, sample_no, start, stop)
     if result is None:
         print(f'start: {start} stop: {stop}')
@@ -89,6 +92,7 @@ def variant_cram(variant_id, sample_het, sample_no):
 @bp.route('/variant/api/snv/crai/<string:variant_id>-<int:sample_het>-<int:sample_no>')
 @parser.use_kwargs(variant_cram_argmap, location='view_args')
 def variant_crai(variant_id, sample_no, sample_het):
+    current_app.logger.debug('variant_crai: %s, %i, %s', variant_id, sample_no, sample_het)
     result = pretty_api.get_variant_crai(variant_id, sample_no, sample_het)
     if result is None:
         abort(404)

@@ -9,6 +9,10 @@ import io
 import os
 import hashlib
 import tempfile
+import logging
+
+
+log = logging.getLogger(__name__)
 
 
 class FSCramSource(CramSource):
@@ -173,12 +177,6 @@ class FSCramSource(CramSource):
 
         return True
 
-    def read_seqs(self, pos, ref, alt, sample_no, sample_het):
-        pass
-
-    def sample_id_to_location(self, sample_id):
-        pass
-
     @staticmethod
     def get_sequences_info(variant_map, chrom, pos, ref, alt):
         with pysam.TabixFile(str(variant_map), parser=pysam.asTuple()) as itabix:
@@ -261,6 +259,7 @@ class FSCramSource(CramSource):
 
     def lookup_sample_id(self, chrom: str, pos: str, ref: str, alt: str,
                          sample_het: bool, sample_no: int) -> str:
+        log.debug('lookup id: %s, %s, %s, %s, %s, %i', chrom, pos, ref, alt, sample_het, sample_no)
         sample_id = None
         pos = int(pos)
         with pysam.TabixFile(str(self.variant_map), parser=pysam.asTuple()) as itabix:
