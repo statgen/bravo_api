@@ -1,10 +1,27 @@
 import pytest
 import random
 import io
+from pathlib import Path
 from pysam import TabixFile
 from bravo_api.core.cram_source import (CramSource, CramSourceInaccessibleError,
                                         ReferenceInaccessibleError)
 from bravo_api.core.fs_cram_source import FSCramSource
+
+
+# Need python class to avoid error trying to mock TabixFile.__enter__
+#   Can't set attributes of built-in/extension type 'pysam.libctabix.TabixFile'
+class FakeTabix:
+    def __init__(self, rows):
+        self.rows = rows
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *args):
+        return False
+
+    def fetch(self, *args):
+        return self.rows
 
 
 itabix_contigs = ['chr1', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15', 'chr16', 'chr17',
@@ -16,6 +33,8 @@ expected_contigs = {'chr1', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15'
                     'chr6', 'chr7', 'chr8', 'chr9', 'chrX'}
 
 sham_bam_subset = {'bam': random.randbytes(20000), 'bai': random.randbytes(1000)}
+
+sham_varmap_path = Path('/no/such/file.tsv.gz')
 
 
 def test_init(mocker, sham_crams_dir, sham_ref):
@@ -160,6 +179,17 @@ def test_extract_sample_id_no_match():
     row = 'chr11', '5220052', 'G', 'C', 'HGDP00158,HGDP00645', 'HGDP00557,HGDP00741'
     result = FSCramSource.extract_sample_id(row, 5220052, 'T', 'C', None, 1)
     assert(result is None)
+
+
+def test_lookup_sample_id(mocker):
+    mock_rows = [('chr11', '5220052', 'G', 'C', 'HGDP00158,HGDP00645', 'HGDP00557,HGDP00741'),
+                 ('chr11', '5220052', 'G', 'TA', 'HGDP00999,HGDP00888', 'HGDP00777,HGDP00666')]
+
+    mocker.patch('bravo_api.core.fs_cram_source.pysam.TabixFile',
+                 return_value=FakeTabix(mock_rows))
+
+    result = FSCramSource.lookup_sample_id(sham_varmap_path, 'chr11', '5220052', 'G', 'C', True, 2)
+    assert(result == 'HGDP00741')
 
 
 def test_get_cram_1k_bytes(mocker, sham_crams_dir, sham_ref):

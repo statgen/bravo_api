@@ -60,7 +60,8 @@ class FSCramSource(CramSource):
         chrom, pos, ref, alt = variant_id.split('-')
         chrom = FSCramSource.normalize_contig_prefix(chrom, self.contigs_chr_prefixed)
 
-        sample_id = self.lookup_sample_id(chrom, pos, ref, alt, sample_het, sample_no)
+        sample_id = FSCramSource.lookup_sample_id(self.variant_map, chrom, pos, ref, alt,
+                                                  sample_het, sample_no)
         logger.debug('sample_id: %s', sample_id)
         cram_path = self.calc_cram_path(sample_id)
 
@@ -84,7 +85,8 @@ class FSCramSource(CramSource):
         chrom = FSCramSource.normalize_contig_prefix(chrom, self.contigs_chr_prefixed)
 
         # Lookup sample_id
-        sample_id = self.lookup_sample_id(chrom, pos, ref, alt, sample_het, sample_no)
+        sample_id = FSCramSource.lookup_sample_id(self.variant_map, chrom, pos, ref, alt,
+                                                  sample_het, sample_no)
 
         # Lookup cram_path
         cram_path = self.calc_cram_path(sample_id)
@@ -259,17 +261,18 @@ class FSCramSource(CramSource):
             target_data = combined_data[key_suffix]
         return(target_data)
 
-    def lookup_sample_id(self, chrom: str, pos: str, ref: str, alt: str,
-                         sample_het: bool, sample_no: int) -> str:
-        logger.debug('lookup id: %s, %s, %s, %s, %s, %i',
-                     chrom, pos, ref, alt, sample_het, sample_no)
-        sample_id = None
+    @staticmethod
+    def lookup_sample_id(variant_map, chrom: str, pos: str, ref: str, alt: str,
+                         het: bool, sample_no: int) -> str:
+        logger.debug(f'lookup id: {variant_map}, {chrom}, {pos}, {ref}, {alt}, {het}, {sample_no}')
+        id = None
         pos = int(pos)
-        with pysam.TabixFile(str(self.variant_map), parser=pysam.asTuple()) as itabix:
+        with pysam.TabixFile(str(variant_map), parser=pysam.asTuple()) as itabix:
             for row in itabix.fetch(chrom, pos - 1, pos):
-                sample_id = FSCramSource.extract_sample_id(row, pos, ref, alt,
-                                                           sample_het, sample_no)
-        return sample_id
+                id = FSCramSource.extract_sample_id(row, pos, ref, alt, het, sample_no)
+                if id is not None:
+                    break
+        return id
 
     @staticmethod
     def extract_sample_id(row, pos, ref, alt, sample_het, sample_no):
@@ -279,8 +282,8 @@ class FSCramSource(CramSource):
         :param sample_het: T/F indicating if sample ids should be taken from het column.
         :param sample_no: 1-based index of the id to select from the het or hom column.
         """
-        logger.debug(f'variant_map row: {type(row)} {row}')
-        logger.debug(f'extract sample: {pos}, {ref}, {alt}, {sample_het}, {sample_no}')
+        logger.debug(f'variant map val: {row[1]}, {row[2]}, {row[3]}, {row[4]}, {row[5]}')
+        logger.debug(f'comp sample val: {pos}, {ref}, {alt}, {sample_het}, {sample_no}')
 
         sample_id = None
         if int(row[1]) == pos and row[2] == ref and row[3] == alt:
