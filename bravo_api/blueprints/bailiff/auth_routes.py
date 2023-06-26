@@ -11,6 +11,9 @@ from datetime import timedelta
 from .mongo_user_mgmt import MongoUserMgmt
 from .anon_user import BravoAnonUser
 from authlib.integrations.flask_client import OAuth
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 class Parser(FlaskParser):
@@ -106,12 +109,12 @@ def acf():
     # Automatic parsing token not behaving as expected.
     #   https://github.com/authlib/demo-oauth-client/issues/20
     userinfo = oauth.google.parse_id_token(token, None)
-
     email = userinfo['email']
 
+    logger.debug(f'Returned oath userinfo: {userinfo}')
+
     # Lookup or store user in user persistence.
-    user = current_app.user_mgmt.load(email) or \
-        current_app.user_mgmt.create_by_id(email)
+    user = current_app.user_mgmt.load(email) or current_app.user_mgmt.create_by_id(email)
 
     # Use flask-login to persist login via session
     login_user(user, remember=True, duration=timedelta(hours=1))
