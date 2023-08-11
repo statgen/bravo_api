@@ -9,10 +9,12 @@ from webargs import fields
 from marshmallow import EXCLUDE
 from datetime import timedelta
 from .anon_user import BravoAnonUser
+from .dummy_user_mgmt import DummyUserMgmt
 from authlib.integrations.flask_client import OAuth
 import logging
 
 logger = logging.getLogger(__name__)
+logger.propagate = True
 
 
 class Parser(FlaskParser):
@@ -39,6 +41,11 @@ def init_auth(app):
 
 
 def init_user_management(app):
+    if(hasattr(app, 'user_mgmt') is False):
+        app.user_mgmt = DummyUserMgmt()
+        print(f'debug {__name__}')
+        app.logger.warning('App does not have user_mgmt configured. Using DummyUserMgmt')
+
     login_manager.anonymous_user = BravoAnonUser
     login_manager.user_loader(app.user_mgmt.load)
     login_manager.init_app(app)
