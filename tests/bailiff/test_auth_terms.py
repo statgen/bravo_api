@@ -27,7 +27,8 @@ app.register_blueprint(auth_routes.bp)
 app.register_blueprint(req_auth_bp, url_prefix="/auth")
 app.register_blueprint(req_agree_bp, url_prefix="/agree")
 
-auth_routes.init_user_management(app, DummyUserMgmt)
+app.user_mgmt = DummyUserMgmt()
+auth_routes.initialize(app)
 
 
 def test_auth_unauthorized():

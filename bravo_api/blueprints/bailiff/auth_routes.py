@@ -8,7 +8,6 @@ from webargs.flaskparser import FlaskParser
 from webargs import fields
 from marshmallow import EXCLUDE
 from datetime import timedelta
-from .mongo_user_mgmt import MongoUserMgmt
 from .anon_user import BravoAnonUser
 from authlib.integrations.flask_client import OAuth
 import logging
@@ -26,6 +25,11 @@ parser = Parser()
 oauth = OAuth()
 
 
+def initialize(app):
+    init_auth(app)
+    init_user_management(app)
+
+
 def init_auth(app):
     oauth.init_app(app)
     oauth.register(
@@ -34,11 +38,7 @@ def init_auth(app):
         client_kwargs={'scope': 'email'})
 
 
-def init_user_management(app, user_management=None):
-    if user_management is None:
-        user_management = MongoUserMgmt
-    app.user_mgmt = user_management()
-
+def init_user_management(app):
     login_manager.anonymous_user = BravoAnonUser
     login_manager.user_loader(app.user_mgmt.load)
     login_manager.init_app(app)
@@ -118,6 +118,9 @@ def acf():
 
     # Use flask-login to persist login via session
     login_user(user, remember=True, duration=timedelta(hours=1))
+
+    # log authorization in db
+    current_app.user_mgmt.log_auth(user)
 
     # if session has a destination, redirect there
     destination = session.get('dest')

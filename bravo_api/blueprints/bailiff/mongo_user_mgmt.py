@@ -1,13 +1,17 @@
 """@package Mongo User Managment
 Use mongo for persisting users.
 """
-from bravo_api.models.database import mongo
 import pymongo.errors
+from datetime import datetime
+from bravo_api.models.database import mongo
 from .user_mgmt import UserMgmt
 from .user import User
 
 
 class MongoUserMgmt(UserMgmt):
+    def __init__(self, mongo_client):
+        self.mongo = mongo_client
+
     def mongo_doc_to_user(self, mongodoc):
         if mongodoc is None:
             return None
@@ -35,3 +39,7 @@ class MongoUserMgmt(UserMgmt):
     def update_agreed_to_terms(self, user):
         user.agreed_to_terms = True
         return(self.save(user))
+
+    def log_auth(self, user):
+        entry = {'user_id': user.get_id(), 'timestamp': datetime.now()}
+        mongo.db.auth_log.insert_one(entry)

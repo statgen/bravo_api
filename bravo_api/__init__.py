@@ -9,6 +9,7 @@ from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_ro
 from bravo_api.blueprints.health import health
 from bravo_api.blueprints.eqtl import eqtl
 from bravo_api.blueprints.bailiff import auth_routes
+from bravo_api.blueprints.bailiff import MongoUserMgmt
 from bravo_api.core import CoverageProviderFactory
 from bravo_api.core import FSCramSource
 import secrets
@@ -93,8 +94,8 @@ def create_app(test_config=None):
     app.register_blueprint(gene_routes.bp, url_prefix='/ui')
     app.register_blueprint(auth_routes.bp, url_prefix='/ui')
 
-    # Initialize login manager
-    auth_routes.init_user_management(app)
-    auth_routes.init_auth(app)
+    # Initialize User Management and Authorization Routes
+    app.user_mgmt = MongoUserMgmt(app.mmongo)
+    auth_routes.initialize(app)
 
     return app

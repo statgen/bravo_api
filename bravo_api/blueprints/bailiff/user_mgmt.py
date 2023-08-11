@@ -20,3 +20,7 @@ class UserMgmt(ABC):
     @abstractmethod
     def update_agreed_to_terms(user):
         pass
+
+    @abstractmethod
+    def log_auth(user):
+        pass
