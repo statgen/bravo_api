@@ -10,7 +10,7 @@
 #
 # Alternatively, if run from the prod machine, set the port back 
 # to the default mongo port.
-#   REPORT_PORT=27017; ./user_counts_query.sh
+#   REPORT_PORT=27017; ./report_user_counts.sh
 
 REPORT_PORT="${REPORT_PORT:-29019}"
 
