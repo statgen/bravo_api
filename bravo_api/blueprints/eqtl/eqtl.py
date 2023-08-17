@@ -20,16 +20,23 @@ class Parser(FlaskParser):
 parser = Parser()
 
 
-susie_argmap = {
+eqtl_argmap = {
     'gene': fields.Str(required=True, validate=lambda x: len(x) > 0,
                        error_messages={'validator_failed': 'Value must be a non-empty string.'})
 }
 
 
 @bp.route('/eqtl/susie', methods=['GET'])
-@parser.use_args(susie_argmap, location='query')
+@parser.use_args(eqtl_argmap, location='query')
 def get_susie(args):
     result = susie(args['gene'])
+    return make_response(jsonify(result))
+
+
+@bp.route('/eqtl/cond', methods=['GET'])
+@parser.use_args(eqtl_argmap, location='query')
+def get_cond(args):
+    result = cond(args['gene'])
     return make_response(jsonify(result))
 
 
@@ -58,7 +65,29 @@ def susie(gene_name):
     cursor = current_app.mmongo.db.genes.aggregate(pipeline)
     cursor.limit = 1
     answer = next(cursor, None)
-    if answer is None:
-        return []
-    else:
-        return answer['eqtls']
+    # if answer is None:
+    #     return []
+    # else:
+    #     return answer['eqtls']
+    return []
+
+
+def cond(gene_name):
+    # Remove _id to allow response to be json serializable
+    pipeline = [
+        {'$match': {'gene_name': gene_name}},
+        {'$lookup': {'from': "eqtl_cond",
+                     'localField': "gene_id",
+                     'foreignField': "phenotype_id",
+                     'as': "eqtls"}},
+        {'$project': {'_id': False, 'eqtls._id': False}}
+    ]
+
+    cursor = current_app.mmongo.db.genes.aggregate(pipeline)
+    cursor.limit = 1
+    answer = next(cursor, None)
+    # if answer is None:
+    #     return []
+    # else:
+    #     return answer['eqtls']
+    return []
