@@ -3,6 +3,8 @@ import string
 import random
 import os
 import boto3
+import io
+import gzip
 from moto import mock_s3
 
 
@@ -86,7 +88,7 @@ def sham_cov_url(s3, expected_bins, expected_chroms):
     Create sham bucket with all bins and chroms stubbed out.
     Return url to of coverage prefix containing bins.
     """
-    bucket_name = 'test-'.join([random.choice(string.ascii_lowercase) for i in range(8)])
+    bucket_name = ''.join([random.choice(string.ascii_lowercase) for i in range(8)])
     prefix = 'coverage'
     s3.create_bucket(Bucket=bucket_name,
                      CreateBucketConfiguration={'LocationConstraint': 'atlantis'})
@@ -109,7 +111,7 @@ def sham_incomplete_cov_url(s3, incomplete_bins, expected_chroms):
     Create sham bucket missing an entire bin of chroms stubs.
     Return url to of coverage prefix containing bins.
     """
-    bucket_name = 'test-'.join([random.choice(string.ascii_lowercase) for i in range(8)])
+    bucket_name = ''.join([random.choice(string.ascii_lowercase) for i in range(8)])
     prefix = 'coverage'
     s3.create_bucket(Bucket=bucket_name,
                      CreateBucketConfiguration={'LocationConstraint': 'atlantis'})
@@ -177,3 +179,45 @@ def sham_ref(tmp_path_factory):
     ref_dir.joinpath('hs38DH.fa.fai').touch()
 
     return(str(ref_path))
+
+
+@pytest.fixture(scope="session")
+def sham_varmap_gz():
+    varmap = """#RANDOM_SEED=8123
+             #MAX_RANDOM_HOM_HETS=3
+             #SAMPLES_USED=50
+             #CHROM\tPOS\tREF\tALT\tHOM\tHET
+             chr11\t5220052\tG\tC\tHGDP00158,HGDP00645,HGDP00746\tHGDP00952,HGDP00557,HGDP00741
+             chr11\t5220161\tT\tA\tHGDP01077
+             chr11\t5220203\tT\tC\tHGDP00021
+             """.encode('utf-8')
+    b_out = io.BytesIO()
+    with gzip.GzipFile(fileobj=b_out, mode="w") as out:
+        out.write(varmap)
+    return(b_out.read())
+
+
+@pytest.fixture(scope="session")
+def sham_crams_url(s3, sham_varmap_gz):
+    """
+    Create sham bucket with variant map and crams stubs.
+    Return url to of coverage prefix containing bins.
+    """
+    bucket_name = ''.join([random.choice(string.ascii_lowercase) for i in range(8)])
+    prefix = 'data/runtime/crams'
+    s3.create_bucket(Bucket=bucket_name,
+                     CreateBucketConfiguration={'LocationConstraint': 'atlantis'})
+
+    s3.put_object(Bucket=bucket_name, Key=f'{prefix}/variant_map.tsv.gz', Body=sham_varmap_gz)
+    s3.put_object(Bucket=bucket_name, Key=f'{prefix}/variant_map.tsv.gz.tbi', Body="sham\tindex")
+
+    s3.put_object(Bucket=bucket_name,
+                  Key=f'{prefix}/sequences/00/ZZMH8C9KMY.cram', Body="sham\tcram")
+    s3.put_object(Bucket=bucket_name,
+                  Key=f'{prefix}/sequences/00/ZZMH8C9KMY.cram.crai', Body="sham\tcrai")
+    s3.put_object(Bucket=bucket_name,
+                  Key=f'{prefix}/sequences/ff/ANGIXJWFA6.cram', Body="sham\tcram")
+    s3.put_object(Bucket=bucket_name,
+                  Key=f'{prefix}/sequences/ff/ANGIXJWFA6.cram.crai', Body="sham\tcrai")
+
+    return(f's3://{bucket_name}/{prefix}')

@@ -1,5 +1,5 @@
 """
-Generate coverage provider appropriate for the coverage source.
+Instantiate coverage provider appropriate for the coverage source.
 """
 from bravo_api.core.coverage_provider import CoverageProvider
 from bravo_api.core.fs_coverage_provider import FSCoverageProvider

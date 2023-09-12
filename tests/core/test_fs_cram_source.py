@@ -2,9 +2,8 @@ import pytest
 import random
 import io
 from pathlib import Path
-from pysam import TabixFile
 from bravo_api.core.cram_source import (CramSource, CramSourceInaccessibleError,
-                                        ReferenceInaccessibleError)
+                                        ReferenceInaccessibleError, VariantMapError)
 from bravo_api.core.fs_cram_source import FSCramSource
 
 
@@ -34,7 +33,48 @@ expected_contigs = {'chr1', 'chr10', 'chr11', 'chr12', 'chr13', 'chr14', 'chr15'
 
 sham_bam_subset = {'bam': random.randbytes(20000), 'bai': random.randbytes(1000)}
 
-sham_varmap_path = Path('/no/such/file.tsv.gz')
+sham_varmap_path = Path('/sham/crams/variant_map.tsv.gz')
+
+varmap_header = """#RANDOM_SEED=8123
+#MAX_RANDOM_HOM_HETS=5
+#SAMPLES_USED=50
+#CHROM  POS     REF     ALT     HOM     HET
+"""
+
+varmap_header_missing = """#RANDOM_SEED=8123
+#SAMPLES_USED=50
+#CHROM  POS     REF     ALT     HOM     HET
+"""
+
+varmap_header_bad = """#RANDOM_SEED=8123
+#MAX_RANDOM_HOM_HETS=-1
+#SAMPLES_USED=50
+#CHROM  POS     REF     ALT     HOM     HET
+"""
+
+
+def test_extract_max_het_hom(mocker):
+    m = mocker.mock_open(read_data=varmap_header)
+    mocker.patch('gzip.open', m)
+
+    result = FSCramSource.extract_max_het_hom(sham_varmap_path)
+    assert(result == 5)
+
+
+def test_missing_max_het_hom(mocker):
+    m = mocker.mock_open(read_data=varmap_header_missing)
+    mocker.patch('gzip.open', m)
+
+    with pytest.raises(VariantMapError, match='missing'):
+        FSCramSource.extract_max_het_hom(sham_varmap_path)
+
+
+def test_bad_max_het_hom(mocker):
+    m = mocker.mock_open(read_data=varmap_header_bad)
+    mocker.patch('gzip.open', m)
+
+    with pytest.raises(VariantMapError, match='invalid'):
+        FSCramSource.extract_max_het_hom(sham_varmap_path)
 
 
 def test_init(mocker, sham_crams_dir, sham_ref):
@@ -81,104 +121,6 @@ def test_structural_validation(mocker, tmp_path_factory):
     ref_dir.joinpath('hs38DH.fa.fai').touch()
 
     assert(FSCramSource(crams_dir, ref_path).validate() is True)
-
-
-def test_present_contig_prefix_detection():
-    result = FSCramSource.are_contigs_chr_prefixed(expected_contigs)
-    assert(result is True)
-
-
-def test_absent_contig_prefix_detection():
-    unprefixed_contigs = {'1', '2', '3', '4', 'X'}
-    result = FSCramSource.are_contigs_chr_prefixed(unprefixed_contigs)
-    assert(result is False)
-
-
-def test_contig_naming_normalization_flipping():
-    contigs_chr_prefixed = False
-    result = FSCramSource.normalize_contig_prefix('chr20', contigs_chr_prefixed)
-    assert(result == '20')
-
-    contigs_chr_prefixed = True
-    result = FSCramSource.normalize_contig_prefix('20', contigs_chr_prefixed)
-    assert(result == 'chr20')
-
-
-def test_contig_naming_normalization_unchanging():
-    input_contig = 'chr10'
-    contigs_chr_prefixed = True
-    result = FSCramSource.normalize_contig_prefix(input_contig, contigs_chr_prefixed)
-    assert(result == input_contig)
-
-    input_contig = '10'
-    contigs_chr_prefixed = False
-    result = FSCramSource.normalize_contig_prefix(input_contig, contigs_chr_prefixed)
-    assert(result == input_contig)
-
-
-def test_get_sequences_info(mocker):
-    # Mock TabixFile.fetch
-    info = [("chr11", "5225059", "G", "A", "TYDMWW55F3,QQKVV21VJJ",
-             "DL4E60CPZB,6BGL5F8760,L3SSV0VZ3K,5E6WOA9HZ3,HKHEDNSJC5")]
-    attrs = {'fetch.return_value': info}
-    tabix_mock = mocker.Mock(TabixFile, **attrs)
-
-    expected = [{'n_homozygous': 2, 'n_heterozygous': 5}]
-    result = FSCramSource.het_hom_counts(tabix_mock, 'chr11', 5225059, 'G', 'A')
-
-    assert(result == expected)
-
-
-def test_no_homs_get_sequences_info(mocker):
-    # Mock TabixFile.fetch
-    no_homs = [("chr11", "5225001", "C", "T", "",  "TPWASH61GW,DPJAT56WLO,1FX5WVQX36,DHQVG4X5FP")]
-    attrs = {'fetch.return_value': no_homs}
-    tabix_mock = mocker.Mock(TabixFile, **attrs)
-
-    expected = [{'n_homozygous': 0, 'n_heterozygous': 4}]
-    result = FSCramSource.het_hom_counts(tabix_mock, 'chr11', 5225001, 'C', 'T')
-
-    assert(result == expected)
-
-
-def test_stop_byte_correction():
-    result = FSCramSource.rectify_stop_byte(start=0, stop=100, data_size=1000)
-    assert(result == 101)
-
-
-def test_stop_byte_missing():
-    data_size = 1000
-    result = FSCramSource.rectify_stop_byte(start=0, stop=None, data_size=data_size)
-    assert(result == data_size)
-
-
-def test_stop_byte_zero():
-    result = FSCramSource.rectify_stop_byte(start=0, stop=0, data_size=1000)
-    assert(result == 1)
-
-
-def test_stop_byte_negative():
-    data_size = 1000
-    result = FSCramSource.rectify_stop_byte(start=0, stop=-10, data_size=data_size)
-    assert(result == data_size)
-
-
-def test_extract_hom_sample_id():
-    row = 'chr11', '5220052', 'G', 'C', 'HGDP00158,HGDP00645', 'HGDP00557,HGDP00741'
-    result = FSCramSource.extract_sample_id(row, 5220052, 'G', 'C', None, 1)
-    assert(result == 'HGDP00158')
-
-
-def test_extract_het_sample_id():
-    row = 'chr11', '5220052', 'G', 'C', 'HGDP00158,HGDP00645', 'HGDP00557,HGDP00741'
-    result = FSCramSource.extract_sample_id(row, 5220052, 'G', 'C', True, 2)
-    assert(result == 'HGDP00741')
-
-
-def test_extract_sample_id_no_match():
-    row = 'chr11', '5220052', 'G', 'C', 'HGDP00158,HGDP00645', 'HGDP00557,HGDP00741'
-    result = FSCramSource.extract_sample_id(row, 5220052, 'T', 'C', None, 1)
-    assert(result is None)
 
 
 def test_lookup_sample_id(mocker):

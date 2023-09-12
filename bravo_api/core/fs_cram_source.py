@@ -113,7 +113,7 @@ class FSCramSource(CramSource):
 
     @staticmethod
     def extract_max_het_hom(variant_map: Path):
-        header_hom_hets = 0
+        header_hom_hets = None
         with gzip.open(str(variant_map), 'rt') as ifile:
             for line in ifile:
                 if not line.startswith('#'):
@@ -121,9 +121,13 @@ class FSCramSource(CramSource):
                 if line.startswith('#MAX_RANDOM_HOM_HETS='):
                     header_hom_hets = int(line.rstrip().split('=')[1].strip())
 
+        if header_hom_hets is None:
+            msg = f'In {variant_map} header, #MAX_RANDOM_HOM_HETS=val line is missing.'
+            raise VariantMapError(msg)
+
         if header_hom_hets <= 0:
-            msg = (f'Invalid value for MAX_RANDOM_HOM_HETS: {header_hom_hets}.'
-                   f'In {variant_map} header. #MAX_RANDOM_HOM_HETS=<val> is missing or invalid.')
+            msg = f'In {variant_map} header,\
+                invalid value for MAX_RANDOM_HOM_HETS: {header_hom_hets}.'
             raise VariantMapError(msg)
 
         return(header_hom_hets)
@@ -134,20 +138,6 @@ class FSCramSource(CramSource):
         with pysam.TabixFile(str(variant_map)) as itabix:
             contigs = set(itabix.contigs)
         return(contigs)
-
-    @staticmethod
-    def are_contigs_chr_prefixed(contigs):
-        single_val = next(iter(contigs))
-        return(single_val.startswith('chr'))
-
-    @staticmethod
-    def normalize_contig_prefix(contig, use_chr_prefix):
-        if contig.startswith('chr') and not use_chr_prefix:
-            return(contig[3:])
-        elif not contig.startswith('chr') and use_chr_prefix:
-            return(f'chr{contig}')
-        else:
-            return(contig)
 
     def configure_from_variant_map(self):
         self.max_hom_hets = FSCramSource.extract_max_het_hom(self.variant_map)
@@ -185,32 +175,6 @@ class FSCramSource(CramSource):
     def get_sequences_info(variant_map, chrom, pos, ref, alt):
         with pysam.TabixFile(str(variant_map), parser=pysam.asTuple()) as itabix:
             return FSCramSource.het_hom_counts(itabix, chrom, pos, ref, alt)
-
-    @staticmethod
-    def het_hom_counts(tabix_file, chrom, pos, ref, alt):
-        result = []
-        for row in tabix_file.fetch(chrom, pos - 1, pos):
-            if int(row[1]) == pos and row[2] == ref and row[3] == alt:
-                result.append({
-                    'n_homozygous': len(row[4].split(',')) if row[4] else 0,
-                    'n_heterozygous': len(row[5].split(',')) if row[5] else 0
-                })
-                break
-        return result
-
-    @staticmethod
-    def rectify_stop_byte(start: int, stop: int, data_size: int):
-        """ Correct stop index so that given stop index is included in returned data.
-        """
-
-        if stop is None or stop < 0:
-            r_stop = data_size
-        elif stop < start:
-            r_stop = start
-        else:
-            r_stop = stop + 1
-
-        return r_stop
 
     @staticmethod
     def extract_bam_subset(cram_path: str, ref_path: str, chrom: str, pos: str):
@@ -262,7 +226,7 @@ class FSCramSource(CramSource):
         return(target_data)
 
     @staticmethod
-    def lookup_sample_id(variant_map, chrom: str, pos: str, ref: str, alt: str,
+    def lookup_sample_id(variant_map: Path, chrom: str, pos: str, ref: str, alt: str,
                          het: bool, sample_no: int) -> str:
         logger.debug(f'lookup id: {variant_map}, {chrom}, {pos}, {ref}, {alt}, {het}, {sample_no}')
         id = None
@@ -274,37 +238,7 @@ class FSCramSource(CramSource):
                     break
         return id
 
-    @staticmethod
-    def extract_sample_id(row, pos, ref, alt, sample_het, sample_no):
-        """ Extract sample_id of variant from variant map row
-
-        :param row: Tuple of variant map row
-        :param sample_het: T/F indicating if sample ids should be taken from het column.
-        :param sample_no: 1-based index of the id to select from the het or hom column.
-        """
-        logger.debug(f'variant map val: {row[1]}, {row[2]}, {row[3]}, {row[4]}, {row[5]}')
-        logger.debug(f'comp sample val: {pos}, {ref}, {alt}, {sample_het}, {sample_no}')
-
-        sample_id = None
-        if int(row[1]) == pos and row[2] == ref and row[3] == alt:
-            samples = row[5] if sample_het else row[4]
-            if samples:
-                samples = samples.split(',')
-            if len(samples) >= sample_no:
-                sample_id = samples[sample_no - 1]
-        return(sample_id)
-
     def calc_cram_path(self, sample_id) -> str:
         cram_path = os.path.join(self.seq_dir, hashlib.md5(sample_id.encode()).hexdigest()[:2],
                                  sample_id + '.cram')
         return(cram_path)
-
-    def is_sample_no_sample_het_valid(self, sample_no, sample_het) -> bool:
-        self.max_hom_hets = None
-        if sample_no > self.max_hom_hets:
-            return False
-
-        if sample_het and sample_no > self.max_hom_hets:
-            return None
-        if not sample_het and sample_no > self.max_hom_hets:
-            return None
