@@ -72,9 +72,9 @@ def create_app(test_config=None):
                     "CACHE_DIR": app.config['SEQUENCES_CACHE_DIR']}
     cache = Cache(config=cache_config)
     cache.init_app(app)
-    app.cram_source = CramSourceFactory(app.config['SEQUENCES_DIR'],
-                                        app.config['REFERENCE_SEQUENCE'],
-                                        cache)
+    app.cram_source = CramSourceFactory.build(app.config['SEQUENCES_DIR'],
+                                              app.config['REFERENCE_SEQUENCE'],
+                                              cache)
 
     # Initialize CORS and Sessions
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
