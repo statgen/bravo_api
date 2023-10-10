@@ -60,7 +60,7 @@ class S3CramSource(CramSource):
         if chrom not in self.contigs:
             return []
         else:
-            return CramSource.get_sequences_info(self.variant_map, chrom, int(pos), ref, alt)
+            return S3CramSource.get_sequences_info(self.varmap_url, chrom, int(pos), ref, alt)
 
     def get_crai(self, variant_id, sample_no: int, sample_het: bool) -> io.BytesIO:
         """ Crai for data of individual sample that is representative of given variant
@@ -74,8 +74,8 @@ class S3CramSource(CramSource):
         chrom, pos, ref, alt = variant_id.split('-')
         chrom = CramSource.normalize_contig_prefix(chrom, self.contigs_chr_prefixed)
 
-        sample_id = CramSource.lookup_sample_id(self.variant_map, chrom, pos, ref, alt,
-                                                  sample_het, sample_no)
+        sample_id = S3CramSource.lookup_sample_id(self.varmap_url, chrom, pos, ref, alt,
+                                                sample_het, sample_no)
         logger.debug('sample_id: %s', sample_id)
         cram_url = self.calc_cram_url(sample_id)
 
@@ -99,8 +99,8 @@ class S3CramSource(CramSource):
         chrom = CramSource.normalize_contig_prefix(chrom, self.contigs_chr_prefixed)
 
         # Lookup sample_id
-        sample_id = CramSource.lookup_sample_id(self.variant_map, chrom, pos, ref, alt,
-                                                  sample_het, sample_no)
+        sample_id = S3CramSource.lookup_sample_id(self.varmap_url, chrom, pos, ref, alt,
+                                                sample_het, sample_no)
 
         # Lookup cram_path
         cram_url = self.calc_cram_url(sample_id)
@@ -209,12 +209,12 @@ class S3CramSource(CramSource):
             return CramSource.het_hom_counts(itabix, chrom, pos, ref, alt)
 
     @staticmethod
-    def extract_contigs(variant_url: str):
+    def extract_contigs(varmap_url: str):
         """
         :param varmap_url: S3 url to variant_map.tsv.gz
         """
         contigs = set()
-        with pysam.TabixFile(variant_url) as itabix:
+        with pysam.TabixFile(varmap_url) as itabix:
             contigs = set(itabix.contigs)
         return(contigs)
 
