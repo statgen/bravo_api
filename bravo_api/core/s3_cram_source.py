@@ -161,6 +161,22 @@ class S3CramSource(CramSource):
         self.cache.set(f'{base_key}-bam', bam_data['bam'])
         self.cache.set(f'{base_key}-bai', bam_data['bai'])
 
+    def get_bam_data(self, cram_path, chrom, pos, ref, alt, sample_no, sample_het=None) -> bytes:
+        return(self.get_data('bam', cram_path, chrom, pos, ref, alt, sample_no, sample_het))
+
+    def get_bai_data(self, cram_path, chrom, pos, ref, alt, sample_no, sample_het=None) -> bytes:
+        return(self.get_data('bai', cram_path, chrom, pos, ref, alt, sample_no, sample_het))
+
+    def get_data(self, key_suffix, cram_path, chrom, pos, ref, alt,
+                 sample_no, sample_het=None) -> bytes:
+        base_key = f'{chrom}-{pos}-{ref}-{alt}-{sample_het}-{sample_no}'
+        target_data = self.cache.get(f'{base_key}-{key_suffix}')
+        if target_data is None:
+            combined_data = S3CramSource.extract_bam_subset(cram_path, self.ref_path, chrom, pos)
+            self.cache_combined_data(base_key, combined_data)
+            target_data = combined_data[key_suffix]
+        return(target_data)
+
     @staticmethod
     def extract_bam_subset(cram_url: str, ref_path: str, chrom: str, pos: str):
         window = 100
