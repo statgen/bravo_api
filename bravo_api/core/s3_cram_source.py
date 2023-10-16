@@ -40,7 +40,7 @@ class S3CramSource(CramSource):
         # self.validate()
         self.configure_from_variant_map()
 
-        logger.debug('S3CramSource initialized Logged')
+        logger.debug('S3CramSource initialized.')
 
         if(cache is None):
             self.cache = SimpleCache(threshold=10)

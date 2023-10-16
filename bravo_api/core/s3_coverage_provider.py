@@ -1,6 +1,7 @@
 """
 Provide coverage bin data backed by an S3 object.
 """
+import logging
 from bravo_api.core.coverage_provider import CoverageProvider, CoverageSourceInaccessibleError
 from urllib.parse import urlparse
 import rapidjson
@@ -10,17 +11,21 @@ import boto3
 from botocore.exceptions import ClientError
 from functools import reduce
 
+logger = logging.getLogger(__name__)
+
 
 class S3CoverageProvider(CoverageProvider):
 
     def __init__(self, src):
         self.client = boto3.client('s3')
-        self.src = src
+        self.src = src.rstrip('/')
         split_url = urlparse(self.src)
         self.bucket = split_url.netloc
         self.prefix = split_url.path.lstrip('/')
         self.validate_source()
         self.catalog = self.discover_files()
+
+        logger.debug('S3CoverageSource initialized.')
 
     def validate_source(self):
         """
