@@ -1,8 +1,8 @@
-from bravo_api.blueprints.health import health
+from bravo_api.blueprints.status import status
 from flask import Flask
 
 app = Flask('dummy')
-app.register_blueprint(health.bp)
+app.register_blueprint(status.bp)
 
 
 def test_heath_response_with_alive():

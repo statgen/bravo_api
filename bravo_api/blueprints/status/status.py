@@ -1,6 +1,6 @@
 from flask import Blueprint, current_app, jsonify, make_response
 
-bp = Blueprint('health', __name__)
+bp = Blueprint('status', __name__)
 
 
 @bp.route('/health', methods=['GET'])

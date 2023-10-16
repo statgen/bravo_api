@@ -6,13 +6,12 @@ from flask_pymongo import PyMongo
 from os import getenv
 from bravo_api.models.database import mongo
 from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
-from bravo_api.blueprints.health import health
+from bravo_api.blueprints.status import status
 from bravo_api.blueprints.eqtl import eqtl
 from bravo_api.blueprints.bailiff import auth_routes
 from bravo_api.blueprints.bailiff import MongoUserMgmt
 from bravo_api.core import CoverageProviderFactory
 from bravo_api.core import CramSourceFactory
-from bravo_api.core import FSCramSource
 import secrets
 import importlib.resources as pkg_resources
 
@@ -86,8 +85,7 @@ def create_app(test_config=None):
     gene_routes.bp.before_request(auth_routes.agreement_required)
 
     # Initialize routes. Prefix "ui" are routes for the Vue user interface.
-    app.register_blueprint(health.bp, url_prefix='/')
-    app.register_blueprint(health.bp, name="healthui", url_prefix='/ui')
+    app.register_blueprint(status.bp, url_prefix='/')
     app.register_blueprint(eqtl.bp, url_prefix='/ui')
     app.register_blueprint(autocomplete.bp, url_prefix='/ui')
     app.register_blueprint(variant_routes.bp, url_prefix='/ui')
