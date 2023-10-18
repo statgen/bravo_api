@@ -43,14 +43,6 @@ def get_cond(args):
 def susie(gene_name):
     """ Lookup eqtl data from SuSie analysis.
     @param gene_name.  Short name of gene e.g. UBQLNL
-
-    db.genes.aggregate([
-        {$match: {gene_name: "UBQLNL"}},
-        {$lookup:{
-            from: "eqtl_susie",
-            localField: "gene_id",
-            foreignField: "phenotype_id",
-            as: "eqtls"}}])
     """
     # Remove _id to allow response to be json serializable
     pipeline = [

@@ -1,0 +1,50 @@
+[
+  { "_id": { "$oid": "64d51784a9d61b5927229aba" },
+    "user_id": "alice@example.com",
+    "timestamp": { "$date": 1691672388922 }
+  },
+  { "_id": { "$oid": "64dbb6460430d7c4c2757161" },
+    "user_id": "bob@example.com",
+    "timestamp": { "$date": 1692106246269 }
+  },
+  { "_id": { "$oid": "64dd14d23ecee1ae629ad629" },
+    "user_id": "alice@example.com",
+    "timestamp": { "$date": 1692195986904 }
+  },
+  { "_id": { "$oid": "64dfdbb534861eace62af664" },
+    "user_id": "bob@umich.edu",
+    "timestamp": { "$date": 1692377973104 }
+  },
+  { "_id": { "$oid": "64e3b7b734861eace62af665" },
+    "user_id": "alice@example.com",
+    "timestamp": { "$date": 1692630903330 }
+  },
+  { "_id": { "$oid": "64e638f576bd589f4b787537" },
+    "user_id": "bob@example.com",
+    "timestamp": { "$date": 1692795061835 }
+  },
+  { "_id": { "$oid": "64ecc79c51d65e97f3b713eb" },
+    "user_id": "alice@example.com",
+    "timestamp": { "$date": 1693224796452 }
+  },
+  { "_id": { "$oid": "64ef7232b867ea70b65c4887" },
+    "user_id": "bob@example.com",
+    "timestamp": { "$date": 1693399538422 }
+  },
+  { "_id": { "$oid": "64f1fa5fb867ea70b65c4888" },
+    "user_id": "alice@example.com",
+    "timestamp": { "$date": 1693565471781 }
+  },
+  { "_id": { "$oid": "64f750a38c13e8a258a77659" },
+    "user_id": "bob@example.com",
+    "timestamp": { "$date": 1693915235117 }
+  },
+  { "_id": { "$oid": "64ff35aed5b9f61bc041e5ab" },
+    "user_id": "alice@example.com",
+    "timestamp": { "$date": 1694432622776 }
+  },
+  { "_id": { "$oid": "65258e0e61cb53bdab0bec7f" },
+    "user_id": "carol@example.com",
+    "timestamp": { "$date": 1696945614857 }
+  }
+]

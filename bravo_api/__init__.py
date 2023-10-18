@@ -60,7 +60,6 @@ def create_app(test_config=None):
     app.mmongo = PyMongo(app)
 
     app.coverage_provider = CoverageProviderFactory.build(app.config['COVERAGE_DIR'])
-
     # TODO: Issue #20. Log warnings from coverage provider.
     # coverage_warnings = app.coverage_provicer.evaluate_coverage()
     # app.logger.info(f'{len(coverage_warnings)} coverage warnings.')
