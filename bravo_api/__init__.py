@@ -1,9 +1,9 @@
 from logging.config import dictConfig
+from os import getenv
 from flask import Flask
-from flask_caching import Cache
 from flask_cors import CORS
 from flask_pymongo import PyMongo
-from os import getenv
+from flask_caching import Cache
 from cachelib import FileSystemCache
 from bravo_api.models.database import mongo
 from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
@@ -57,8 +57,8 @@ def create_app(test_config=None):
         app.config.from_mapping(test_config)
 
     # Initialize app cache
-    cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
-    cache.init_app(app)
+    app.cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
+    app.cache.init_app(app)
 
     # Initialize persistence layer depenencies
     mongo.init_app(app)

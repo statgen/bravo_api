@@ -1,6 +1,8 @@
+import logging
 from flask import Blueprint, current_app, jsonify, make_response
 
 bp = Blueprint('status', __name__)
+logger = logging.getLogger(__name__)
 
 
 @bp.route('/health', methods=['GET'])
@@ -18,7 +20,11 @@ def version():
 
 @bp.route('/usage', methods=['GET'])
 def usage():
-    result = active_user_count()
+    result = current_app.cache.get('usage')
+    if result is None:
+        result = active_user_count()
+        current_app.cache.set('usage', result, timeout=3600)
+        logger.debug("usage result updated")
     return make_response(jsonify(result))
 
 
