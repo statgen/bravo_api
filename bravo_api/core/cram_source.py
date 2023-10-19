@@ -63,9 +63,6 @@ class CramSource(ABC):
         :param sample_het: T/F indicating if sample ids should be taken from het column.
         :param sample_no: 1-based index of the id to select from the het or hom column.
         """
-        logger.debug(f'variant map val: {row[1]}, {row[2]}, {row[3]}, {row[4]}, {row[5]}')
-        logger.debug(f'comp sample val: {pos}, {ref}, {alt}, {sample_het}, {sample_no}')
-
         sample_id = None
         if int(row[1]) == pos and row[2] == ref and row[3] == alt:
             samples = row[5] if sample_het else row[4]

@@ -4,6 +4,7 @@ from flask_caching import Cache
 from flask_cors import CORS
 from flask_pymongo import PyMongo
 from os import getenv
+from cachelib import FileSystemCache
 from bravo_api.models.database import mongo
 from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
 from bravo_api.blueprints.status import status
@@ -55,24 +56,26 @@ def create_app(test_config=None):
     else:
         app.config.from_mapping(test_config)
 
+    # Initialize app cache
+    cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
+    cache.init_app(app)
+
     # Initialize persistence layer depenencies
     mongo.init_app(app)
     app.mmongo = PyMongo(app)
 
+    # Initialize coverage
     app.coverage_provider = CoverageProviderFactory.build(app.config['COVERAGE_DIR'])
-    # TODO: Issue #20. Log warnings from coverage provider.
-    # coverage_warnings = app.coverage_provicer.evaluate_coverage()
-    # app.logger.info(f'{len(coverage_warnings)} coverage warnings.')
+    coverage_warnings = app.coverage_provider.evaluate_catalog()
+    app.logger.info(f'{len(coverage_warnings)} coverage warnings.')
+    for cov_warn in coverage_warnings:
+        app.logger.debug(f'coverage warning: {cov_warn}')
 
-    # Configure cache and file system cram source
-    cache_config = {"CACHE_TYPE": "FileSystemCache",
-                    "CACHE_THRESHOLD": 1000,
-                    "CACHE_DIR": app.config['SEQUENCES_CACHE_DIR']}
-    cache = Cache(config=cache_config)
-    cache.init_app(app)
+    # Initialize crams
+    cram_cache = FileSystemCache(cache_dir=app.config['SEQUENCES_CACHE_DIR'], threshold=1000)
     app.cram_source = CramSourceFactory.build(app.config['SEQUENCES_DIR'],
                                               app.config['REFERENCE_SEQUENCE'],
-                                              cache)
+                                              cram_cache)
 
     # Initialize CORS and Sessions
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
@@ -83,7 +86,7 @@ def create_app(test_config=None):
     region_routes.bp.before_request(auth_routes.agreement_required)
     gene_routes.bp.before_request(auth_routes.agreement_required)
 
-    # Initialize routes. Prefix "ui" are routes for the Vue user interface.
+    # Setup routes to blueprints. Prefix "ui" are routes for the Vue user interface.
     app.register_blueprint(status.bp, url_prefix='/')
     app.register_blueprint(eqtl.bp, url_prefix='/ui')
     app.register_blueprint(autocomplete.bp, url_prefix='/ui')
