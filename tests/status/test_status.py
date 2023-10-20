@@ -44,6 +44,11 @@ def test_active_user_query(mocker, mongodb):
                 {'month': 9, 'n_users': 2, 'year': 2023},
                 {'month': 8, 'n_users': 3, 'year': 2023}]
 
+    # Mock the app's cache to return None (no caching)
+    cache_mock = mocker.Mock()
+    cache_mock.get = mocker.Mock(return_value=None)
+    app.cache = cache_mock
+
     with app.test_client() as client:
         resp = client.get('/usage')
     content = resp.get_json()
