@@ -27,6 +27,7 @@ class DummyUserMgmt(UserMgmt):
 
     def update_agreed_to_terms(self, user):
         user.agreed_to_terms = True
+        user.agreed_date = datetime.today()
         return(self.save(user))
 
     def log_auth(self, user):

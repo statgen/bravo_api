@@ -8,3 +8,4 @@ class User(UserMixin):
     def __init__(self, email, agreed_to_terms=False):
         self.id = email
         self.agreed_to_terms = agreed_to_terms
+        self.agreed_date = None

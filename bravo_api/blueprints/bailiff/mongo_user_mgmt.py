@@ -18,7 +18,7 @@ class MongoUserMgmt(UserMgmt):
         return User(mongodoc['user_id'], mongodoc['agreed_to_terms'])
 
     def user_to_mongodoc(self, user):
-        return {'user_id': user.get_id(), 'agreed_to_terms': user.agreed_to_terms}
+        return {'user_id': user.get_id(), 'agreed_to_terms': user.agreed_to_terms, 'agreed_date': user.agreed_date}
 
     def load(self, user_id):
         result = mongo.db.users.find_one({'user_id': user_id}, projection={'_id': False})
@@ -38,6 +38,7 @@ class MongoUserMgmt(UserMgmt):
 
     def update_agreed_to_terms(self, user):
         user.agreed_to_terms = True
+        user.agreed_date = datetime.today()
         return(self.save(user))
 
     def log_auth(self, user):
