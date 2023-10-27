@@ -76,6 +76,7 @@ MongoDB needs to be pupulated with the basis data prior to running the api.
 
 The package provides commands to load the basis data.
 ```sh
+export BRAVO_API_CONFIG_FILE='/path/to/config.py'
 venv/bin/flask load-genes \
   data/basis/reference/canonical_transcripts.tsv.gz \
   data/basis/reference/omim_ensembl_refs.tsv.gz \

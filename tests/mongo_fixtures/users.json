@@ -4,20 +4,39 @@
       "$oid": "deadbeefdeadbeef00001001"
     },
     "user_id": "grosscol@umich.edu",
-    "picture": "https://lh3.googleusercontent.com/a-/AOh14GgLfuLvuyU9BKZnKu6NWQs5bLtPhLkYlUjI3u_K=s96-c",
-    "agreed_to_terms": true
+    "agreed_to_terms": true,
+    "agreed_date": { "$date": "2023-08-24T12:09:09.666Z" }
   },
   {
     "_id": {
       "$oid": "deadbeefdeadbeef00001002"
     },
-    "user_id": "johndoe@example.com",
+    "user_id": "alice@example.com",
     "picture": "https://via.placeholder.com/96",
-    "agreed_to_terms": true
+    "agreed_to_terms": true,
+    "agreed_date": { "$date": "2023-09-24T18:59:59.555Z" }
   },
   {
     "_id": {
       "$oid": "deadbeefdeadbeef00001003"
+    },
+    "user_id": "bob@example.com",
+    "picture": "https://via.placeholder.com/96",
+    "agreed_to_terms": true,
+    "agreed_date": { "$date": "2023-09-24T18:59:59.555Z" }
+  },
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef00001004"
+    },
+    "user_id": "carol@example.com",
+    "picture": "https://via.placeholder.com/96",
+    "agreed_to_terms": true,
+    "agreed_date": { "$date": "2023-10-24T08:09:09.444Z" }
+  },
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef00001005"
     },
     "user_id": "notAgreed@example.com",
     "picture": "https://via.placeholder.com/96",
