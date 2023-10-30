@@ -19,7 +19,6 @@ See [Development](#Development) section for developer installation.
 # Activate venv if present.
 [ -d 'venv' ] && source 'venv/bin/activate'
 
-export FLASK_ENV=development
 export FLASK_APP=bravo_api
 
 # Confige file is relative to the instance directory.
