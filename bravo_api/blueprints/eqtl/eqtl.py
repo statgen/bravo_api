@@ -1,5 +1,4 @@
-# import pymongo
-from flask import current_app, Blueprint, jsonify, make_response
+from flask import current_app, Blueprint, jsonify, make_response, Response
 from flask_cors import CORS
 from webargs import fields
 from webargs.flaskparser import FlaskParser
@@ -13,7 +12,7 @@ CORS(bp)
 
 
 class Parser(FlaskParser):
-    # Override to raise validation error for unknown args
+    # Override in order to raise validation error for unknown args
     DEFAULT_UNKNOWN_BY_LOCATION = {"query": RAISE}
 
 
@@ -28,19 +27,19 @@ eqtl_argmap = {
 
 @bp.route('/eqtl/susie', methods=['GET'])
 @parser.use_args(eqtl_argmap, location='query')
-def get_susie(args):
+def get_susie(args: dict) -> Response:
     result = susie(args['gene'])
     return make_response(jsonify(result))
 
 
 @bp.route('/eqtl/cond', methods=['GET'])
 @parser.use_args(eqtl_argmap, location='query')
-def get_cond(args):
+def get_cond(args: dict) -> Response:
     result = cond(args['gene'])
     return make_response(jsonify(result))
 
 
-def susie(gene_name):
+def susie(gene_name: str) -> list:
     """ Lookup eqtl data from SuSie analysis.
     @param gene_name.  Short name of gene e.g. UBQLNL
     """
@@ -64,7 +63,7 @@ def susie(gene_name):
     return []
 
 
-def cond(gene_name):
+def cond(gene_name: str) -> list:
     # Remove _id to allow response to be json serializable
     pipeline = [
         {'$match': {'gene_name': gene_name}},
