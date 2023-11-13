@@ -1,0 +1,57 @@
+[
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef22000001"
+    },
+    "chrom": "1",
+    "pos": 718601,
+    "ref": "A",
+    "sv_type": "DUP",
+    "sv_len": 105000,
+    "end": 823600
+  },
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef22000002"
+    },
+    "chrom": "1",
+    "pos": 968168,
+    "ref": "G",
+    "sv_type": "DEL",
+    "sv_len": 20516,
+    "end": 988683
+  },
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef22000003"
+    },
+    "chrom": "3",
+    "pos": 957868,
+    "ref": "A",
+    "sv_type": "INV",
+    "sv_len": 343440,
+    "end": 1301307
+  },
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef22000004"
+    },
+    "chrom": "3",
+    "pos": 966074,
+    "ref": "A",
+    "sv_type": "DUP",
+    "sv_len": 174,
+    "end": 966247
+  },
+  {
+    "_id": {
+      "$oid": "deadbeefdeadbeef22000005"
+    },
+    "chrom": "3",
+    "pos": 968537,
+    "ref": "C",
+    "sv_type": "DUP",
+    "sv_len": 51788,
+    "end": 1020324
+  }
+]
