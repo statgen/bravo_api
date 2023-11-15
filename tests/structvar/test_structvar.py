@@ -34,6 +34,13 @@ def test_structvar_spans_roi(mongodb):
     assert result[0]['pos'] == 718601
 
 
+def test_structvar_removes_objectid(mongodb):
+    result = structvar.sv_region(mongodb.structvar, "1", roi_start=720000, roi_stop=820000)
+    sv = result[0]
+    print(sv.keys())
+    assert '_id' not in sv.keys()
+
+
 def test_structvar_multiple_results(mocker, mongodb):
     result = structvar.sv_region(mongodb.structvar, "3", roi_start=950000, roi_stop=1400000)
     assert isinstance(result, list)
