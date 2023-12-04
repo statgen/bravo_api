@@ -1,5 +1,5 @@
 from logging.config import dictConfig
-from os import getenv
+from os import getenv, getcwd
 from flask import Flask
 from flask_cors import CORS
 from flask_pymongo import PyMongo
@@ -43,7 +43,7 @@ def version():
 
 
 def create_app(test_config=None):
-    instance_path = getenv('BRAVO_API_INSTANCE_DIR', None)
+    instance_path = getenv('BRAVO_API_INSTANCE_DIR', getcwd())
     app = Flask(__name__,
                 instance_relative_config=True,
                 instance_path=instance_path)
@@ -51,6 +51,7 @@ def create_app(test_config=None):
     app.version = pkg_resources.read_text(__package__, 'VERSION').strip()
 
     if test_config is None:
+        print(getcwd())
         app.config.from_object('bravo_api.default_config')
         app.config.from_envvar('BRAVO_API_CONFIG_FILE', silent=True)
     else:
