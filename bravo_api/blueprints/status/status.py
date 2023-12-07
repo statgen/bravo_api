@@ -3,6 +3,7 @@ import pymongo
 import sys
 from flask import Blueprint, Response, current_app, jsonify, make_response
 
+
 bp = Blueprint('status', __name__)
 logger = logging.getLogger(__name__)
 
@@ -38,9 +39,31 @@ def usage() -> Response:
     result = current_app.cache.get('usage')
     if result is None:
         result = usage_stats(current_app.mmongo.db)
-        current_app.cache.set('usage', result, timeout=3600)
-        logger.debug("Usage result updated")
+        current_app.cache.set('usage', result, timeout=0)
     return make_response(jsonify(result))
+
+
+@bp.route('/counts', methods=['GET'])
+def counts() -> Response:
+    result = current_app.cache.get('counts')
+    if result is None:
+        snv_count = count_collection(current_app.mmongo.db.snv)
+        transcript_count = count_collection(current_app.mmongo.db.transcripts)
+        gene_count = count_collection(current_app.mmongo.db.genes)
+
+        result = {'snvs': snv_count, 'transcripts': transcript_count, 'genes': gene_count}
+
+        current_app.cache.set('counts', result, timeout=3600)
+        logger.debug('variant counts updated')
+    return make_response(jsonify(result))
+
+
+def count_collection(collection: pymongo.collection.Collection) -> int:
+    """
+    Count (estimate) the number of snv in backing database
+    """
+    result = collection.estimated_document_count()
+    return result
 
 
 def usage_stats(db: pymongo.database.Database) -> dict:
