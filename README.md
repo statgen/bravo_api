@@ -84,7 +84,7 @@ venv/bin/flask load-genes \
 
 venv/bin/flask load-snv 2 data/basis/vcfs/*.vcf.gz
 
-venv/bin/flask load-qc-metrics
+venv/bin/flask load-qc-metrics \
 	data/basis/qc_metrics/metrics.json.gz
 ```
 

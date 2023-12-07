@@ -67,7 +67,8 @@ def sv_region(structvars: pymongo.collection.Collection,
                     ]}
                 ]}
             ]}
-         }
+         },
+        {'$project': {'_id': 0}}
     ]
 
     cursor = structvars.aggregate(pipeline)
