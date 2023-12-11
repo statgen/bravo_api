@@ -15,23 +15,38 @@
 REPORT_PORT="${REPORT_PORT:-29019}"
 
 # Define mongo commands to run queries
-F5_MONGO_CMD="mongo --port ${REPORT_PORT} topmed_freeze5_hg38 --quiet --eval"
-F8_MONGO_CMD="mongo --port ${REPORT_PORT} topmed_freeze8_hg38_browser --quiet --eval"
+F5_MONGO_CMD="mongosh --port ${REPORT_PORT} topmed_freeze5_hg38 --quiet --eval"
+F8_MONGO_CMD="mongosh --port ${REPORT_PORT} topmed_freeze8_hg38_browser --quiet --eval"
 
 # Calculate start and end dates for previous month
 CURR_MONTH_START=$(date +%Y-%m)-01
 PREV_MONTH_START=$(date --date="${CURR_MONTH_START} - 1 month" +%Y-%m-%d)
 
+# ObjectId.fromDate() is no longer available.  Calc the ObjectId in bash.
+# Taken from https://ervinbarta.com/2019/04/08/mongodb-magic/
+
+# Convert dates to seconds
+CURR_MONTH_SEC=$(date --date=${CURR_MONTH_START} +%s)
+PREV_MONTH_SEC=$(date --date=${PREV_MONTH_START} +%s)
+
+# Convert seconds to hex
+CURR_MONTH_HEX=$(printf "%x" ${CURR_MONTH_SEC})
+PREV_MONTH_HEX=$(printf "%x" ${PREV_MONTH_SEC})
+
+# Append 0's to make ObjectId
+CURR_MONTH_OBJID="${CURR_MONTH_HEX}0000000000000000"
+PREV_MONTH_OBJID="${PREV_MONTH_HEX}0000000000000000"
+
+
 ##################
 # Define Queries #
 ##################
 # Uses datetime component of BSON _id creation to determine when user created.
-
 # Count new users in previous month
 read -r -d '' NEW_COUNT_Q <<- EOF
 db.users.find(
-  {_id: { \$lt: ObjectId.fromDate(ISODate('${CURR_MONTH_START}')),
-          \$gte: ObjectId.fromDate(ISODate('${PREV_MONTH_START}')) }
+  {_id: { \$lt: ObjectId('${CURR_MONTH_OBJID}'),
+          \$gte: ObjectId('${PREV_MONTH_OBJID}') }
   }
 ).count()
 EOF
@@ -39,17 +54,20 @@ EOF
 # Count total users at beginning of current month
 read -r -d '' ALL_COUNT_Q <<- EOF
 db.users.find(
-  {_id: {\$lt: ObjectId.fromDate(ISODate('${CURR_MONTH_START}'))}}
+  {_id: {\$lt: ObjectId('${CURR_MONTH_OBJID}')}}
 ).count()
 EOF
 
 # List of all user ids
+# Stringify to avoid util.inspect max array length truncating output
 read -r -d '' ALL_IDS <<- EOF
-db.users.find(
-  {_id: {\$lt: ObjectId.fromDate(ISODate('${CURR_MONTH_START}'))} },
-  {user_id: 1, _id: 0}
+let result = db.users.find(
+  {_id: {\$lt: ObjectId("${CURR_MONTH_OBJID}")} },
+  {user_id: true, _id: false}
 ).toArray()
+JSON.stringify(result)
 EOF
+
 
 ######################
 # Check Dependencies #
@@ -60,7 +78,7 @@ command -v jq 1> /dev/null 2>&1 || \
   { echo >&2 "jq required but it's not installed.  Aborting."; exit 1; }
 
 # Verify jq is installed.
-command -v mongo --version 1> /dev/null 2>&1 || \
+command -v mongosh --version 1> /dev/null 2>&1 || \
   { echo >&2 "mongo required but it's not installed.  Aborting."; exit 1; }
 
 # Check if mongo is reachable
@@ -77,6 +95,7 @@ fi
 # Run new user in prev month queries
 F5_NEW_CNT=$(${F5_MONGO_CMD} "$NEW_COUNT_Q")
 F8_NEW_CNT=$(${F8_MONGO_CMD} "$NEW_COUNT_Q")
+
 
 # Get list of user ids from both freeze 5 & 8
 readarray -t F5_USERS < <(
