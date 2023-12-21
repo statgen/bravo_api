@@ -46,5 +46,45 @@
   { "_id": { "$oid": "65258e0e61cb53bdab0bec7f" },
     "user_id": "carol@example.com",
     "timestamp": { "$date": 1696945614857 }
+  },
+	{ "_id": { "$oid": "c0ffeec0ffeec0ffee000000" },
+    "user_id": "dan@example.com",
+    "timestamp": { "$date": 1698797400000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000001" },
+    "user_id": "ellis@example.com",
+    "timestamp": { "$date": 1698798000000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000002" },
+    "user_id": "fred@example.com",
+    "timestamp": { "$date": 1698798600000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000003" },
+    "user_id": "gigi@example.com",
+    "timestamp": { "$date": 1698799200000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000004" },
+    "user_id": "han@example.com",
+    "timestamp": { "$date": 1698799800000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000005" },
+    "user_id": "ivan@example.com",
+    "timestamp": { "$date": 1698800400000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000006" },
+    "user_id": "joan@example.com",
+    "timestamp": { "$date": 1698883800000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000007" },
+    "user_id": "kelly@example.com",
+    "timestamp": { "$date": 1698884400000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000008" },
+    "user_id": "liam@example.com",
+    "timestamp": { "$date": 1698885000000 }
+  },
+  { "_id": { "$oid": "c0ffeec0ffeec0ffee000009" },
+    "user_id": "noah@example.com",
+    "timestamp": { "$date": 1698885600000 }
   }
 ]

@@ -4,14 +4,22 @@ from flask import Flask
 app = Flask('dummy')
 app.register_blueprint(status.bp)
 
-# Expected results from the mongodb fixtures in tests/mongo_fixtures/
-ACTIVE_USERS_EXPECTED = [{'month': 10, 'active_users': 1, 'year': 2023},
+# Expected results of mongo querying functions when using
+#   the mongodb fixtures in tests/mongo_fixtures/
+ACTIVE_USERS_EXPECTED = [{'month': 11, 'active_users': 10, 'year': 2023},
+                         {'month': 10, 'active_users': 1, 'year': 2023},
                          {'month': 9, 'active_users': 2, 'year': 2023},
                          {'month': 8, 'active_users': 3, 'year': 2023}]
+
+MAX_DAILY_EXPECTED = [{'max_user_per_day': 6, 'month': 11, 'year': 2023},
+                      {'max_user_per_day': 1, 'month': 10, 'year': 2023},
+                      {'max_user_per_day': 1, 'month': 9, 'year': 2023},
+                      {'max_user_per_day': 1, 'month': 8, 'year': 2023}]
 
 NEW_USERS_EXPECTED = [{'month': 10, 'new_users': 1, 'year': 2023},
                       {'month': 9, 'new_users': 2, 'year': 2023},
                       {'month': 8, 'new_users': 1, 'year': 2023}]
+
 
 TOTAL_USERS_EXPECTED = 4
 
@@ -46,8 +54,6 @@ def test_returns_version_when_defined():
 
 def test_active_user_query(mongodb):
     result = status.active_user_count(mongodb.auth_log)
-
-    assert len(result) == 3
     assert(result == ACTIVE_USERS_EXPECTED)
 
 
@@ -66,10 +72,10 @@ def test_total_user_query(mongodb):
 def test_usage_statistic(mongodb):
     expected = {"active": ACTIVE_USERS_EXPECTED,
                 "new": NEW_USERS_EXPECTED,
-                "total": TOTAL_USERS_EXPECTED}
+                "total": TOTAL_USERS_EXPECTED,
+                "max_user_per_day": MAX_DAILY_EXPECTED}
 
     result = status.usage_stats(mongodb)
-    assert(len(result.keys()) == 3)
     assert(result == expected)
 
 
@@ -86,9 +92,15 @@ def test_usage_endpoint(mocker, mongodb):
 
     expected = {"active": ACTIVE_USERS_EXPECTED,
                 "new": NEW_USERS_EXPECTED,
-                "total": TOTAL_USERS_EXPECTED}
+                "total": TOTAL_USERS_EXPECTED,
+                "max_user_per_day": MAX_DAILY_EXPECTED}
 
     with app.test_client() as client:
         resp = client.get('/usage')
     content = resp.get_json()
     assert(content == expected)
+
+
+def test_max_users_per_day(mocker, mongodb):
+    result = status.max_users_per_day(mongodb.auth_log)
+    assert(result == MAX_DAILY_EXPECTED)

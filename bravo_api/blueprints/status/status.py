@@ -72,7 +72,8 @@ def usage_stats(db: pymongo.database.Database) -> dict:
     """
     result = {"active": active_user_count(db.auth_log),
               "new": new_user_count(db.users),
-              "total": total_user_count(db.users)}
+              "total": total_user_count(db.users),
+              "max_user_per_day": max_users_per_day(db.auth_log)}
     return result
 
 
@@ -136,6 +137,43 @@ def active_user_count(collection: pymongo.collection.Collection) -> dict:
                         "year": "$_id.year",
                         "month": "$_id.month",
                         "active_users": {"$size": "$users"}}},
+            {"$sort": {"year": -1, "month": -1}}
+    ]
+
+    cursor = collection.aggregate(pipeline)
+    return([item for item in cursor])
+
+
+def max_users_per_day(collection: pymongo.collection.Collection) -> dict:
+    """
+    Given pymongo collection for the auth log, query for count of max users in a day per month.
+    Return array of dicts one per month. E.g.
+
+    [{'month': 10, 'max_daily_users': 10, 'year': 2023},
+    {'month': 9, 'max_daily_users': 20, 'year': 2023},
+    {'month': 8, 'max_daily_users': 25, 'year': 2023}]
+    """
+    pipeline = [
+            {"$project": {
+                        "year": {"$year": "$timestamp"},
+                        "month": {"$month": "$timestamp"},
+                        "day": {"$dayOfMonth": "$timestamp"},
+                        "user_id": "$user_id"}},
+            {"$group": {"_id": {"day": "$day", "month": "$month", "year": "$year"},
+                        "users": {"$addToSet": "$user_id"}}},
+            {"$project": {
+                        "_id": 0,
+                        "year": "$_id.year",
+                        "month": "$_id.month",
+                        "day": "$_id.day",
+                        "active_users": {"$size": "$users"}}},
+            {"$group": {"_id": {"month": "$month", "year": "$year"},
+                        "max_user_per_day": {"$max": "$active_users"}}},
+            {"$project": {
+                        "_id": 0,
+                        "year": "$_id.year",
+                        "month": "$_id.month",
+                        "max_user_per_day": 1}},
             {"$sort": {"year": -1, "month": -1}}
     ]
 
