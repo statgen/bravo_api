@@ -5,7 +5,7 @@ import os
 import boto3
 import io
 import gzip
-from moto import mock_s3
+from moto import mock_aws
 
 
 # Mock coverage file structure
@@ -78,7 +78,7 @@ def aws_credentials():
 
 @pytest.fixture(scope="session")
 def s3(aws_credentials):
-    with mock_s3():
+    with mock_aws():
         yield boto3.client("s3", region_name="atlantis")
 
 
