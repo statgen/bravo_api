@@ -39,7 +39,7 @@ def usage() -> Response:
     result = current_app.cache.get('usage')
     if result is None:
         result = usage_stats(current_app.mmongo.db)
-        current_app.cache.set('usage', result, timeout=0)
+        current_app.cache.set('usage', result, timeout=300)
     return make_response(jsonify(result))
 
 
