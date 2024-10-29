@@ -86,14 +86,27 @@ def total_user_count(collection: pymongo.collection.Collection) -> int:
     return len([item for item in cursor])
 
 
-def new_user_count(collection: pymongo.collection.Collection) -> dict:
+def add_running_user_count(user_counts: list) -> list:
+    """
+    Given list of monthly user counts in ascending date order,
+    return same list with running sum of users added to each month.
+    """
+    acc = 0
+    for month in user_counts:
+        acc = acc + month['new_users']
+        month['run_total'] = acc
+
+    return user_counts
+
+
+def new_user_count(collection: pymongo.collection.Collection) -> list:
     """
     Given users collection, query for new users that agreed to terms per month.
-    Return array of dicts one per month. E.g.
+    Return array of dicts one per month in date descending order. E.g.
 
-    [{'month': 10, 'new_users': 20, 'year': 2023},
-    {'month': 9, 'new_users': 30, 'year': 2023},
-    {'month': 8, 'new_users': 40, 'year': 2023}]
+    [{'month': 10, 'new_users': 20, 'run_total': 90, 'year': 2023},
+    {'month': 9, 'new_users': 30, 'run_total': 70, 'year': 2023},
+    {'month': 8, 'new_users': 40, 'run_total': 30, 'year': 2023}]
     """
     user_counts_pline = [
         {"$match": {"agreed_to_terms": {"$eq": True}}},
@@ -109,11 +122,13 @@ def new_user_count(collection: pymongo.collection.Collection) -> dict:
                     "year": "$_id.year",
                     "month": "$_id.month",
                     "new_users": 1}},
-        {"$sort": {"year": -1, "month": -1}}
+        {"$sort": {"year": 1, "month": 1}}
     ]
 
     user_counts = collection.aggregate(user_counts_pline)
-    return [item for item in user_counts]
+    count_list = add_running_user_count([item for item in user_counts])
+
+    return count_list[::-1]
 
 
 def active_user_count(collection: pymongo.collection.Collection) -> dict:

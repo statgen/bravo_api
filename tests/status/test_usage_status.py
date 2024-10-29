@@ -16,10 +16,9 @@ MAX_DAILY_EXPECTED = [{'max_user_per_day': 6, 'month': 11, 'year': 2023},
                       {'max_user_per_day': 1, 'month': 9, 'year': 2023},
                       {'max_user_per_day': 1, 'month': 8, 'year': 2023}]
 
-NEW_USERS_EXPECTED = [{'month': 10, 'new_users': 1, 'year': 2023},
-                      {'month': 9, 'new_users': 2, 'year': 2023},
-                      {'month': 8, 'new_users': 1, 'year': 2023}]
-
+NEW_USERS_EXPECTED = [{'month': 10, 'new_users': 1, 'run_total': 4, 'year': 2023},
+                      {'month': 9, 'new_users': 2, 'run_total': 3, 'year': 2023},
+                      {'month': 8, 'new_users': 1, 'run_total': 1, 'year': 2023}]
 
 TOTAL_USERS_EXPECTED = 4
 
