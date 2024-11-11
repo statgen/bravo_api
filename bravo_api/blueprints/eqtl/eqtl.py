@@ -24,6 +24,12 @@ eqtl_argmap = {
                        error_messages={'validator_failed': 'Value must be a non-empty string.'})
 }
 
+ensg_argmap = {
+    'ensembl': fields.Str(required=True, validate=lambda x: len(x) > 15 and len(x) < 20,
+                           error_messages={
+                               'validator_failed': 'String length must be between 16 and 19.'})
+}
+
 
 @bp.route('/eqtl/susie', methods=['GET'])
 @parser.use_args(eqtl_argmap, location='query')
@@ -36,6 +42,20 @@ def get_susie(args: dict) -> Response:
 @parser.use_args(eqtl_argmap, location='query')
 def get_cond(args: dict) -> Response:
     result = cond(args['gene'])
+    return make_response(jsonify(result))
+
+
+@bp.route('/eqtl/susie_count', methods=['GET'])
+@parser.use_args(ensg_argmap, location='query')
+def get_susie_count(args: dict) -> Response:
+    result = susie_count(args['ensembl'])
+    return make_response(jsonify(result))
+
+
+@bp.route('/eqtl/cond_count', methods=['GET'])
+@parser.use_args(ensg_argmap, location='query')
+def get_cond_count(args: dict) -> Response:
+    result = cond_count(args['ensembl'])
     return make_response(jsonify(result))
 
 
@@ -56,11 +76,10 @@ def susie(gene_name: str) -> list:
     cursor = current_app.mmongo.db.genes.aggregate(pipeline)
     cursor.limit = 1
     answer = next(cursor, None)
-    # if answer is None:
-    #     return []
-    # else:
-    #     return answer['eqtls']
-    return []
+    if answer is None:
+        return []
+    else:
+        return answer['eqtls']
 
 
 def cond(gene_name: str) -> list:
@@ -77,8 +96,19 @@ def cond(gene_name: str) -> list:
     cursor = current_app.mmongo.db.genes.aggregate(pipeline)
     cursor.limit = 1
     answer = next(cursor, None)
-    # if answer is None:
-    #     return []
-    # else:
-    #     return answer['eqtls']
-    return []
+    if answer is None:
+        return []
+    else:
+        return answer['eqtls']
+
+
+def susie_count(ensembl_id: str) -> int:
+    mongo_filter = {'phenotype_id': ensembl_id}
+    result = current_app.mmongo.db.eqtl_susie.count_documents(mongo_filter)
+    return result
+
+
+def cond_count(ensembl_id: str) -> int:
+    mongo_filter = {'phenotype_id': ensembl_id}
+    result = current_app.mmongo.db.eqtl_cond.count_documents(mongo_filter)
+    return result
