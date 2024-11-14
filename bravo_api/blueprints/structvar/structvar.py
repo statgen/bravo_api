@@ -1,14 +1,12 @@
 import logging
 import pymongo
 from flask import current_app, Blueprint, jsonify, make_response, Response
-from flask_cors import CORS
 from webargs import fields
 from webargs.flaskparser import FlaskParser
 from marshmallow import RAISE
 
 logger = logging.getLogger(__name__)
 bp = Blueprint('structvar', __name__)
-CORS(bp)
 
 
 class Parser(FlaskParser):

@@ -87,6 +87,7 @@ def create_app(test_config=None):
     variant_routes.bp.before_request(auth_routes.agreement_required)
     region_routes.bp.before_request(auth_routes.agreement_required)
     gene_routes.bp.before_request(auth_routes.agreement_required)
+    eqtl.bp.before_request(auth_routes.agreement_required)
 
     # Setup routes to blueprints. Prefix "ui" are routes for the Vue user interface.
     app.register_blueprint(status.bp, url_prefix='/ui')
