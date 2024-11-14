@@ -1,5 +1,4 @@
 from flask import current_app, Blueprint, jsonify, make_response, Response
-from flask_cors import CORS
 from webargs import fields
 from webargs.flaskparser import FlaskParser
 from marshmallow import RAISE
@@ -8,7 +7,6 @@ import logging
 
 logger = logging.getLogger(__name__)
 bp = Blueprint('eqtl', __name__)
-CORS(bp)
 
 
 class Parser(FlaskParser):
@@ -25,9 +23,9 @@ eqtl_argmap = {
 }
 
 ensg_argmap = {
-    'ensembl': fields.Str(required=True, validate=lambda x: len(x) > 15 and len(x) < 20,
-                           error_messages={
-                               'validator_failed': 'String length must be between 16 and 19.'})
+    'ensembl': fields.Str(required=True, validate=lambda x: len(x) > 12 and len(x) < 17,
+                          error_messages={
+                              'validator_failed': 'String length must be between 13 and 16.'})
 }
 
 
