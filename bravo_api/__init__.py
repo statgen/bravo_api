@@ -52,10 +52,10 @@ def create_app(test_config=None):
     app.version = pkg_resources.read_text(__package__, 'VERSION').strip()
 
     if test_config is None:
-        print(getcwd())
         app.config.from_object('bravo_api.default_config')
         app.config.from_envvar('BRAVO_API_CONFIG_FILE', silent=True)
     else:
+        app.config.from_object('bravo_api.default_config')
         app.config.from_mapping(test_config)
 
     # Initialize app cache
@@ -83,11 +83,13 @@ def create_app(test_config=None):
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
     app.secret_key = app.config['SESSION_SECRET'] or secrets.token_bytes()
 
-    # Protect data endpoint blueprints
-    variant_routes.bp.before_request(auth_routes.agreement_required)
-    region_routes.bp.before_request(auth_routes.agreement_required)
-    gene_routes.bp.before_request(auth_routes.agreement_required)
-    eqtl.bp.before_request(auth_routes.agreement_required)
+    # Protect data endpoint blueprints without modifying them with before_request.
+    app.before_request_funcs = {
+        'variant_routes': [auth_routes.agreement_required],
+        'region_routes': [auth_routes.agreement_required],
+        'gene_routes': [auth_routes.agreement_required],
+        'eqtl': [auth_routes.agreement_required]
+    }
 
     # Setup routes to blueprints. Prefix "ui" are routes for the Vue user interface.
     app.register_blueprint(status.bp, url_prefix='/ui')
