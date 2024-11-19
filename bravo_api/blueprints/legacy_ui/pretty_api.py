@@ -231,7 +231,8 @@ def get_snv_filters():
 
 def get_variant(variant_id):
     data = []
-    for variant in variants.get_snv(variant_id, None, None, 1):
+    variant_id_normalized = variant_id.replace('_', '-')
+    for variant in variants.get_snv(variant_id_normalized, None, None, 1):
         data.append(variant)
     return({'data': data, 'total': len(data), 'limit': None, 'next': None, 'error': None})
 
