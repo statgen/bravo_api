@@ -1,0 +1,359 @@
+[
+  {
+    "_id": {
+      "$oid": "6757209fd8c94fd9f14db1a2"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "num_var": {
+      "$numberInt": "12527"
+    },
+    "beta_shape1": {
+      "$numberDouble": "1.03741"
+    },
+    "beta_shape2": {
+      "$numberDouble": "1340.91"
+    },
+    "true_df": {
+      "$numberDouble": "1035.72"
+    },
+    "pval_true_df": "1.76065e-16",
+    "variant_id": "chr11_5620681_C_A",
+    "tss_distance": {
+      "$numberInt": "-4213"
+    },
+    "ma_samples": {
+      "$numberInt": "646"
+    },
+    "ma_count": {
+      "$numberInt": "749"
+    },
+    "af": {
+      "$numberDouble": "0.296047"
+    },
+    "pval_nominal": "4.2797e-19",
+    "slope": {
+      "$numberDouble": "0.330654"
+    },
+    "slope_se": {
+      "$numberDouble": "0.0364169"
+    },
+    "pval_perm": "9.999e-05",
+    "pval_beta": "7.82787e-14",
+    "rank": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620681"
+    },
+    "ref": "C",
+    "alt": "A",
+    "tissue": "PBMC"
+  },
+  {
+    "_id": {
+      "$oid": "675720a0d8c94fd9f14e519f"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "num_var": {
+      "$numberInt": "9985"
+    },
+    "beta_shape1": {
+      "$numberDouble": "1.03443"
+    },
+    "beta_shape2": {
+      "$numberDouble": "1113.84"
+    },
+    "true_df": {
+      "$numberDouble": "1126.63"
+    },
+    "pval_true_df": "3.14748e-18",
+    "variant_id": "chr11_5620771_T_C",
+    "tss_distance": {
+      "$numberInt": "-4123"
+    },
+    "ma_samples": {
+      "$numberInt": "674"
+    },
+    "ma_count": {
+      "$numberInt": "789"
+    },
+    "af": {
+      "$numberDouble": "0.290074"
+    },
+    "pval_nominal": "2.63909e-20",
+    "slope": {
+      "$numberDouble": "0.34802"
+    },
+    "slope_se": {
+      "$numberDouble": "0.0370546"
+    },
+    "pval_perm": "9.999e-05",
+    "pval_beta": "1.09799e-15",
+    "rank": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620771"
+    },
+    "ref": "T",
+    "alt": "C",
+    "tissue": "Lung"
+  },
+  {
+    "_id": {
+      "$oid": "675720a2d8c94fd9f14edc3a"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "num_var": {
+      "$numberInt": "11932"
+    },
+    "beta_shape1": {
+      "$numberDouble": "1.04878"
+    },
+    "beta_shape2": {
+      "$numberDouble": "1266.15"
+    },
+    "true_df": {
+      "$numberDouble": "276.44"
+    },
+    "pval_true_df": "5.32492e-09",
+    "variant_id": "chr11_5620681_C_A",
+    "tss_distance": {
+      "$numberInt": "-4213"
+    },
+    "ma_samples": {
+      "$numberInt": "183"
+    },
+    "ma_count": {
+      "$numberInt": "213"
+    },
+    "af": {
+      "$numberDouble": "0.289402"
+    },
+    "pval_nominal": "3.37489e-10",
+    "slope": {
+      "$numberDouble": "0.467486"
+    },
+    "slope_se": {
+      "$numberDouble": "0.0720936"
+    },
+    "pval_perm": "9.999e-05",
+    "pval_beta": "3.69213e-06",
+    "rank": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620681"
+    },
+    "ref": "C",
+    "alt": "A",
+    "tissue": "T_cell"
+  },
+  {
+    "_id": {
+      "$oid": "675720a2d8c94fd9f14f2060"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "num_var": {
+      "$numberInt": "9704"
+    },
+    "beta_shape1": {
+      "$numberDouble": "1.03989"
+    },
+    "beta_shape2": {
+      "$numberDouble": "1113.37"
+    },
+    "true_df": {
+      "$numberDouble": "283.851"
+    },
+    "pval_true_df": "2.32258e-08",
+    "variant_id": "chr11_5620526_G_A",
+    "tss_distance": {
+      "$numberInt": "-4368"
+    },
+    "ma_samples": {
+      "$numberInt": "160"
+    },
+    "ma_count": {
+      "$numberInt": "185"
+    },
+    "af": {
+      "$numberDouble": "0.25766"
+    },
+    "pval_nominal": "4.9884e-09",
+    "slope": {
+      "$numberDouble": "0.426341"
+    },
+    "slope_se": {
+      "$numberDouble": "0.0708551"
+    },
+    "pval_perm": "9.999e-05",
+    "pval_beta": "1.66753e-05",
+    "rank": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620526"
+    },
+    "ref": "G",
+    "alt": "A",
+    "tissue": "Nasal_epithelial"
+  },
+  {
+    "_id": {
+      "$oid": "675720a4d8c94fd9f14f9d7e"
+    },
+    "phenotype_id": "ENSG00000244734",
+    "num_var": {
+      "$numberInt": "12592"
+    },
+    "beta_shape1": {
+      "$numberDouble": "1.04886"
+    },
+    "beta_shape2": {
+      "$numberDouble": "1433.57"
+    },
+    "true_df": {
+      "$numberDouble": "5707.37"
+    },
+    "pval_true_df": "9.49303e-06",
+    "variant_id": "chr11_5302105_G_A",
+    "tss_distance": {
+      "$numberInt": "72710"
+    },
+    "ma_samples": {
+      "$numberInt": "277"
+    },
+    "ma_count": {
+      "$numberInt": "292"
+    },
+    "af": {
+      "$numberDouble": "0.0221145"
+    },
+    "pval_nominal": "2.3867e-06",
+    "slope": {
+      "$numberDouble": "-0.0718948"
+    },
+    "slope_se": {
+      "$numberDouble": "0.0152261"
+    },
+    "pval_perm": "0.00909909",
+    "pval_beta": "0.0107235",
+    "rank": {
+      "$numberInt": "2"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5302105"
+    },
+    "ref": "G",
+    "alt": "A",
+    "tissue": "Whole_blood"
+  },
+  {
+    "_id": {
+      "$oid": "675720a4d8c94fd9f14f9d7f"
+    },
+    "phenotype_id": "ENSG00000244734",
+    "num_var": {
+      "$numberInt": "12592"
+    },
+    "beta_shape1": {
+      "$numberDouble": "1.06039"
+    },
+    "beta_shape2": {
+      "$numberDouble": "1362.7"
+    },
+    "true_df": {
+      "$numberDouble": "5646.38"
+    },
+    "pval_true_df": "9.75527e-06",
+    "variant_id": "chr11_5227002_T_A",
+    "tss_distance": {
+      "$numberInt": "-2393"
+    },
+    "ma_samples": {
+      "$numberInt": "154"
+    },
+    "ma_count": {
+      "$numberInt": "154"
+    },
+    "af": {
+      "$numberDouble": "0.0116631"
+    },
+    "pval_nominal": "2.17236e-06",
+    "slope": {
+      "$numberDouble": "-0.0991802"
+    },
+    "slope_se": {
+      "$numberDouble": "0.0209198"
+    },
+    "pval_perm": "0.00889911",
+    "pval_beta": "0.0099033",
+    "rank": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5227002"
+    },
+    "ref": "T",
+    "alt": "A",
+    "tissue": "Whole_blood"
+  },
+  {
+    "_id": {
+      "$oid": "675720a4d8c94fd9f14f9db6"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "num_var": {
+      "$numberInt": "12099"
+    },
+    "beta_shape1": {
+      "$numberDouble": "1.0408"
+    },
+    "beta_shape2": {
+      "$numberDouble": "1520.74"
+    },
+    "true_df": {
+      "$numberDouble": "5703.52"
+    },
+    "pval_true_df": "5.36021e-30",
+    "variant_id": "chr11_5620771_T_C",
+    "tss_distance": {
+      "$numberInt": "-4123"
+    },
+    "ma_samples": {
+      "$numberInt": "3030"
+    },
+    "ma_count": {
+      "$numberInt": "3500"
+    },
+    "af": {
+      "$numberDouble": "0.265071"
+    },
+    "pval_nominal": "7.65748e-34",
+    "slope": {
+      "$numberDouble": "0.153686"
+    },
+    "slope_se": {
+      "$numberDouble": "0.0126013"
+    },
+    "pval_perm": "9.999e-05",
+    "pval_beta": "6.90583e-28",
+    "rank": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620771"
+    },
+    "ref": "T",
+    "alt": "C",
+    "tissue": "Whole_blood"
+  }
+]

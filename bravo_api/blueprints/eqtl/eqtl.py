@@ -74,6 +74,7 @@ def susie(gene_name: str) -> list:
     cursor = current_app.mmongo.db.genes.aggregate(pipeline)
     cursor.limit = 1
     answer = next(cursor, None)
+
     if answer is None:
         return []
     else:
@@ -98,6 +99,16 @@ def cond(gene_name: str) -> list:
         return []
     else:
         return answer['eqtls']
+
+
+def susie_ensembl(ensembl_id: str) -> list:
+    pipeline = [{'$match': {'phenotype_id': ensembl_id}}, {'$project': {'_id': False}}]
+    cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
+    result = next(cursor, None)
+    if result is None:
+        return []
+    else:
+        return result
 
 
 def susie_count(ensembl_id: str) -> int:

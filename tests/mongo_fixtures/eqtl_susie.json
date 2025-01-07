@@ -1,0 +1,508 @@
+[
+  {
+    "_id": {
+      "$oid": "675720c36d4a0ca7aa059e5f"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620480_A_C",
+    "pip": {
+      "$numberDouble": "0.20370784"
+    },
+    "af": {
+      "$numberDouble": "0.29076087"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620480"
+    },
+    "ref": "A",
+    "alt": "C",
+    "tissue": "T_cell"
+  },
+  {
+    "_id": {
+      "$oid": "675720c36d4a0ca7aa059e60"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620526_G_A",
+    "pip": {
+      "$numberDouble": "0.20370784"
+    },
+    "af": {
+      "$numberDouble": "0.29076087"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620526"
+    },
+    "ref": "G",
+    "alt": "A",
+    "tissue": "T_cell"
+  },
+  {
+    "_id": {
+      "$oid": "675720c36d4a0ca7aa059e61"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620681_C_A",
+    "pip": {
+      "$numberDouble": "0.2927016"
+    },
+    "af": {
+      "$numberDouble": "0.2894022"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620681"
+    },
+    "ref": "C",
+    "alt": "A",
+    "tissue": "T_cell"
+  },
+  {
+    "_id": {
+      "$oid": "675720c36d4a0ca7aa059e62"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620771_T_C",
+    "pip": {
+      "$numberDouble": "0.2927016"
+    },
+    "af": {
+      "$numberDouble": "0.2894022"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620771"
+    },
+    "ref": "T",
+    "alt": "C",
+    "tissue": "T_cell"
+  },
+  {
+    "_id": {
+      "$oid": "675720cf6d4a0ca7aa10ee38"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620480_A_C",
+    "pip": {
+      "$numberDouble": "0.1782883"
+    },
+    "af": {
+      "$numberDouble": "0.29007354"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620480"
+    },
+    "ref": "A",
+    "alt": "C",
+    "tissue": "Lung"
+  },
+  {
+    "_id": {
+      "$oid": "675720cf6d4a0ca7aa10ee39"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620526_G_A",
+    "pip": {
+      "$numberDouble": "0.2720647"
+    },
+    "af": {
+      "$numberDouble": "0.2904412"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620526"
+    },
+    "ref": "G",
+    "alt": "A",
+    "tissue": "Lung"
+  },
+  {
+    "_id": {
+      "$oid": "675720cf6d4a0ca7aa10ee3a"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620681_C_A",
+    "pip": {
+      "$numberDouble": "0.22219932"
+    },
+    "af": {
+      "$numberDouble": "0.29007354"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620681"
+    },
+    "ref": "C",
+    "alt": "A",
+    "tissue": "Lung"
+  },
+  {
+    "_id": {
+      "$oid": "675720cf6d4a0ca7aa10ee3b"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620771_T_C",
+    "pip": {
+      "$numberDouble": "0.28390253"
+    },
+    "af": {
+      "$numberDouble": "0.29007354"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620771"
+    },
+    "ref": "T",
+    "alt": "C",
+    "tissue": "Lung"
+  },
+  {
+    "_id": {
+      "$oid": "675720d06d4a0ca7aa121f8b"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620480_A_C",
+    "pip": {
+      "$numberDouble": "0.17263539"
+    },
+    "af": {
+      "$numberDouble": "0.25905293"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620480"
+    },
+    "ref": "A",
+    "alt": "C",
+    "tissue": "Nasal_epithelial"
+  },
+  {
+    "_id": {
+      "$oid": "675720d06d4a0ca7aa121f8c"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620526_G_A",
+    "pip": {
+      "$numberDouble": "0.2012523"
+    },
+    "af": {
+      "$numberDouble": "0.25766015"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620526"
+    },
+    "ref": "G",
+    "alt": "A",
+    "tissue": "Nasal_epithelial"
+  },
+  {
+    "_id": {
+      "$oid": "675720d06d4a0ca7aa121f8d"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620681_C_A",
+    "pip": {
+      "$numberDouble": "0.2012523"
+    },
+    "af": {
+      "$numberDouble": "0.25766015"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620681"
+    },
+    "ref": "C",
+    "alt": "A",
+    "tissue": "Nasal_epithelial"
+  },
+  {
+    "_id": {
+      "$oid": "675720d06d4a0ca7aa121f8e"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620687_G_A",
+    "pip": {
+      "$numberDouble": "0.19933909"
+    },
+    "af": {
+      "$numberDouble": "0.2562674"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620687"
+    },
+    "ref": "G",
+    "alt": "A",
+    "tissue": "Nasal_epithelial"
+  },
+  {
+    "_id": {
+      "$oid": "675720d06d4a0ca7aa121f8f"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620796_A_T",
+    "pip": {
+      "$numberDouble": "0.052929934"
+    },
+    "af": {
+      "$numberDouble": "0.26044568"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620796"
+    },
+    "ref": "A",
+    "alt": "T",
+    "tissue": "Nasal_epithelial"
+  },
+  {
+    "_id": {
+      "$oid": "675720d06d4a0ca7aa121f92"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620771_T_C",
+    "pip": {
+      "$numberDouble": "0.17222922"
+    },
+    "af": {
+      "$numberDouble": "0.2562674"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620771"
+    },
+    "ref": "T",
+    "alt": "C",
+    "tissue": "Nasal_epithelial"
+  },
+  {
+    "_id": {
+      "$oid": "675720d66d4a0ca7aa177191"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620480_A_C",
+    "pip": {
+      "$numberDouble": "0.18498915"
+    },
+    "af": {
+      "$numberDouble": "0.2964427"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620480"
+    },
+    "ref": "A",
+    "alt": "C",
+    "tissue": "PBMC"
+  },
+  {
+    "_id": {
+      "$oid": "675720d66d4a0ca7aa177192"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620526_G_A",
+    "pip": {
+      "$numberDouble": "0.18498915"
+    },
+    "af": {
+      "$numberDouble": "0.2964427"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620526"
+    },
+    "ref": "G",
+    "alt": "A",
+    "tissue": "PBMC"
+  },
+  {
+    "_id": {
+      "$oid": "675720d66d4a0ca7aa177193"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620681_C_A",
+    "pip": {
+      "$numberDouble": "0.31454393"
+    },
+    "af": {
+      "$numberDouble": "0.29604742"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620681"
+    },
+    "ref": "C",
+    "alt": "A",
+    "tissue": "PBMC"
+  },
+  {
+    "_id": {
+      "$oid": "675720d66d4a0ca7aa177194"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620771_T_C",
+    "pip": {
+      "$numberDouble": "0.31454274"
+    },
+    "af": {
+      "$numberDouble": "0.29604742"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620771"
+    },
+    "ref": "T",
+    "alt": "C",
+    "tissue": "PBMC"
+  },
+  {
+    "_id": {
+      "$oid": "675720de6d4a0ca7aa1d1119"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620480_A_C",
+    "pip": {
+      "$numberDouble": "0.27777952"
+    },
+    "af": {
+      "$numberDouble": "0.26544988"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620480"
+    },
+    "ref": "A",
+    "alt": "C",
+    "tissue": "Whole_blood"
+  },
+  {
+    "_id": {
+      "$oid": "675720de6d4a0ca7aa1d111a"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620526_G_A",
+    "pip": {
+      "$numberDouble": "0.22162405"
+    },
+    "af": {
+      "$numberDouble": "0.26507118"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620526"
+    },
+    "ref": "G",
+    "alt": "A",
+    "tissue": "Whole_blood"
+  },
+  {
+    "_id": {
+      "$oid": "675720de6d4a0ca7aa1d111b"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620681_C_A",
+    "pip": {
+      "$numberDouble": "0.21820638"
+    },
+    "af": {
+      "$numberDouble": "0.26514694"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620681"
+    },
+    "ref": "C",
+    "alt": "A",
+    "tissue": "Whole_blood"
+  },
+  {
+    "_id": {
+      "$oid": "675720de6d4a0ca7aa1d111c"
+    },
+    "phenotype_id": "ENSG00000239920",
+    "variant_id": "chr11_5620771_T_C",
+    "pip": {
+      "$numberDouble": "0.2822702"
+    },
+    "af": {
+      "$numberDouble": "0.26507118"
+    },
+    "cs_id": {
+      "$numberInt": "1"
+    },
+    "chrom": "chr11",
+    "pos": {
+      "$numberInt": "5620771"
+    },
+    "ref": "T",
+    "alt": "C",
+    "tissue": "Whole_blood"
+  }
+]
