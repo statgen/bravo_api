@@ -5,15 +5,15 @@ import pytest
 @pytest.fixture
 def app():
     app = create_app({
-       'MONGO_URI': 'mongodb://localhost:27017/example',
-       'COVERAGE_DIR': '/var/bravo/data/coverage',
-       'SEQUENCES_DIR': '/var/bravo/data/crams',
-       'SEQUENCES_CACHE_DIR': '/var/bravo/data/cache',
-       'REFERENCE_SEQUENCE': '/var/bravo/data/reference/hs38DH.fa',
-       'BRAVO_API_PAGE_LIMIT': 100000,
-       'GZIP_COMPRESSION': True
+        'MONGO_URI': 'mongodb://localhost:27017/bravo-demo',
+        'COVERAGE_DIR': '/var/local/bravo/data/runtime/coverage',
+        'SEQUENCES_DIR': '/var/local/bravo/data/runtime/crams',
+        'SEQUENCES_CACHE_DIR': '/var/local/bravo/data/runtime/cache',
+        'REFERENCE_SEQUENCE': '/var/local/bravo/data/runtime/reference/hs38DH.fa',
+        'BRAVO_API_PAGE_LIMIT': 100000,
+        'LOGIN_DISABLED': True
     })
-    yield app
+    return app
 
 
 @pytest.fixture
