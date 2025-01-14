@@ -98,7 +98,7 @@ def create_app(test_config=None):
     app.register_blueprint(auth_routes.bp, url_prefix='/ui')
 
     # Initialize User Management and Authorization Routes
-    if 'USER_DOMAIN_PERMITTED' in app.config:
+    if 'USER_DOMAIN_PERMITTED' in app.config and not app.config['USER_DOMAIN_PERMITTED'] == "":
         DomainUser.set_permitted_domain(app.config['USER_DOMAIN_PERMITTED'])
         app.user_mgmt = MongoUserMgmt(app.mmongo, DomainUser)
     else:

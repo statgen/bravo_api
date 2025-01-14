@@ -15,4 +15,5 @@ GOOGLE_CLIENT_SECRET = ""
 GOOGLE_DISCOVERY_URL = "https://accounts.google.com/.well-known/openid-configuration"
 
 # Use the following key to only allow users from a single domain
+#  Leave undefined or "" to allow users to authenticate from all domains
 # USER_DOMAIN_PERMITTED = "example.com"
