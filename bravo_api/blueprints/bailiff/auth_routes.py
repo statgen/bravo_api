@@ -61,7 +61,10 @@ def user_auth_status():
 
 def authentication_required():
     """
-    Before request hook to be registered when all routes in blueprint should require auth.
+    Register this method as the Before request hook for a blueprint,
+      when all routes in blueprint should require auth.
+    E.g.
+      variant_routes.bp.before_request(auth_routes.agreement_required)
     """
     if request.method == 'OPTIONS':
         return None

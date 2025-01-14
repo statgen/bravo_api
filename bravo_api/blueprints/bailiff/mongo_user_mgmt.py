@@ -9,16 +9,18 @@ from .user import User
 
 
 class MongoUserMgmt(UserMgmt):
-    def __init__(self, mongo_client):
+    def __init__(self, mongo_client, user_class=User):
         self.mongo = mongo_client
+        self.user_klass = user_class
 
     def mongo_doc_to_user(self, mongodoc):
         if mongodoc is None:
             return None
-        return User(mongodoc['user_id'], mongodoc['agreed_to_terms'])
+        return self.user_klass(mongodoc['user_id'], mongodoc['agreed_to_terms'])
 
     def user_to_mongodoc(self, user):
-        return {'user_id': user.get_id(), 'agreed_to_terms': user.agreed_to_terms, 'agreed_date': user.agreed_date}
+        return {'user_id': user.get_id(), 'agreed_to_terms': user.agreed_to_terms,
+                'agreed_date': user.agreed_date}
 
     def load(self, user_id):
         result = mongo.db.users.find_one({'user_id': user_id}, projection={'_id': False})
@@ -33,7 +35,7 @@ class MongoUserMgmt(UserMgmt):
         return user
 
     def create_by_id(self, user_id):
-        user = self.save(User(user_id))
+        user = self.save(self.user_klass(user_id))
         return(user)
 
     def update_agreed_to_terms(self, user):

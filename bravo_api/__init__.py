@@ -10,6 +10,7 @@ from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_ro
 from bravo_api.blueprints.status import status
 from bravo_api.blueprints.eqtl import eqtl
 from bravo_api.blueprints.bailiff import auth_routes
+from bravo_api.blueprints.bailiff import DomainUser
 from bravo_api.blueprints.bailiff import MongoUserMgmt
 from bravo_api.core import CoverageProviderFactory
 from bravo_api.core import CramSourceFactory
@@ -97,7 +98,11 @@ def create_app(test_config=None):
     app.register_blueprint(auth_routes.bp, url_prefix='/ui')
 
     # Initialize User Management and Authorization Routes
-    app.user_mgmt = MongoUserMgmt(app.mmongo)
+    if 'USER_DOMAIN_PERMITTED' in app.config:
+        DomainUser.set_permitted_domain(app.config['USER_DOMAIN_PERMITTED'])
+        app.user_mgmt = MongoUserMgmt(app.mmongo, DomainUser)
+    else:
+        app.user_mgmt = MongoUserMgmt(app.mmongo)
     auth_routes.initialize(app)
 
     return app
