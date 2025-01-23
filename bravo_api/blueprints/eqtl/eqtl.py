@@ -28,6 +28,11 @@ ensg_argmap = {
                               'validator_failed': 'String length must be between 13 and 16.'})
 }
 
+eqtl_cpra_argmap = {
+    'cpra': fields.Str(required=True, validate=lambda x: len(x) > 0,
+                       error_messages={'validator_failed': 'Value must be a non-empty string.'})
+}
+
 
 @bp.route('/eqtl/susie', methods=['GET'])
 @parser.use_args(eqtl_argmap, location='query')
@@ -57,6 +62,20 @@ def get_cond_count(args: dict) -> Response:
     return make_response(jsonify(result))
 
 
+@bp.route('/eqtl/susie_by_id', methods=['GET'])
+@parser.use_args(eqtl_cpra_argmap, location='query')
+def get_susie_by_id(args: dict) -> Response:
+    result = susie_by_id(args['cpra'])
+    return make_response(jsonify(result))
+
+
+@bp.route('/eqtl/cond_by_id', methods=['GET'])
+@parser.use_args(eqtl_cpra_argmap, location='query')
+def get_cond_by_id(args: dict) -> Response:
+    result = cond_by_id(args['cpra'])
+    return make_response(jsonify(result))
+
+
 def susie(gene_name: str) -> list:
     """ Lookup eqtl data from SuSie analysis.
     @param gene_name.  Short name of gene e.g. UBQLNL
@@ -79,6 +98,36 @@ def susie(gene_name: str) -> list:
         return []
     else:
         return answer['eqtls']
+
+
+def susie_by_id(cpra: str) -> dict:
+    """ Lookup single Susie eqtl by positional id.
+    @param cpra.  Positional id in the form of chrom_pos_ref_alt
+    """
+    pipeline = [{'$match': {'variant_id': cpra}}, {'$project': {'_id': False}}]
+    cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
+    cursor.limit = 1
+    answer = next(cursor, None)
+
+    if answer is None:
+        return {}
+    else:
+        return answer
+
+
+def cond_by_id(cpra: str) -> dict:
+    """ Lookup single Susie eqtl by positional id.
+    @param cpra.  Positional id in the form of chrom_pos_ref_alt
+    """
+    pipeline = [{'$match': {'variant_id': cpra}}, {'$project': {'_id': False}}]
+    cursor = current_app.mmongo.db.eqtl_cond.aggregate(pipeline)
+    cursor.limit = 1
+    answer = next(cursor, None)
+
+    if answer is None:
+        return {}
+    else:
+        return answer
 
 
 def cond(gene_name: str) -> list:
