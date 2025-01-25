@@ -106,11 +106,10 @@ def susie_by_id(cpra: str) -> dict:
     """
     pipeline = [{'$match': {'variant_id': cpra}}, {'$project': {'_id': False}}]
     cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
-    cursor.limit = 1
-    answer = next(cursor, None)
+    answer = [item for item in cursor]
 
     if answer is None:
-        return {}
+        return []
     else:
         return answer
 
@@ -121,11 +120,10 @@ def cond_by_id(cpra: str) -> dict:
     """
     pipeline = [{'$match': {'variant_id': cpra}}, {'$project': {'_id': False}}]
     cursor = current_app.mmongo.db.eqtl_cond.aggregate(pipeline)
-    cursor.limit = 1
-    answer = next(cursor, None)
+    answer = [item for item in cursor]
 
     if answer is None:
-        return {}
+        return []
     else:
         return answer
 
