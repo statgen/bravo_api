@@ -23,9 +23,11 @@ eqtl_argmap = {
 }
 
 ensg_argmap = {
-    'ensembl': fields.Str(required=True, validate=lambda x: len(x) > 12 and len(x) < 17,
+    'ensembl': fields.Str(required=True,
+                          validate=lambda x: len(x) > 12 and len(x) < 17 and x.startswith("ENSG"),
                           error_messages={
-                              'validator_failed': 'String length must be between 13 and 16.'})
+                              'validator_failed': 'Expecting string starting with ENSG and \
+                              length 13 to 16.'})
 }
 
 eqtl_cpra_argmap = {
@@ -37,14 +39,20 @@ eqtl_cpra_argmap = {
 @bp.route('/eqtl/susie', methods=['GET'])
 @parser.use_args(eqtl_argmap, location='query')
 def get_susie(args: dict) -> Response:
-    result = susie(args['gene'])
+    if args['gene'].startswith("ENSG"):
+        result = susie_ensembl(args['gene'])
+    else:
+        result = susie(args['gene'])
     return make_response(jsonify(result))
 
 
 @bp.route('/eqtl/cond', methods=['GET'])
 @parser.use_args(eqtl_argmap, location='query')
 def get_cond(args: dict) -> Response:
-    result = cond(args['gene'])
+    if args['gene'].startswith("ENSG"):
+        result = cond_ensembl(args['gene'])
+    else:
+        result = cond(args['gene'])
     return make_response(jsonify(result))
 
 
@@ -151,11 +159,15 @@ def cond(gene_name: str) -> list:
 def susie_ensembl(ensembl_id: str) -> list:
     pipeline = [{'$match': {'phenotype_id': ensembl_id}}, {'$project': {'_id': False}}]
     cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
-    result = next(cursor, None)
-    if result is None:
-        return []
-    else:
-        return result
+    answer = [item for item in cursor]
+    return answer
+
+
+def cond_ensembl(ensembl_id: str) -> list:
+    pipeline = [{'$match': {'phenotype_id': ensembl_id}}, {'$project': {'_id': False}}]
+    cursor = current_app.mmongo.db.eqtl_cond.aggregate(pipeline)
+    answer = [item for item in cursor]
+    return answer
 
 
 def susie_count(ensembl_id: str) -> int:
