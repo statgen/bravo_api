@@ -71,8 +71,22 @@ def get_susie_by_id(args: dict) -> Response:
 
 @bp.route('/eqtl/region', methods=['GET'])
 @parser.use_args(region_argmap, location='query')
-def eqtl_region(args: dict) -> Response:
+def region(args: dict) -> Response:
     result = eqtl_in_region(args['chrom'], args['start'], args['stop'])
+    return make_response(jsonify(result))
+
+
+@bp.route('/eqtl/region_count', methods=['GET'])
+@parser.use_args(region_argmap, location='query')
+def region_count(args: dict) -> Response:
+    result = count_in_region(args['chrom'], args['start'], args['stop'])
+    return make_response(jsonify(result))
+
+
+@bp.route('/eqtl/region_tissue_count', methods=['GET'])
+@parser.use_args(region_argmap, location='query')
+def region_tissue_count(args: dict) -> Response:
+    result = count_tissue_in_region(args['chrom'], args['start'], args['stop'])
     return make_response(jsonify(result))
 
 
@@ -133,6 +147,30 @@ def eqtl_in_region(chrom: str, start: int, stop: int) -> list:
     cursor = current_app.mmongo.db.eqtl_susie.aggregate(pos_pipeline)
     answer = [item for item in cursor]
     return answer
+
+
+def count_in_region(chrom: str, start: int, stop: int) -> list:
+    mongo_filter = {'chrom': chrom, 'pos': {'$gte': start, '$lte': stop}}
+    result = current_app.mmongo.db.eqtl_susie.count_documents(mongo_filter)
+    return result
+
+
+def count_tissue_in_region(chrom: str, start: int, stop: int) -> list:
+    pipeline = [{'$match': {'chrom': chrom, 'pos': {'$gte': start, '$lte': stop}}},
+                {'$group': {'_id': '$tissue',
+                            'count': {'$count': {}}
+                            }}
+                ]
+
+    cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
+    answer = {}
+    for item in cursor:
+        answer[item['_id']] = item['count']
+
+    if answer is None:
+        return {}
+    else:
+        return answer
 
 
 ##########################################
