@@ -17,6 +17,10 @@ class Parser(FlaskParser):
 parser = Parser()
 
 
+######################
+# API Arguement Maps #
+######################
+
 eqtl_argmap = {
     'gene': fields.Str(required=True, validate=lambda x: len(x) > 0,
                        error_messages={'validator_failed': 'Value must be a non-empty string.'})
@@ -44,6 +48,10 @@ region_argmap = {
                        error_messages={'invalid_value': 'Value must be greater than 0.'})
 }
 
+
+##################
+# API End Points #
+##################
 
 @bp.route('/eqtl/susie', methods=['GET'])
 @parser.use_args(eqtl_argmap, location='query')
@@ -89,6 +97,17 @@ def region_tissue_count(args: dict) -> Response:
     result = count_tissue_in_region(args['chrom'], args['start'], args['stop'])
     return make_response(jsonify(result))
 
+
+@bp.route('/eqtl/ensembl_tissue_count', methods=['GET'])
+@parser.use_args(ensg_argmap, location='query')
+def ensembl_tissue_count(args: dict) -> Response:
+    result = count_tissue_by_ensembl(args['ensembl'])
+    return make_response(jsonify(result))
+
+
+###################
+# Implementations #
+###################
 
 def susie(gene_name: str) -> list:
     """ Lookup eqtl data from SuSie analysis.
@@ -161,6 +180,21 @@ def count_tissue_in_region(chrom: str, start: int, stop: int) -> list:
                             'count': {'$count': {}}
                             }}
                 ]
+
+    cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
+    answer = {}
+    for item in cursor:
+        answer[item['_id']] = item['count']
+
+    if answer is None:
+        return {}
+    else:
+        return answer
+
+
+def count_tissue_by_ensembl(ensemble_id: str) -> list:
+    pipeline = [{'$match': {'phenotype_id': ensemble_id}},
+                {'$group': {'_id': '$tissue', 'count': {'$count': {}}}}]
 
     cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
     answer = {}
