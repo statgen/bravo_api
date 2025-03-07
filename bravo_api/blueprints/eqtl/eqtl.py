@@ -94,7 +94,7 @@ def region_count(args: dict) -> Response:
 @bp.route('/eqtl/region_tissue_count', methods=['GET'])
 @parser.use_args(region_argmap, location='query')
 def region_tissue_count(args: dict) -> Response:
-    result = count_tissue_in_region(args['chrom'], args['start'], args['stop'])
+    result = count_credible_sets_tissue_region(args['chrom'], args['start'], args['stop'])
     return make_response(jsonify(result))
 
 
@@ -168,28 +168,33 @@ def eqtl_in_region(chrom: str, start: int, stop: int) -> list:
     return answer
 
 
-def count_in_region(chrom: str, start: int, stop: int) -> list:
+def count_in_region(chrom: str, start: int, stop: int) -> int:
     mongo_filter = {'chrom': chrom, 'pos': {'$gte': start, '$lte': stop}}
     result = current_app.mmongo.db.eqtl_susie.count_documents(mongo_filter)
     return result
 
 
-def count_tissue_in_region(chrom: str, start: int, stop: int) -> list:
-    pipeline = [{'$match': {'chrom': chrom, 'pos': {'$gte': start, '$lte': stop}}},
-                {'$group': {'_id': '$tissue',
-                            'count': {'$count': {}}
-                            }}
-                ]
+def count_credible_sets_tissue_region(chrom: str, start: int, stop: int) -> dict:
+    """
+    Provide count of credible sets for each tissue in specified region.
+    """
+    match_spec = {'chrom': chrom, 'pos': {'$gte': start, '$lte': stop}}
+    # Grouping to unique credible sets and counting eqtls
+    group_spec = {'_id': {'tissue': '$tissue', 'pheno': '$phenotype_id', 'cs': '$cs_id'},
+                  'n_eqtl': {'$count': {}}}
+    # Grouping to count credible sets per tissue
+    count_spec = {'_id': '$_id.tissue',
+                  'n_credible_set': {'$count': {}},
+                  'n_eqtl': {'$sum': '$n_eqtl'}}
 
+    pipeline = [{'$match': match_spec}, {'$group': group_spec}, {'$group': count_spec}]
     cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
+
     answer = {}
     for item in cursor:
-        answer[item['_id']] = item['count']
+        answer[item['_id']] = item['n_credible_set']
 
-    if answer is None:
-        return {}
-    else:
-        return answer
+    return answer
 
 
 def count_tissue_by_ensembl(ensemble_id: str) -> list:
