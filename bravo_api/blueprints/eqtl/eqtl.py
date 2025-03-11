@@ -101,7 +101,7 @@ def region_tissue_count(args: dict) -> Response:
 @bp.route('/eqtl/ensembl_tissue_count', methods=['GET'])
 @parser.use_args(ensg_argmap, location='query')
 def ensembl_tissue_count(args: dict) -> Response:
-    result = count_tissue_by_ensembl(args['ensembl'])
+    result = count_credible_sets_tissue_ensembl(args['ensembl'])
     return make_response(jsonify(result))
 
 
@@ -174,12 +174,10 @@ def count_in_region(chrom: str, start: int, stop: int) -> int:
     return result
 
 
-def count_credible_sets_tissue_region(chrom: str, start: int, stop: int) -> dict:
+def count_credible_sets(match_spec: dict) -> dict:
     """
-    Provide count of credible sets for each tissue in specified region.
+    Return count of credible sets for given match specification for a mongodb aggregation.
     """
-    match_spec = {'chrom': chrom, 'pos': {'$gte': start, '$lte': stop}}
-    # Grouping to unique credible sets and counting eqtls
     group_spec = {'_id': {'tissue': '$tissue', 'pheno': '$phenotype_id', 'cs': '$cs_id'},
                   'n_eqtl': {'$count': {}}}
     # Grouping to count credible sets per tissue
@@ -197,19 +195,20 @@ def count_credible_sets_tissue_region(chrom: str, start: int, stop: int) -> dict
     return answer
 
 
-def count_tissue_by_ensembl(ensemble_id: str) -> list:
-    pipeline = [{'$match': {'phenotype_id': ensemble_id}},
-                {'$group': {'_id': '$tissue', 'count': {'$count': {}}}}]
+def count_credible_sets_tissue_region(chrom: str, start: int, stop: int) -> dict:
+    """
+    Provide count of credible sets for each tissue in specified region.
+    """
+    match_region = {'chrom': chrom, 'pos': {'$gte': start, '$lte': stop}}
+    return count_credible_sets(match_region)
 
-    cursor = current_app.mmongo.db.eqtl_susie.aggregate(pipeline)
-    answer = {}
-    for item in cursor:
-        answer[item['_id']] = item['count']
 
-    if answer is None:
-        return {}
-    else:
-        return answer
+def count_credible_sets_tissue_ensembl(ensemble_id: str) -> list:
+    """
+    Provide count of credible sets for each tissue in transcript.
+    """
+    match_ensembl = {'phenotype_id': ensemble_id}
+    return count_credible_sets(match_ensembl)
 
 
 ##########################################
