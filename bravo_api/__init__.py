@@ -17,6 +17,7 @@ from bravo_api.core import CramSourceFactory
 import secrets
 import importlib.resources as pkg_resources
 
+
 dictConfig({
     'version': 1,
     'formatters': {
@@ -41,6 +42,11 @@ dictConfig({
 
 def version():
     return(pkg_resources.read_text(__package__, 'VERSION').strip())
+
+
+def apply_hsts(response):
+    response.headers.set('Strict-Transport-Security', 'max-age=31536000; includeSubdomains')
+    return response
 
 
 def create_app(test_config=None):
@@ -107,5 +113,8 @@ def create_app(test_config=None):
     else:
         app.user_mgmt = MongoUserMgmt(app.mmongo)
     auth_routes.initialize(app)
+
+    # Ensure HSTS header set on all responses
+    app.after_request(apply_hsts)
 
     return app
