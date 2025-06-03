@@ -9,11 +9,9 @@ from bravo_api.models.database import mongo
 from bravo_api.blueprints.legacy_ui import autocomplete, variant_routes, gene_routes, region_routes
 from bravo_api.blueprints.status import status
 from bravo_api.blueprints.eqtl import eqtl
-from bravo_api.blueprints.bailiff import auth_routes
-from bravo_api.blueprints.bailiff import DomainUser
-from bravo_api.blueprints.bailiff import MongoUserMgmt
-from bravo_api.core import CoverageProviderFactory
-from bravo_api.core import CramSourceFactory
+from bravo_api.blueprints.bailiff import auth_routes, DomainUser, MongoUserMgmt
+from bravo_api.core import CoverageProviderFactory, CramSourceFactory
+from bravo_api.blueprints.pubvcf import pubvcf_routes, PubVcfSourceFactory
 import secrets
 import importlib.resources as pkg_resources
 

@@ -4,21 +4,24 @@ Provide Links to VCFs from S3 Bucket.
 import logging
 import boto3
 import re
+from typing import Union
 from flask_caching import Cache
 from cachelib import BaseCache, SimpleCache
 from botocore.exceptions import ClientError
 from botocore.config import Config
 from urllib.parse import urlparse
+from .pubvcf_source import PubVcfSource
 
 logger = logging.getLogger(__name__)
 
 
-class S3PubVcfSource():
+class S3PubVcfSource(PubVcfSource):
 
-    def __init__(self, src: str, cache_klass: [BaseCache, Cache] = SimpleCache):
+    def __init__(self, src: str, cache: Union[BaseCache, Cache]) -> None:
         """
         Depends on credentials providing region that matches the S3 bucket.
         :param src: String. S3 url of the prefix containing the runtime public vcfs
+        :param cache: Cache instance. Defaults to use a new SimpleCache.
         """
         self.client = boto3.client('s3', config=Config(signature_version="v4"))
 
@@ -30,13 +33,17 @@ class S3PubVcfSource():
         logger.debug(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
         print(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
 
-        self.cache = cache_klass(threshold=10)
+        if cache is None:
+            self.cache = SimpleCache(threshold=10)
+        else:
+            self.cache = cache
 
     #
-    # Class Methods
+    # Static Methods
     #
 
-    def _extract_chr(s3_key: str) -> str | None:
+    @staticmethod
+    def _extract_chr(s3_key: str) -> Union[str, None]:
         chr_patt = r'chr[0-9X]{1,2}'
         hit = re.search(chr_patt, s3_key)
         if hit is not None:
@@ -47,7 +54,7 @@ class S3PubVcfSource():
     # Instance Methods
     #
 
-    def _generate_url(self, chrom: str) -> str | None:
+    def _generate_url(self, chrom: str) -> Union[str, None]:
         """
         Generate presigned S3 url to retrieve public VCF for given chromosome.
         """
@@ -64,7 +71,10 @@ class S3PubVcfSource():
             return None
         return resp
 
-    def get_url(self, chrom: str, userid: str) -> str | None:
+    #
+    # ABC Overrides
+    #
+    def get_url(self, chrom: str, userid: str) -> Union[str, None]:
         """
         Cache and Return S3 url to retrieve public VCF for given chromosome.
         """
@@ -77,7 +87,7 @@ class S3PubVcfSource():
 
         return url
 
-    def available_vcfs(self) -> list | None:
+    def available_vcfs(self) -> list:
         """
         Cache and Return available public VCFs.
         """
