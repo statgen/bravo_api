@@ -62,7 +62,7 @@ def create_app(test_config=None):
         app.config.from_object('bravo_api.default_config')
         app.config.from_mapping(test_config)
 
-    # Initialize app cache
+    # Initialize app cache for caching entire responses
     app.cache = Cache(config={"CACHE_TYPE": "SimpleCache"})
     app.cache.init_app(app)
 
@@ -83,6 +83,11 @@ def create_app(test_config=None):
                                               app.config['REFERENCE_SEQUENCE'],
                                               cram_cache)
 
+    # Initialize public vcfs
+    app.pubvcf_source = PubVcfSourceFactory.build(app.config['PUBVCFS_DIR'])
+    app.logger.info(f'PubVCF Source: {app.config["PUBVCFS_DIR"]}')
+    app.logger.info(f'PubVCF Class: {type(app.pubvcf_source)}')
+
     # Initialize CORS and Sessions
     CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
     app.secret_key = app.config['SESSION_SECRET'] or secrets.token_bytes()
@@ -92,7 +97,8 @@ def create_app(test_config=None):
         'variant_routes': [auth_routes.agreement_required],
         'region_routes': [auth_routes.agreement_required],
         'gene_routes': [auth_routes.agreement_required],
-        'eqtl': [auth_routes.agreement_required]
+        'eqtl': [auth_routes.agreement_required],
+        'pubvcf_routes': [auth_routes.agreement_required]
     }
 
     # Setup routes to blueprints. Prefix "ui" are routes for the Vue user interface.
@@ -103,6 +109,7 @@ def create_app(test_config=None):
     app.register_blueprint(region_routes.bp, url_prefix='/ui')
     app.register_blueprint(gene_routes.bp, url_prefix='/ui')
     app.register_blueprint(auth_routes.bp, url_prefix='/ui')
+    app.register_blueprint(pubvcf_routes.bp, url_prefix='/ui')
 
     # Initialize User Management and Authorization Routes
     if 'USER_DOMAIN_PERMITTED' in app.config and not app.config['USER_DOMAIN_PERMITTED'] == "":

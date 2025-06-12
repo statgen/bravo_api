@@ -48,7 +48,7 @@ def init_user_management(app):
 
     login_manager.anonymous_user = BravoAnonUser
     login_manager.user_loader(app.user_mgmt.load)
-    login_manager.init_app(app)
+    login_manager.init_app(app, add_context_processor=True)
 
 
 def user_auth_status():

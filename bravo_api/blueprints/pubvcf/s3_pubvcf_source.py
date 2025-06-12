@@ -31,7 +31,6 @@ class S3PubVcfSource(PubVcfSource):
         self.suffix = "bravo.pub.vcf.gz"
 
         logger.debug(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
-        print(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
 
         if cache is None:
             self.cache = SimpleCache(threshold=10)

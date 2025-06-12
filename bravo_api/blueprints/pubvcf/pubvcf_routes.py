@@ -2,7 +2,8 @@ import logging
 from webargs import fields
 from webargs.flaskparser import FlaskParser
 from marshmallow import RAISE, validate
-from flask import Blueprint, current_app, jsonify, make_response, request
+from flask import Blueprint, current_app, jsonify, make_response
+from flask_login import current_user
 
 bp = Blueprint('pubvcf_routes', __name__)
 logger = logging.getLogger(__name__)
@@ -22,13 +23,13 @@ vcf_argmap = {
 
 
 @bp.route('/link', methods=['GET'])
-@parser.use_args(vcf_argmap, location='query')
-def get_url():
-    # current_app.pubvcf_source.get_url(args['chrom'], request.remote_user)
-    logger.log(f"get vcf url for: {request.remote_user}")
-    return make_response(jsonify({'url': "example.com"}))
+@parser.use_kwargs(vcf_argmap, location='query')
+def get_url(chrom):
+    url = current_app.pubvcf_source.get_url(chrom, current_user.id)
+    return make_response(jsonify({'url': url}))
 
 
 @bp.route('/available', methods=['GET'])
 def availabile_vcfs():
-    return make_response(jsonify([]))
+    vcfs = current_app.pubvcf_source.available_vcfs()
+    return make_response(jsonify(vcfs))
