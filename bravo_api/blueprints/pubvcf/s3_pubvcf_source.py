@@ -23,14 +23,15 @@ class S3PubVcfSource(PubVcfSource):
         :param src: String. S3 url of the prefix containing the runtime public vcfs
         :param cache: Cache instance. Defaults to use a new SimpleCache.
         """
-        self.client = boto3.client('s3', config=Config(signature_version="v4"))
 
         split_url = urlparse(src)
         self.bucket = split_url.netloc
         self.prefix = split_url.path.lstrip('/')
         self.suffix = "bravo.pub.vcf.gz"
-
         logger.debug(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
+
+        # self.client = boto3.client('s3', config=Config(signature_version="v4"))
+        self.client = S3PubVcfSource._get_region_matched_client(self.bucket)
 
         if cache is None:
             self.cache = SimpleCache(threshold=10)
@@ -40,6 +41,16 @@ class S3PubVcfSource(PubVcfSource):
     #
     # Static Methods
     #
+    @staticmethod
+    def _get_region_matched_client(bucket):
+        scout = boto3.client('s3')
+        location_resp = scout.get_bucket_location(Bucket=bucket)
+        bucket_location = location_resp['LocationConstraint']
+        logger.debug(f"S3CramSource Region: {bucket_location}")
+
+        client = boto3.client('s3', config=Config(signature_version="v4",
+                                                  region_name=bucket_location))
+        return client
 
     @staticmethod
     def _extract_chr(s3_key: str) -> Union[str, None]:
