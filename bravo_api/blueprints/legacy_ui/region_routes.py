@@ -54,7 +54,7 @@ coverage_json_argmap = {
     'next': fields.Str(required=True, allow_none=True, validate=validate.Length(min=1),
                        error_messages=common.ERR_EMPTY_MSG),
     'continue_from': fields.Int(required=False, validate=validate.Range(min=1),
-                                error_messages=common.ERR_GT_ZERO_MSG, missing=0),
+                                error_messages=common.ERR_GT_ZERO_MSG, load_default=0),
 }
 
 
@@ -79,7 +79,7 @@ chunked_coverage_json_argmap = {
     'stop': fields.Int(required=True, validate=validate.Range(min=1),
                        error_messages=common.ERR_GT_ZERO_MSG),
     'continue_from': fields.Int(required=False, validate=validate.Range(min=0),
-                                error_messages=common.ERR_GT_ZERO_MSG, missing=0),
+                                error_messages=common.ERR_GT_ZERO_MSG, load_default=0),
 }
 
 
@@ -93,7 +93,7 @@ def chunked_coverage(chrom, start, stop, continue_from):
 
 
 region_snv_histogram_json_argmap = {
-    'filters': fields.List(fields.Dict(), required=False, missing=[]),
+    'filters': fields.List(fields.Dict(), required=False, load_default=[]),
     'windows': fields.Int(required=True, validate=lambda x: x > 0,
                           error_messages=common.ERR_GT_ZERO_MSG)
 }
@@ -113,7 +113,7 @@ def region_variants_histogram(chrom, start, stop, filters, windows):
 
 
 region_snv_summary_json_argmap = {
-    'filters': fields.List(fields.Dict(), required=False, missing=[]),
+    'filters': fields.List(fields.Dict(), required=False, load_default=[]),
 }
 
 
@@ -130,8 +130,8 @@ def region_variants_summary(chrom, start, stop, filters):
 
 
 region_snv_json_argmap = {
-    'filters': fields.List(fields.Dict(), required=False, missing=[]),
-    'sorters': fields.List(fields.Dict(), required=False, missing=[]),
+    'filters': fields.List(fields.Dict(), required=False, load_default=[]),
+    'sorters': fields.List(fields.Dict(), required=False, load_default=[]),
     'size': fields.Int(required=True, validate=validate.Range(min=1),
                        error_messages=common.ERR_GT_ZERO_MSG),
     'next': fields.Dict(required=True, allow_none=True, error_messages=common.ERR_EMPTY_MSG)

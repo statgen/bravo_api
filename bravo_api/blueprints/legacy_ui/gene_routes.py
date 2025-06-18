@@ -38,8 +38,8 @@ gene_snv_summary_view_argmap = {
 }
 
 gene_snv_summary_json_argmap = {
-    'filters': fields.List(fields.Dict(), required=False, missing=[]),
-    'introns': fields.Bool(required=False, missing=True)
+    'filters': fields.List(fields.Dict(), required=False, load_default=[]),
+    'introns': fields.Bool(required=False, load_default=True)
 }
 
 
@@ -62,8 +62,8 @@ gene_snv_histogram_view_argmap = {
 }
 
 gene_snv_histogram_json_argmap = {
-    'filters': fields.List(fields.Dict(), required=False, missing=[]),
-    'introns': fields.Bool(required=False, missing=True),
+    'filters': fields.List(fields.Dict(), required=False, load_default=[]),
+    'introns': fields.Bool(required=False, load_default=True),
     'windows': fields.Int(required=True, validate=lambda x: x > 0,
                           error_messages=common.ERR_GT_ZERO_MSG)
 }
@@ -88,9 +88,9 @@ gene_snv_view_argmap = {
 }
 
 gene_snv_json_argmap = {
-    'filters': fields.List(fields.Dict(), required=False, missing=[]),
-    'sorters': fields.List(fields.Dict(), required=False, missing=[]),
-    'introns': fields.Bool(required=False, missing=True),
+    'filters': fields.List(fields.Dict(), required=False, load_default=[]),
+    'sorters': fields.List(fields.Dict(), required=False, load_default=[]),
+    'introns': fields.Bool(required=False, load_default=True),
     'size': fields.Int(required=True, validate=validate.Range(min=1),
                        error_messages=common.ERR_GT_ZERO_MSG),
     'next': fields.Dict(required=True, allow_none=True, error_messages=common.ERR_EMPTY_MSG)

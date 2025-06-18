@@ -96,7 +96,7 @@ def agreement_required():
         return(make_response(jsonify(resp), 401))
 
 
-login_argmap = {'dest': fields.Str(required=False, missing=None)}
+login_argmap = {'dest': fields.Str(required=False, load_default=None)}
 
 
 @bp.route('/login')

@@ -30,7 +30,6 @@ class S3PubVcfSource(PubVcfSource):
         self.suffix = "bravo.pub.vcf.gz"
         logger.debug(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
 
-        # self.client = boto3.client('s3', config=Config(signature_version="v4"))
         self.client = S3PubVcfSource._get_region_matched_client(self.bucket)
 
         if cache is None:

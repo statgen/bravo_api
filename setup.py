@@ -38,8 +38,7 @@ setuptools.setup(
         'Natural Language :: English',
         # Python versions supported.
         # Not checked by 'pip install'. Use 'python_requires' below.
-        'Programming Language :: Python :: 3.8',
-        'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.13',
         'Programming Language :: Python :: 3 :: Only',
     ],
     keywords='bioinformatics, genomics',
@@ -49,19 +48,18 @@ setuptools.setup(
     package_data={"bravo_api": ["VERSION"]},
 
     # Python versions you support. Pip enforces this.
-    python_requires='>=3.8, <4',
+    python_requires='>=3.13, <4',
 
     install_requires=[
-        'pymongo>=3.11.2', 'click>=7.1.2', 'Flask>=3.0.0',
-        'flask_cors>=3.0.10', 'flask_pymongo>=2.3.0', 'intervaltree>=3.1.0', 'marshmallow>=3.10.0',
-        'pysam>=0.16.0.1', 'python-rapidjson>=1.0', 'webargs>=7.0.1',
-        'authlib>=1.0.0', 'flask-login>=0.6.3', 'requests>=2.25.1', 'boto3>=1.26',
-        'cachelib==0.9.0', 'Flask-Caching>=2.0.2'
+        'authlib>=1.6.0', 'boto3>=1.38', 'cachelib==0.9.0', 'click>=8.2.1', 'Flask>=3.1.1',
+        'Flask-Caching>=2.3.1', 'flask_cors>=6.0.1', 'flask-login>=0.6.3', 'flask_pymongo>=3.0.1',
+        'intervaltree>=3.1.0', 'marshmallow>=4.0.0', 'pymongo>=4.13.0', 'pysam>=0.23.3',
+        'python-rapidjson>=1.20',  'requests>=2.32.4', 'webargs>=8.7.0',
     ],
 
     extras_require={
         'dev': ['check-manifest', 'icecream'],
-        'test': ['mongomock>=3.22.1', 'pytest>=6.2.2', 'pytest-mock==3.5.1',
+        'test': ['mongomock>=3.22.1', 'pytest>=8.4.1', 'pytest-mock>=3.14.1', 'py>=1.11.0',
                  'pytest-mongodb>=2.2.0', 'testfixtures>=6.17.1', 'moto>=5.0.0'],
     },
 
