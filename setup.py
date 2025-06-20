@@ -51,16 +51,17 @@ setuptools.setup(
     python_requires='>=3.13, <4',
 
     install_requires=[
-        'authlib>=1.6.0', 'boto3>=1.38', 'cachelib==0.9.0', 'click>=8.2.1', 'Flask>=3.1.1',
-        'Flask-Caching>=2.3.1', 'flask_cors>=6.0.1', 'flask-login>=0.6.3', 'flask_pymongo>=3.0.1',
-        'intervaltree>=3.1.0', 'marshmallow>=4.0.0', 'pymongo>=4.13.0', 'pysam>=0.23.3',
-        'python-rapidjson>=1.20',  'requests>=2.32.4', 'webargs>=8.7.0',
+        'authlib>=1.6.0', 'boto3>=1.38', 'boto3-refresh-session>=1.2.3', 'cachelib==0.9.0',
+        'click>=8.2.1', 'ec2-metadata>=2.14.0', 'Flask>=3.1.1', 'Flask-Caching>=2.3.1',
+        'flask_cors>=6.0.1', 'flask-login>=0.6.3', 'flask_pymongo>=3.0.1', 'intervaltree>=3.1.0',
+        'marshmallow>=4.0.0', 'pymongo>=4.13.0', 'pysam>=0.23.3', 'python-rapidjson>=1.20',
+        'requests>=2.32.4', 'webargs>=8.7.0'
     ],
 
     extras_require={
         'dev': ['check-manifest', 'icecream'],
         'test': ['mongomock>=3.22.1', 'pytest>=8.4.1', 'pytest-mock>=3.14.1', 'py>=1.11.0',
-                 'pytest-mongodb>=2.2.0', 'testfixtures>=6.17.1', 'moto>=5.0.0'],
+                 'pytest-mongodb>=2.2.0', 'testfixtures>=6.17.1', 'moto>=5.0.0']
     },
 
     entry_points={

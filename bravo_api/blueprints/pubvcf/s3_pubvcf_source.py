@@ -4,6 +4,8 @@ Provide Links to VCFs from S3 Bucket.
 import logging
 import boto3
 import re
+import os
+import boto3_refresh_session as brs
 from typing import Union
 from flask_caching import Cache
 from cachelib import BaseCache, SimpleCache
@@ -11,6 +13,8 @@ from botocore.exceptions import ClientError
 from botocore.config import Config
 from urllib.parse import urlparse
 from .pubvcf_source import PubVcfSource
+from ec2_metadata import ec2_metadata
+
 
 logger = logging.getLogger(__name__)
 
@@ -47,8 +51,31 @@ class S3PubVcfSource(PubVcfSource):
         bucket_location = location_resp['LocationConstraint']
         logger.debug(f"S3CramSource Region: {bucket_location}")
 
-        client = boto3.client('s3', config=Config(signature_version="v4",
-                                                  region_name=bucket_location))
+        try:
+            role_arn = ec2_metadata.instance_profile_arn
+            region_match = ec2_metadata.region == bucket_location
+            role_sess_name = f"{ec2_metadata.instance_id} {os.getpid()}"
+        except IOError:
+            logger.debug("Timeout waiting for EC2 metadat. Not running in EC2.")
+            role_arn = None
+            region_match = False
+
+        if role_arn is not None and not region_match:
+            assume_role_kwargs = {
+                'RoleArn': role_arn,
+                'RoleSessionName': role_sess_name,
+                'DurationSeconds': 360,
+            }
+
+            session = brs.RefreshableSession(
+                assume_role_kwargs=assume_role_kwargs,
+                region_name=bucket_location,
+            )
+
+            client = session.client(service_name='s3')
+        else:
+            client = boto3.client('s3', config=Config(signature_version="v4",
+                                                      region_name=bucket_location))
         return client
 
     @staticmethod
