@@ -48,7 +48,7 @@ setuptools.setup(
     package_data={"bravo_api": ["VERSION"]},
 
     # Python versions you support. Pip enforces this.
-    python_requires='>=3.13, <4',
+    python_requires='>=3.12, <4',
 
     install_requires=[
         'authlib>=1.6.0', 'boto3>=1.38', 'boto3-refresh-session>=1.2.3', 'cachelib==0.9.0',
