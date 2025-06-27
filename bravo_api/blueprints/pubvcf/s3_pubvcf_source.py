@@ -53,14 +53,12 @@ class S3PubVcfSource(PubVcfSource):
 
         try:
             role_arn = ec2_metadata.instance_profile_arn
-            region_match = ec2_metadata.region == bucket_location
             role_sess_name = f"{ec2_metadata.instance_id} {os.getpid()}"
         except IOError:
             logger.debug("Timeout waiting for EC2 metadat. Not running in EC2.")
             role_arn = None
-            region_match = False
 
-        if role_arn is not None and not region_match:
+        if role_arn is not None:
             assume_role_kwargs = {
                 'RoleArn': role_arn,
                 'RoleSessionName': role_sess_name,
