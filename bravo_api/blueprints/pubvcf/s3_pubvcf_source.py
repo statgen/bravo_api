@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 
 class S3PubVcfSource(PubVcfSource):
 
-    def __init__(self, src: str, cache: Union[BaseCache, Cache]) -> None:
+    def __init__(self, src: str, cache: Union[BaseCache, Cache, None] = None) -> None:
         """
         Depends on credentials providing region that matches the S3 bucket.
         :param src: String. S3 url of the prefix containing the runtime public vcfs
@@ -32,48 +32,70 @@ class S3PubVcfSource(PubVcfSource):
         self.bucket = split_url.netloc
         self.prefix = split_url.path.lstrip('/')
         self.suffix = "bravo.pub.vcf.gz"
-        logger.debug(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
-
-        self.client = S3PubVcfSource._get_region_matched_client(self.bucket)
+        self.location = S3PubVcfSource._get_bucket_location(self.bucket)
+        self.is_on_ec2 = S3PubVcfSource._is_running_in_ec2()
 
         if cache is None:
             self.cache = SimpleCache(threshold=10)
         else:
             self.cache = cache
 
+        self.client = S3PubVcfSource._get_region_matched_client(self.bucket)
+
+        logger.debug(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
+
     #
     # Static Methods
     #
     @staticmethod
-    def _get_region_matched_client(bucket):
+    def _is_running_in_ec2():
+        try:
+            ec2_metadata
+            result = True
+        except IOError:
+            logger.debug("Timeout waiting for EC2 metadata. Not running in EC2.")
+            result = False
+        return result
+
+    @staticmethod
+    def _get_bucket_location(bucket):
         scout = boto3.client('s3')
         location_resp = scout.get_bucket_location(Bucket=bucket)
         bucket_location = location_resp['LocationConstraint']
         logger.debug(f"S3CramSource Region: {bucket_location}")
 
+        return bucket_location
+
+    @staticmethod
+    def _generate_session(bucket):
+        bucket_location = S3PubVcfSource._get_bucket_location(bucket)
         try:
             role_arn = ec2_metadata.instance_profile_arn
-            role_sess_name = f"{ec2_metadata.instance_id} {os.getpid()}"
-        except IOError:
-            logger.debug("Timeout waiting for EC2 metadat. Not running in EC2.")
-            role_arn = None
+            role_sess_name = f"{ec2_metadata.instance_id}-{os.getpid()}"
 
-        if role_arn is not None:
             assume_role_kwargs = {
                 'RoleArn': role_arn,
                 'RoleSessionName': role_sess_name,
-                'DurationSeconds': 360,
+                'DurationSeconds': 900,
             }
-
             session = brs.RefreshableSession(
                 assume_role_kwargs=assume_role_kwargs,
                 region_name=bucket_location,
             )
+        except IOError:
+            logger.debug("Timeout waiting for EC2 metadata. Not running in EC2.")
+            session = boto3.session.Session()
 
-            client = session.client(service_name='s3')
-        else:
-            client = boto3.client('s3', config=Config(signature_version="v4",
-                                                      region_name=bucket_location))
+        return session
+
+    @staticmethod
+    def _get_region_matched_client(bucket):
+        bucket_location = S3PubVcfSource._get_bucket_location(bucket)
+        session = S3PubVcfSource._generate_session(bucket)
+        client = session.client(service_name='s3',
+                                config=Config(signature_version="s3v4",
+                                              region_name=bucket_location))
+
         return client
 
     @staticmethod
@@ -99,7 +121,7 @@ class S3PubVcfSource(PubVcfSource):
             resp = self.client.generate_presigned_url(
                 'get_object',
                 Params={'Bucket': self.bucket, 'Key': vcf_key},
-                ExpiresIn=21600)
+                ExpiresIn=900)
         except ClientError as err:
             logger.error(err)
             return None
