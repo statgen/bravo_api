@@ -40,7 +40,7 @@ class S3PubVcfSource(PubVcfSource):
         else:
             self.cache = cache
 
-        self.client = S3PubVcfSource._get_region_matched_client(self.bucket)
+        self.client = S3PubVcfSource._get_region_matched_client(self.location)
 
         logger.debug(f"S3CramSource: {self.bucket} {self.prefix} {self.suffix}")
 
@@ -67,8 +67,7 @@ class S3PubVcfSource(PubVcfSource):
         return bucket_location
 
     @staticmethod
-    def _generate_session(bucket):
-        bucket_location = S3PubVcfSource._get_bucket_location(bucket)
+    def _generate_session(bucket_location):
         try:
             role_arn = ec2_metadata.instance_profile_arn
             role_sess_name = f"{ec2_metadata.instance_id}-{os.getpid()}"
@@ -89,9 +88,8 @@ class S3PubVcfSource(PubVcfSource):
         return session
 
     @staticmethod
-    def _get_region_matched_client(bucket):
-        bucket_location = S3PubVcfSource._get_bucket_location(bucket)
-        session = S3PubVcfSource._generate_session(bucket)
+    def _get_region_matched_client(bucket_location):
+        session = S3PubVcfSource._generate_session(bucket_location)
         client = session.client(service_name='s3',
                                 config=Config(signature_version="s3v4",
                                               region_name=bucket_location))
