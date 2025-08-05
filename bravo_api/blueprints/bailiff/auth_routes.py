@@ -43,7 +43,6 @@ def init_auth(app):
 def init_user_management(app):
     if(hasattr(app, 'user_mgmt') is False):
         app.user_mgmt = DummyUserMgmt()
-        print(f'debug {__name__}')
         app.logger.warning('App does not have user_mgmt configured. Using DummyUserMgmt')
 
     login_manager.anonymous_user = BravoAnonUser
@@ -120,8 +119,6 @@ def acf():
     #   https://github.com/authlib/demo-oauth-client/issues/20
     userinfo = oauth.google.parse_id_token(token, None)
     email = userinfo['email']
-
-    logger.debug(f'Returned oath userinfo: {userinfo}')
 
     # Lookup or store user in user persistence.
     user = current_app.user_mgmt.load(email) or current_app.user_mgmt.create_by_id(email)
