@@ -78,6 +78,7 @@ class S3PubVcfSource(PubVcfSource):
                 'DurationSeconds': 900,
             }
             session = brs.RefreshableSession(
+                defer_refresh=False,
                 assume_role_kwargs=assume_role_kwargs,
                 region_name=bucket_location,
             )
