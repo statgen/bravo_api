@@ -69,8 +69,11 @@ class S3PubVcfSource(PubVcfSource):
     @staticmethod
     def _generate_session(bucket_location):
         try:
-            role_arn = ec2_metadata.instance_profile_arn
-            role_sess_name = f"{ec2_metadata.instance_id}-{os.getpid()}"
+            role_sess_name = "staging_s3_sess"
+            iclient = boto3.client('iam')
+            profile = iclient.get_instance_profile(
+                InstanceProfileName=ec2_metadata.instance_profile_name)
+            role_arn = profile['InstanceProfile']['Roles'][0]['Arn']
 
             assume_role_kwargs = {
                 'RoleArn': role_arn,
