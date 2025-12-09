@@ -12,6 +12,7 @@ from bravo_api.blueprints.eqtl import eqtl
 from bravo_api.blueprints.bailiff import auth_routes, DomainUser, MongoUserMgmt
 from bravo_api.core import CoverageProviderFactory, CramSourceFactory
 from bravo_api.blueprints.pubvcf import pubvcf_routes, PubVcfSourceFactory
+from bravo_api.blueprints.structvar import structvar
 import secrets
 import importlib.resources as pkg_resources
 
@@ -110,6 +111,7 @@ def create_app(test_config=None):
     app.register_blueprint(gene_routes.bp, url_prefix='/ui')
     app.register_blueprint(auth_routes.bp, url_prefix='/ui')
     app.register_blueprint(pubvcf_routes.bp, url_prefix='/ui')
+    app.register_blueprint(structvar.bp, url_prefix='/ui')
 
     # Initialize User Management and Authorization Routes
     if 'USER_DOMAIN_PERMITTED' in app.config and not app.config['USER_DOMAIN_PERMITTED'] == "":
