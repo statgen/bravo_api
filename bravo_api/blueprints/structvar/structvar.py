@@ -27,11 +27,23 @@ sv_region_argmap = {
                        error_messages={'validator_failed': 'Value must be greater than 0.'}),
 }
 
+sv_alignments_argmap = {
+    'svid': fields.Str(required=False, validate=lambda x: len(x) > 0,
+                       error_messages={'validator_failed': 'Value must be a non-empty string.'})
+}
+
 
 @bp.route('/sv/region', methods=['GET'])
 @parser.use_args(sv_region_argmap, location='query')
 def get_sv_region(args: dict) -> Response:
     result = sv_region(current_app.mmongo.db.structvar, args['chrom'], args['start'], args['stop'])
+    return make_response(jsonify(result))
+
+
+@bp.route('/sv/alignments', methods=['GET'])
+@parser.use_args(sv_alignments_argmap, location='query')
+def get_sv_alignments(args: dict) -> Response:
+    result = sv_alignments(current_app.mmongo.db.sv_aligns, args['svid'])
     return make_response(jsonify(result))
 
 
@@ -71,3 +83,7 @@ def sv_region(structvars: pymongo.collection.Collection,
 
     cursor = structvars.aggregate(pipeline)
     return [item for item in cursor]
+
+
+def sv_alignments(aligns: pymongo.collection.Collection, sv_id: str) -> dict:
+    return aligns.find_one({"sv_id": sv_id}, {"_id": 0})
