@@ -11,7 +11,7 @@ BASE_DIR = os.path.join(os.sep, 'var', 'local', 'bravo', 'data', 'runtime')
 COVERAGE_DIR = os.path.join(BASE_DIR, 'coverage')
 SEQUENCES_DIR = os.path.join(BASE_DIR, 'crams')
 
-REFERENCE_SEQUENCE = os.path.join(BASE_DIR, 'reference', 'chr11_hs38DH.fa')
+REFERENCE_SEQUENCE = os.path.join(BASE_DIR, 'reference', 'hs38DH.fa')
 SEQUENCES_CACHE_DIR = os.path.join(BASE_DIR, 'cache')
 
 
