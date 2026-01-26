@@ -7,6 +7,7 @@ import sys
 from bravo_api.models.readers import read_canonical_transcripts, read_omim, read_hgnc, read_gencode, read_snv, read_qc_metrics
 from itertools import chain, islice
 from multiprocessing import Pool
+from functools import partial
 
 
 mongo = PyMongo()
@@ -74,11 +75,13 @@ def load_genes(canonical_transcripts_file, omim_file, genenames_file, gencode_fi
     sys.stdout.write(f"Created 'exons' collection and inserted {mongo.db.exons.count_documents({})} exon(s).\n")
 
 
-def _load_snv(variants_file):
-    _mongo = PyMongo(current_app) # for multiprocessing each thread needs its own client
+# When using multiprocessing, each thread needs its own client
+def load_snv_with_own_client(mongo_uri, variants_file):
     variants = read_snv(variants_file)
-    for variant in variants:
-        _mongo.db.snv.insert_many(chain([variant], islice(variants, 99999))) # insert in chunks of 100,000 variants
+    with pymongo.MongoClient(mongo_uri) as client:
+        db = client.get_default_database('bravo')
+        for variant in variants:
+            db.snv.insert_many(chain([variant], islice(variants, 99999)))
 
 
 @click.command('load-snv')
@@ -93,15 +96,19 @@ def load_snv(threads, variants_files):
 
     threads -- number of parallel threads to use.\n
 
-    variants_files -- one or several VCF/BCF files with single nucleotide variants and short indels.\n
+    variants_files -- VCF/BCF file(s) with single nucleotide variants and short indels.\n
     """
+    mongo_uri = current_app.config.get('MONGO_URI')
+
     mongo.db.snv.drop()
     with Pool(threads) as p:
-        p.map(_load_snv, variants_files)
+        thread_load_snv = partial(load_snv_with_own_client, mongo_uri)
+        p.map(thread_load_snv, variants_files)
+
     mongo.db.snv.create_index([('xpos', pymongo.ASCENDING), ('xstop', pymongo.ASCENDING)])
     mongo.db.snv.create_index([('variant_id', pymongo.ASCENDING)])
     mongo.db.snv.create_index([('rsids', pymongo.ASCENDING)])
-    sys.stdout.write(f"Created 'snv' collection and inserted {mongo.db.snv.count_documents({})} variant(s).\n")
+    sys.stdout.write(f"Loading done: snv collection has {mongo.db.snv.count_documents({})} variants.\n")
 
 
 @click.command('load-qc-metrics')
