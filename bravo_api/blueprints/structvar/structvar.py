@@ -36,7 +36,7 @@ sv_alignments_argmap = {
 @bp.route('/sv/region', methods=['GET'])
 @parser.use_args(sv_region_argmap, location='query')
 def get_sv_region(args: dict) -> Response:
-    result = sv_region(current_app.mmongo.db.structvar, args['chrom'], args['start'], args['stop'])
+    result = sv_region(current_app.mmongo.db.sv_list, args['chrom'], args['start'], args['stop'])
     return make_response(jsonify(result))
 
 
@@ -86,4 +86,5 @@ def sv_region(structvars: pymongo.collection.Collection,
 
 
 def sv_alignments(aligns: pymongo.collection.Collection, sv_id: str) -> dict:
-    return aligns.find_one({"sv_id": sv_id}, {"_id": 0})
+    logger.debug(f"Getting Alignments for {sv_id}")
+    return(aligns.find_one({"sv_id": sv_id}))
