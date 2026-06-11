@@ -29,9 +29,6 @@ class CramSource(ABC):
     """
     Validate and provide read from crams files.
     """
-
-    _window_bp = 100
-
     def __init__(self, src, ref):
         pass
 
@@ -57,7 +54,7 @@ class CramSource(ABC):
 
     @staticmethod
     def extract_sample_id(row, pos, ref, alt, sample_het, sample_no):
-        """ Extract sample_id of variant from variant map row
+        """ Extract sample_id of variant of a row from snv variant map
 
         :param row: Tuple of variant map row
         :param sample_het: T/F indicating if sample ids should be taken from het column.
@@ -74,6 +71,10 @@ class CramSource(ABC):
 
     @staticmethod
     def het_hom_counts(tabix_file, chrom, pos, ref, alt):
+        """ Extract heterozygous and homozogous sample counts from snv variant map
+
+        :param tabix_file: pysam tabix file (snv variant map)
+        """
         result = []
         for row in tabix_file.fetch(chrom, pos - 1, pos):
             if int(row[1]) == pos and row[2] == ref and row[3] == alt:
@@ -86,11 +87,19 @@ class CramSource(ABC):
 
     @staticmethod
     def are_contigs_chr_prefixed(contigs):
+        """ Answers, are the contig names prefixed with "chr"?
+
+        :param contigs: set of strings of contig (chromosome) names.
+        """
         single_val = next(iter(contigs))
         return(single_val.startswith('chr'))
 
     @staticmethod
     def normalize_contig_prefix(contig, use_chr_prefix):
+        """ Ensure contig names are prefixed with "chr"
+
+        :param contigs: set of strings of contig (chromosome) names.
+        """
         if contig.startswith('chr') and not use_chr_prefix:
             return(contig[3:])
         elif not contig.startswith('chr') and use_chr_prefix:
@@ -101,6 +110,9 @@ class CramSource(ABC):
     @staticmethod
     def rectify_stop_byte(start: int, stop: int, data_size: int):
         """ Correct stop index so that given stop index is included in returned data.
+        When slicing bam file, range requests may or may not provide a stop byte.  That value needs
+        to go until the end of the bam data, provide no data, or adjust the stop so the ending
+        byte is included in the slice.
         """
         if stop is None or stop < 0:
             r_stop = data_size
