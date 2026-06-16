@@ -8,7 +8,7 @@ export FLASK_DEBUG=True
 
 export FLASK_APP=bravo_api
 export BRAVO_API_CONFIG_FILE='config.py'
-export BRAVO_API_INSTANCE_DIR='./instance'
+export BRAVO_API_INSTANCE_DIR='/path/to/instance'
 
 # Development server
 flask run --port 9099
