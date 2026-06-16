@@ -12,7 +12,7 @@ from bravo_api.blueprints.eqtl import eqtl
 from bravo_api.blueprints.bailiff import auth_routes, DomainUser, MongoUserMgmt
 from bravo_api.core import CoverageProviderFactory, CramSourceFactory
 from bravo_api.blueprints.pubvcf import pubvcf_routes, PubVcfSourceFactory
-from bravo_api.blueprints.structvar import structvar
+from bravo_api.blueprints.structvar import structvar, FsSvCramSource
 import secrets
 import importlib.resources as pkg_resources
 
@@ -83,6 +83,10 @@ def create_app(test_config=None):
     app.cram_source = CramSourceFactory.build(app.config['SEQUENCES_DIR'],
                                               app.config['REFERENCE_SEQUENCE'],
                                               cram_cache)
+
+    # Initialize structural variant crams
+    app.sv_cram_source = FsSvCramSource(app.config['STRUCTVAR_SEQUENCES_DIR'],
+                                        app.config['REFERENCE_SEQUENCE'])
 
     # Initialize public vcfs
     app.pubvcf_source = PubVcfSourceFactory.build(app.config['PUBVCFS_DIR'])

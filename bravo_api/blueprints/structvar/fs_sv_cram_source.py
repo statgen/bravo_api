@@ -1,4 +1,5 @@
 import logging
+import csv
 from pathlib import Path
 from bravo_api.core.cram_source import (CramSource, CramSourceInaccessibleError,
                                         ReferenceInaccessibleError)
@@ -8,7 +9,7 @@ from cachelib import BaseCache, SimpleCache
 logger = logging.getLogger(__name__)
 
 
-class S3SvCramSource(CramSource):
+class FsSvCramSource(CramSource):
 
     def __init__(self, src: str, ref: str, cache: [BaseCache, Cache] = None):
         self.source = Path(src)
@@ -16,9 +17,15 @@ class S3SvCramSource(CramSource):
         self.idx_path = self.source.joinpath('sv_cram_index.tsv')
         self.ref_path = Path(ref)
 
-        self.validate_structure()
+        self.validate()
+        self.variant_idx = FsSvCramSource.load_variant_index(self.idx_path)
 
-        self.variant_idx = S3SvCramSource.load_variant_index(self.idx_path)
+        logger.debug(f"Loaded index of {len(self.variant_idx)} SVs")
+
+        if(cache is None):
+            self.cache = SimpleCache(threshold=10)
+        else:
+            self.cache = cache
 
     #############
     # Interface #
@@ -38,7 +45,7 @@ class S3SvCramSource(CramSource):
     # Implementation #
     ##################
 
-    def validate_structure(self):
+    def validate(self):
         if(not(self.source.is_dir())):
             msg = (f'FS SV Crams source must be an extant directory: {self.source}')
             raise CramSourceInaccessibleError(msg)
@@ -51,7 +58,7 @@ class S3SvCramSource(CramSource):
             msg = (f'FS SV Crams source must contain sv_cram_index.tsv: {self.variant_map}')
             raise CramSourceInaccessibleError(msg)
 
-        if(not(self.variant_idx.with_suffix('.tsv').is_file())):
+        if(not(self.idx_path.with_suffix('.tsv').is_file())):
             msg = (f'FS SV Crams index must be a tsv: {self.variant_map}.tbi')
             raise CramSourceInaccessibleError(msg)
 
@@ -64,5 +71,10 @@ class S3SvCramSource(CramSource):
             raise ReferenceInaccessibleError(msg)
         return True
 
-    def load_variant_index(self):
-        pass
+    def load_variant_index(idx_path: str) -> dict:
+        ret_val = {}
+        with open(idx_path, newline='') as file:
+            reader = csv.reader(file, delimiter='\t')
+            for row in reader:
+                ret_val[row[0]] = row[1]
+        return ret_val
