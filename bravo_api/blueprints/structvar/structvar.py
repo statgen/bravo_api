@@ -1,7 +1,7 @@
 import logging
 import pymongo
 import re
-from flask import current_app, Blueprint, jsonify, make_response, Response
+from flask import current_app, Blueprint, jsonify, make_response, request, Response, send_file
 from webargs import fields
 from webargs.flaskparser import FlaskParser
 from marshmallow import RAISE
@@ -50,26 +50,32 @@ def get_sv_region(args: dict) -> Response:
     return make_response(jsonify(result))
 
 
-@bp.route('/sv/debug', methods=['GET'])
-def sv_debug():
-    bam_data = current_app.sv_cram_source.putative_extract_cram()
-
-    response = make_response(bam_data, 206)
-    # response.headers['Content-Range'] = \
-    #     f'bytes {result["start_byte"]}-{result["stop_byte"]}/{result["file_size"]}'
-    response.mimetype = 'application/octet-stream'
-    response.direct_passthrough = True
-
+@bp.route('/sv/crai', methods=['GET'])
+@parser.use_args(sv_cram_argmap, location='query')
+def sv_crai(args: dict) -> Response:
+    result = current_app.sv_cram_source.get_crai(args['svid'])
+    response = make_response(send_file(result, as_attachment=False,
+                                       mimetype='application/octet-stream'))
     return response
 
 
 @bp.route('/sv/cram', methods=['GET'])
 @parser.use_args(sv_cram_argmap, location='query')
 def sv_cram(args: dict) -> Response:
+    range_header = request.headers.get('Range', None)
+    start = None
+    stop = None
+    if range_header:
+        m = re.search(r'(\d+)-(\d*)', range_header)
+        if m:
+            start = int(m.group(1))
+            stop = int(m.group(2))
 
-    bam_data = current_app.sv_cram_source.get_cram_data(args['svid'])
+    result = current_app.sv_cram_source.get_cram(args['svid'], None, start, stop)
 
-    response = make_response(bam_data, 206)
+    response = make_response(result['file_bytes'], 206)
+    response.headers['Content-Range'] = \
+        f'bytes {result["start_byte"]}-{result["stop_byte"]}/{result["file_size"]}'
     response.mimetype = 'application/octet-stream'
     response.direct_passthrough = True
 
